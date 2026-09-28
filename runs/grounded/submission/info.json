@@ -1,0 +1,7 @@
+{
+  "model": "HiGO-v2 grounded (dev_35m_lora + calibrator)",
+  "n_proteins": 224309,
+  "n_rows": 84991864,
+  "top_k": 500,
+  "min_score": 0.02
+}

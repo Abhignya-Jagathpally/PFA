@@ -34,6 +34,8 @@ def evaluate(preds: dict[str, pd.DataFrame], gt_file: Path | str, ids_subset=Non
              out_dir: Path | None = None, obo: Path = OBO, ia: Path = IA) -> pd.DataFrame:
     """Returns one row per (method, aspect) with Fmax, weighted Fmax, Smin, coverage.
 
+    P_w/R_w are IA-weighted precision/recall at the weighted-Fmax threshold (tau_w); P/R are the
+    unweighted precision/recall at the unweighted-Fmax threshold.
     `ids_subset` restricts both ground truth and predictions (used for homology/IA strata).
     """
     with tempfile.TemporaryDirectory(dir=PROC) as tmp:
@@ -56,7 +58,9 @@ def evaluate(preds: dict[str, pd.DataFrame], gt_file: Path | str, ids_subset=Non
         rows.append({"method": fname.rsplit(".", 1)[0], "aspect": NS_SHORT.get(ns, ns),
                      "Fmax_w": float(r["f_w"]), "tau_w": float(tau),
                      "Fmax": float(f_row["f"]), "Smin": float(sb.loc[(fname, ns)]["s"]) if sb is not None else np.nan,
-                     "cov": float(f_row["cov_max"])})
+                     "cov": float(f_row["cov_max"]),
+                     "P_w": float(r["pr_w"]), "R_w": float(r["rc_w"]),
+                     "P": float(f_row["pr"]), "R": float(f_row["rc"])})
     res = pd.DataFrame(rows)
     if out_dir is not None:
         Path(out_dir).mkdir(parents=True, exist_ok=True)

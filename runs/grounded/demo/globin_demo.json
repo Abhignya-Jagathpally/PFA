@@ -1,0 +1,762 @@
+{
+  "id": "globin_demo",
+  "length": 147,
+  "domains": [
+    [
+      "IPR050056",
+      "Hemoglobin and related oxygen transporters",
+      1,
+      147
+    ],
+    [
+      "IPR012292",
+      "Globin/Protoglobin",
+      2,
+      147
+    ],
+    [
+      "IPR009050",
+      "Globin-like superfamily",
+      2,
+      147
+    ],
+    [
+      "IPR000971",
+      "Globin",
+      3,
+      147
+    ],
+    [
+      "IPR002337",
+      "Hemoglobin, beta-type",
+      8,
+      146
+    ],
+    [
+      "IPR000971",
+      "Globin",
+      27,
+      141
+    ],
+    [
+      "IPR002337",
+      "Hemoglobin, beta-type",
+      30,
+      46
+    ],
+    [
+      "IPR002337",
+      "Hemoglobin, beta-type",
+      48,
+      63
+    ],
+    [
+      "IPR002337",
+      "Hemoglobin, beta-type",
+      72,
+      89
+    ],
+    [
+      "IPR002337",
+      "Hemoglobin, beta-type",
+      94,
+      99
+    ],
+    [
+      "IPR002337",
+      "Hemoglobin, beta-type",
+      128,
+      144
+    ]
+  ],
+  "terms": [
+    {
+      "go": "GO:0110165",
+      "name": "cellular anatomical structure",
+      "aspect": "C",
+      "score": 0.769,
+      "higo_score": 0.439,
+      "band": "high",
+      "specific": false
+    },
+    {
+      "go": "GO:0005622",
+      "name": "intracellular anatomical structure",
+      "aspect": "C",
+      "score": 0.71,
+      "higo_score": 0.186,
+      "band": "high",
+      "specific": false
+    },
+    {
+      "go": "GO:0005737",
+      "name": "cytoplasm",
+      "aspect": "C",
+      "score": 0.709,
+      "higo_score": 0.186,
+      "band": "high",
+      "specific": false
+    },
+    {
+      "go": "GO:0005829",
+      "name": "cytosol",
+      "aspect": "C",
+      "score": 0.677,
+      "higo_score": 0.135,
+      "band": "medium",
+      "specific": true,
+      "parents": [
+        "GO:0110165 cellular anatomical structure",
+        "GO:0005575 cellular_component"
+      ],
+      "domains": [
+        "IPR002337"
+      ],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "train label"
+        },
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "train label"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "M1",
+        "V21",
+        "G65",
+        "M79",
+        "K83"
+      ]
+    },
+    {
+      "go": "GO:0032991",
+      "name": "protein-containing complex",
+      "aspect": "C",
+      "score": 0.584,
+      "higo_score": 0.027,
+      "band": "medium",
+      "specific": true,
+      "parents": [
+        "GO:0005575 cellular_component"
+      ],
+      "domains": [
+        "IPR002337"
+      ],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "train label"
+        },
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "train label"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "M1",
+        "P52",
+        "H93",
+        "M111",
+        "W131"
+      ]
+    },
+    {
+      "go": "GO:0005576",
+      "name": "extracellular region",
+      "aspect": "C",
+      "score": 0.257,
+      "higo_score": 0.277,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0110165 cellular anatomical structure",
+        "GO:0005575 cellular_component"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "train label"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "train label"
+        },
+        {
+          "protein": "P68871",
+          "species": "Homo sapiens",
+          "identity": 75.5,
+          "source": "train label"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "F4",
+        "R31",
+        "G47",
+        "G65",
+        "G73"
+      ]
+    },
+    {
+      "go": "GO:0005488",
+      "name": "binding",
+      "aspect": "F",
+      "score": 0.724,
+      "higo_score": 0.354,
+      "band": "high",
+      "specific": false
+    },
+    {
+      "go": "GO:0036094",
+      "name": "small molecule binding",
+      "aspect": "F",
+      "score": 0.523,
+      "higo_score": 0.157,
+      "band": "medium",
+      "specific": false
+    },
+    {
+      "go": "GO:0019825",
+      "name": "oxygen binding",
+      "aspect": "F",
+      "score": 0.419,
+      "higo_score": 0.156,
+      "band": "medium",
+      "specific": true,
+      "parents": [
+        "GO:0036094 small molecule binding",
+        "GO:0005488 binding",
+        "GO:0003674 molecular_function"
+      ],
+      "domains": [
+        "IPR012292"
+      ],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "GOA"
+        },
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "GOA"
+        }
+      ],
+      "ligands": [
+        {
+          "chebi": "CHEBI:15379",
+          "name": "O2",
+          "smiles": "O=O"
+        }
+      ],
+      "top_residues": [
+        "P37",
+        "T39",
+        "N103",
+        "G108",
+        "H118"
+      ]
+    },
+    {
+      "go": "GO:0005515",
+      "name": "protein binding",
+      "aspect": "F",
+      "score": 0.333,
+      "higo_score": 0.187,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0005488 binding",
+        "GO:0003674 molecular_function"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "train label"
+        },
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "train label"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "M1",
+        "P52",
+        "G65",
+        "F72",
+        "C94"
+      ]
+    },
+    {
+      "go": "GO:0051179",
+      "name": "localization",
+      "aspect": "P",
+      "score": 0.693,
+      "higo_score": 0.051,
+      "band": "medium",
+      "specific": false
+    },
+    {
+      "go": "GO:0051234",
+      "name": "establishment of localization",
+      "aspect": "P",
+      "score": 0.691,
+      "higo_score": 0.051,
+      "band": "medium",
+      "specific": false
+    },
+    {
+      "go": "GO:0006810",
+      "name": "transport",
+      "aspect": "P",
+      "score": 0.69,
+      "higo_score": 0.051,
+      "band": "medium",
+      "specific": true,
+      "parents": [
+        "GO:0051234 establishment of localization",
+        "GO:0051179 localization",
+        "GO:0008150 biological_process"
+      ],
+      "domains": [
+        "IPR002337"
+      ],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "train label"
+        },
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "train label"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "M19",
+        "G25",
+        "S51",
+        "P52",
+        "H93"
+      ]
+    },
+    {
+      "go": "GO:0009987",
+      "name": "cellular process",
+      "aspect": "P",
+      "score": 0.299,
+      "higo_score": 0.266,
+      "band": "low",
+      "specific": false
+    },
+    {
+      "go": "GO:0050896",
+      "name": "response to stimulus",
+      "aspect": "P",
+      "score": 0.233,
+      "higo_score": 0.314,
+      "band": "low",
+      "specific": false
+    },
+    {
+      "go": "GO:0065007",
+      "name": "biological regulation",
+      "aspect": "P",
+      "score": 0.198,
+      "higo_score": 0.081,
+      "band": "low",
+      "specific": false
+    },
+    {
+      "go": "GO:0006950",
+      "name": "response to stress",
+      "aspect": "P",
+      "score": 0.187,
+      "higo_score": 0.18,
+      "band": "low",
+      "specific": false
+    },
+    {
+      "go": "GO:0008152",
+      "name": "metabolic process",
+      "aspect": "P",
+      "score": 0.186,
+      "higo_score": 0.133,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0009987 cellular process",
+        "GO:0008150 biological_process"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P68871",
+          "species": "Homo sapiens",
+          "identity": 75.5,
+          "source": "train label"
+        },
+        {
+          "protein": "P02089",
+          "species": "Mus musculus",
+          "identity": 72.8,
+          "source": "GOA"
+        },
+        {
+          "protein": "P02091",
+          "species": "Rattus norvegicus",
+          "identity": 72.8,
+          "source": "train label"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "M1",
+        "W38",
+        "T39",
+        "P52",
+        "N103"
+      ]
+    },
+    {
+      "go": "GO:0042221",
+      "name": "response to chemical",
+      "aspect": "P",
+      "score": 0.165,
+      "higo_score": 0.131,
+      "band": "low",
+      "specific": false
+    },
+    {
+      "go": "GO:0050789",
+      "name": "regulation of biological process",
+      "aspect": "P",
+      "score": 0.16,
+      "higo_score": 0.05,
+      "band": "low",
+      "specific": false
+    },
+    {
+      "go": "GO:0032501",
+      "name": "multicellular organismal process",
+      "aspect": "P",
+      "score": 0.155,
+      "higo_score": 0.036,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0008150 biological_process"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "GOA"
+        },
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "GOA"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "F4",
+        "G57",
+        "G65",
+        "F123",
+        "Y146"
+      ]
+    },
+    {
+      "go": "GO:1901700",
+      "name": "response to oxygen-containing compound",
+      "aspect": "P",
+      "score": 0.145,
+      "higo_score": 0.109,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0042221 response to chemical",
+        "GO:0050896 response to stimulus",
+        "GO:0008150 biological_process"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P68871",
+          "species": "Homo sapiens",
+          "identity": 75.5,
+          "source": "train label"
+        },
+        {
+          "protein": "P02091",
+          "species": "Rattus norvegicus",
+          "identity": 72.8,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69905",
+          "species": "Homo sapiens",
+          "identity": 39.7,
+          "source": "train label"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "H3",
+        "F4",
+        "G57",
+        "G65",
+        "H147"
+      ]
+    },
+    {
+      "go": "GO:0050794",
+      "name": "regulation of cellular process",
+      "aspect": "P",
+      "score": 0.144,
+      "higo_score": 0.032,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0050789 regulation of biological process",
+        "GO:0065007 biological regulation",
+        "GO:0008150 biological_process"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "train label"
+        },
+        {
+          "protein": "P04444",
+          "species": "Mus musculus",
+          "identity": 77.6,
+          "source": "train label"
+        },
+        {
+          "protein": "P68871",
+          "species": "Homo sapiens",
+          "identity": 75.5,
+          "source": "GOA"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "H3",
+        "G65",
+        "F72",
+        "Y146",
+        "H147"
+      ]
+    },
+    {
+      "go": "GO:0032502",
+      "name": "developmental process",
+      "aspect": "P",
+      "score": 0.143,
+      "higo_score": 0.04,
+      "band": "low",
+      "specific": false
+    },
+    {
+      "go": "GO:0042592",
+      "name": "homeostatic process",
+      "aspect": "P",
+      "score": 0.127,
+      "higo_score": 0.036,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0008150 biological_process"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "GOA"
+        },
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "GOA"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "H3",
+        "P52",
+        "G65",
+        "M111",
+        "H147"
+      ]
+    },
+    {
+      "go": "GO:0048856",
+      "name": "anatomical structure development",
+      "aspect": "P",
+      "score": 0.126,
+      "higo_score": 0.024,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0032502 developmental process",
+        "GO:0008150 biological_process"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P02100",
+          "species": "Homo sapiens",
+          "identity": 100.0,
+          "source": "GOA"
+        },
+        {
+          "protein": "P02104",
+          "species": "Mus musculus",
+          "identity": 81.6,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69892",
+          "species": "Homo sapiens",
+          "identity": 79.6,
+          "source": "GOA"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "F4",
+        "G65",
+        "G120",
+        "F123",
+        "Y146"
+      ]
+    },
+    {
+      "go": "GO:0006979",
+      "name": "response to oxidative stress",
+      "aspect": "P",
+      "score": 0.124,
+      "higo_score": 0.068,
+      "band": "low",
+      "specific": true,
+      "parents": [
+        "GO:0006950 response to stress",
+        "GO:0050896 response to stimulus",
+        "GO:0008150 biological_process"
+      ],
+      "domains": [],
+      "orthologs": [
+        {
+          "protein": "P68871",
+          "species": "Homo sapiens",
+          "identity": 75.5,
+          "source": "train label"
+        },
+        {
+          "protein": "P02091",
+          "species": "Rattus norvegicus",
+          "identity": 72.8,
+          "source": "GOA"
+        },
+        {
+          "protein": "P69905",
+          "species": "Homo sapiens",
+          "identity": 39.7,
+          "source": "train label"
+        }
+      ],
+      "ligands": [],
+      "top_residues": [
+        "H3",
+        "F4",
+        "G57",
+        "G65",
+        "H147"
+      ]
+    }
+  ]
+}

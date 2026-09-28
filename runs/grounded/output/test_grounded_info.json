@@ -1,0 +1,9 @@
+{
+  "proteins": 8058,
+  "terms": 402748,
+  "terms_per_protein": 49.98113675850087,
+  "specific_with_domain": 0.12211080028624802,
+  "specific_with_ortholog": 0.8174611288208998,
+  "specific_with_ligand": 0.024340374910547496,
+  "set_closure_violations": 0
+}

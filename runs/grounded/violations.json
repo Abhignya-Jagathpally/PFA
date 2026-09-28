@@ -1,0 +1,11 @@
+{
+  "naive": 0,
+  "diamond+naive": 0,
+  "dev_35m_lora": 0,
+  "dev_35m_lora+knn_gate": 0,
+  "grounded": 0,
+  "grounded_no_domain": 0,
+  "grounded_no_ortholog": 0,
+  "grounded_no_ligand": 0,
+  "grounded_gate_only": 0
+}
