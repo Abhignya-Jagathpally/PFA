@@ -1,0 +1,21 @@
+name: dev_35m_lora
+plm: facebook/esm2_t12_35M_UR50D
+adapter: lora          # lora | dora | frozen
+lora_r: 8              # alpha = 2r, dropout 0.05, targets query/value
+d: 256
+pooling: entmax        # entmax | softmax | mean
+hier_query: true
+use_mcm: true
+use_taxon: true
+ia_weight: true
+max_len: 1022          # ESM2 context; p95 train length is 1320 -> crop (train) / sliding windows (eval)
+tokens_per_batch: 16384
+max_batch: 32
+grad_accum: 1
+lr: 3.0e-4             # adapter LR (LoRA range 1e-4..5e-4)
+head_lr: 1.0e-3
+warmup_frac: 0.06
+epochs: 15
+patience: 3
+taxon_dropout: 0.1
+seed: 0

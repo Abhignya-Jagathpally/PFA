@@ -1,0 +1,57 @@
+{
+  "n_cases": 511,
+  "k_frac": 0.1,
+  "mean_nonzero_frac": 0.39286508714482643,
+  "mean_attn_mass_top": 0.7597022744190903,
+  "input": {
+    "mean_drop_top": -0.0002673873522933099,
+    "mean_drop_random": 0.010027993492300963,
+    "frac_top_gt_random": 0.3522504892367906,
+    "wilcoxon_p": 0.999999996743363
+  },
+  "pool": {
+    "mean_drop_top": 0.06712962647212771,
+    "mean_drop_random": 0.0004722236303900553,
+    "frac_top_gt_random": 0.4794520547945205,
+    "wilcoxon_p": 0.006696461814384577
+  },
+  "by_aspect": {
+    "sparsity_nonzero_frac": {
+      "C": 0.3469,
+      "F": 0.5106,
+      "P": 0.3146
+    },
+    "attn_mass_top": {
+      "C": 0.7895,
+      "F": 0.6737,
+      "P": 0.822
+    },
+    "drop_top_input": {
+      "C": 0.0419,
+      "F": -0.0207,
+      "P": -0.0325
+    },
+    "drop_random_input": {
+      "C": 0.0165,
+      "F": 0.0077,
+      "P": 0.0041
+    },
+    "drop_top_pool": {
+      "C": 0.0211,
+      "F": 0.125,
+      "P": 0.0601
+    },
+    "drop_random_pool": {
+      "C": -0.0002,
+      "F": -0.0003,
+      "P": 0.0023
+    }
+  },
+  "interpro": {
+    "n_cases": 163,
+    "mean_coverage": 0.4760074549034136,
+    "mean_attn_mass_in": 0.5087863933933471,
+    "median_enrichment": 1.126695856508219,
+    "frac_enrichment_gt1": 0.5705521472392638
+  }
+}

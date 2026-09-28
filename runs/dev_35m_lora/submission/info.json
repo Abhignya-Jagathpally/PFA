@@ -1,0 +1,8 @@
+{
+  "run": "dev_35m_lora",
+  "n_proteins": 224309,
+  "n_rows": 45957813,
+  "top_k": 500,
+  "min_score": 0.02,
+  "frac_with_diamond_hit": 0.8834019143235448
+}

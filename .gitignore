@@ -1,0 +1,13 @@
+# data, model runs and logs are large and regenerable (see NOTES.md); selected small result
+# tables under runs/ are force-added
+data/
+runs/
+logs/
+
+# third-party binaries (download instructions in NOTES.md)
+tools/diamond
+tools/mmseqs/
+
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

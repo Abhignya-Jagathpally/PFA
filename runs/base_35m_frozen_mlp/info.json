@@ -1,0 +1,12 @@
+{
+  "backbone_params": 33269521,
+  "adapter_trainable": 0,
+  "adapter_frac": 0.0,
+  "head_params": 1867908,
+  "n_train": 65603,
+  "n_val": 8377,
+  "n_terms": 6276,
+  "n_taxa": 42,
+  "best_val_Fw_mean": 0.4884771903355916,
+  "train_time_s": 3874.7913823127747
+}

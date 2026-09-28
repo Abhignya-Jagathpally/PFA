@@ -1,0 +1,46 @@
+{
+  "val": {
+    "MF": {
+      "diamond+naive": 0.5793,
+      "diamond_knn": 0.528,
+      "naive": 0.3448
+    },
+    "BP": {
+      "diamond+naive": 0.3427,
+      "diamond_knn": 0.331,
+      "naive": 0.2184
+    },
+    "CC": {
+      "diamond+naive": 0.4837,
+      "diamond_knn": 0.4506,
+      "naive": 0.3544
+    },
+    "kaggle_mean_Fw": {
+      "diamond+naive": 0.4685,
+      "diamond_knn": 0.4365,
+      "naive": 0.3059
+    }
+  },
+  "test": {
+    "MF": {
+      "diamond+naive": 0.5751,
+      "diamond_knn": 0.5233,
+      "naive": 0.3631
+    },
+    "BP": {
+      "diamond+naive": 0.3281,
+      "diamond_knn": 0.3141,
+      "naive": 0.2245
+    },
+    "CC": {
+      "diamond+naive": 0.4809,
+      "diamond_knn": 0.45,
+      "naive": 0.3617
+    },
+    "kaggle_mean_Fw": {
+      "diamond+naive": 0.4614,
+      "diamond_knn": 0.4291,
+      "naive": 0.3164
+    }
+  }
+}

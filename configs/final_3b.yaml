@@ -1,0 +1,23 @@
+name: final_3b
+plm: facebook/esm2_t36_3B_UR50D
+adapter: lora          # set from the 35M adapter comparison (see NOTES.md)
+lora_r: 8
+lora_targets: [query, value]
+d: 256
+pooling: entmax
+hier_query: true
+use_mcm: true
+use_taxon: true
+ia_weight: true
+max_len: 1022
+tokens_per_batch: 16384
+max_batch: 32
+grad_accum: 1
+grad_ckpt: true
+lr: 2.0e-4
+head_lr: 1.0e-3
+warmup_frac: 0.06
+epochs: 5
+patience: 2
+taxon_dropout: 0.1
+seed: 0
