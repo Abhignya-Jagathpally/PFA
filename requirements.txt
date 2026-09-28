@@ -15,4 +15,5 @@ safetensors==0.8.0
 scikit-learn==1.9.1
 scipy==1.18.1
 torch==2.13.0
+torch_geometric==2.8.0.post1
 transformers==5.17.0

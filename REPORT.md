@@ -202,3 +202,92 @@ our clustered test split. The upload needs the user's Kaggle token:
   threshold (reported by identity stratum). The evidence maps over-weight residue 1.
 - **Unused resources.** CD-HIT was not needed (MMseqs2 handles <40% identity). InterPro regions were used only
   for evaluation, because the public API is too slow for the 224k test proteins.
+
+## 7. Pilots for a second model version
+
+Four ideas were tried at small scale to decide what goes into the next full run. None of them is a full retrain.
+
+### 7.1 GO-graph attention and slot pooling
+
+HiGO shares information along the ontology with a fixed ancestor-mean operator and the max constraint.
+BioReason-Pro (a GAT over the GO graph) and POSA-GO / TRGOA (attention over the partial order) suggest learning
+this instead. Separately, pooling over all residues can wash out small functional regions in long multi-domain
+proteins; BioBlobs (arXiv:2510.01632) pools residues into a few learned slots without needing a domain database.
+
+Both are opt-in `HiGO` options that are off by default: `use_go_gat` (two `GATConv` layers over the 6,276-term
+graph applied to the term queries) and `pooling="slots"` (8 slot queries pool residues with entmax; term
+queries then attend over the slots). Pilot: 20k training / 4k validation proteins, 4 epochs, seed 0, validation
+IA-weighted Fmax from the training loop (comparable across the three runs, not with the test numbers above).
+
+| run | MF | BP | CC | mean | vs baseline |
+|---|---|---|---|---|---|
+| baseline | 0.5354 | 0.3389 | 0.5541 | **0.4761** | - |
+| + GO-graph GAT | 0.5044 | 0.3283 | 0.5418 | 0.4582 | -0.018 |
+| + slot pooling | 0.5186 | 0.3355 | 0.5455 | 0.4665 | -0.010 |
+
+Neither helps at this budget. The GAT result says more about the implementation than the idea: each layer
+computes `gelu(LayerNorm(conv(x) + x))`, which rescales the small initial queries to unit variance and clips
+their negative part, so the queries are replaced rather than refined (epoch-0 loss 0.49 vs 0.06). The gap
+closes every epoch (0.040 to 0.018). A gated residual `q + g * GAT(q)` with `g` starting at 0 is the next thing
+to try. Slot pooling is within what one seed can tell apart, and all runs were still improving at epoch 4. A
+slots model also loses the residue-level evidence maps from section 4.3.
+
+### 7.2 Ortholog channel
+
+`comparative.py` runs DIAMOND against the training proteins of 10 model organisms (human, mouse, rat, fly,
+worm, Arabidopsis, budding and fission yeast, E. coli K-12, M. tuberculosis) and drops same-species hits.
+70% of validation and 71% of test proteins get at least one hit.
+
+| method (Kaggle mean) | val | test |
+|---|---|---|
+| naive | 0.3059 | 0.3164 |
+| ortholog kNN alone | 0.3815 | 0.3777 |
+| DIAMOND kNN, no naive blend | 0.4365 | 0.4292 |
+| DIAMOND + naive | **0.4685** | **0.4614** |
+| DIAMOND + orthologs + naive | 0.4644 | 0.4569 |
+
+With the same naive blend on both arms, the ortholog channel lowers the score by 0.004 on both splits. An
+earlier version of this analysis compared against the unblended DIAMOND row and reported +0.028; that gain came
+from the naive prior. The result is expected in hindsight: the panel is a subset of the training set that
+DIAMOND already searches, so the channel re-weights existing neighbours instead of finding new ones, and 82%
+of the validation/test proteins come from these same organisms. It will not be added to the model.
+
+### 7.3 Sparse autoencoder on the adapted residue embeddings
+
+Section 4.3 found that masking the top-evidence residues in the input does not change predictions.
+SAEs trained on PLM activations (InterPLM, 2024) can split superposed directions into more interpretable
+latents, so `sae.py` trains a 256 -> 4096 -> 256 ReLU SAE (L1 3e-3, 4,000 steps) on HiGO's adapted residue
+embeddings for 3,000 validation proteins (1.26M residues).
+
+The dictionary did not come out sparse. 371 latents fire on more than 20% of residues and the remaining 3,725
+on less than 0.5%, so about 371 latents are active per residue for a 256-dimensional input, and the
+reconstruction is essentially lossless (99.9% variance explained). The 50 analysed latents are all from the
+rare group:
+
+| latent | most enriched GO term | enrichment | null (random sets) | proteins with term | proteins where latent fires |
+|---|---|---|---|---|---|
+| 1063 | GO:0004497 monooxygenase activity | 10.15x | 2.7x | 50 | 260 |
+| 1021 | GO:0015370 solute:sodium symporter activity | 8.04x | 2.4x | 32 | 338 |
+| 2334 | GO:0004497 monooxygenase activity | 7.75x | 2.7x | 50 | 271 |
+| 3235 | GO:0015370 solute:sodium symporter activity | 7.68x | 2.7x | 32 | 244 |
+| 3191 | GO:0004672 protein kinase activity | 7.51x | 2.7x | 38 | 284 |
+
+Across the 50 latents, best-term enrichment averages 5.52x against 2.59x for random protein sets of the same
+size (the best of several hundred terms is inflated even by chance), and every latent is above the 95th
+percentile of its permutation null. But the 50 latents cover only 15 terms, 17 of them protein kinase activity,
+and fire on about 2 residues per protein, rarely adjacent. So a few directions track large protein families.
+This is protein-level correlation in a representation trained on these labels. It does not tell us which
+residues drive a prediction, so it does not settle the masking result. Worth repeating with a much stronger
+sparsity penalty (or a top-k SAE) and with latents selected on one set and scored on another.
+
+### 7.4 Summary
+
+| pilot | result | next step |
+|---|---|---|
+| GO-graph GAT | -0.018 val Fmax | gated residual, zero-initialised |
+| Slot pooling | -0.010 val Fmax, one seed | more seeds / longer schedule before deciding |
+| Ortholog channel | -0.004 Kaggle mean on val and test vs DIAMOND + naive | drop |
+| SAE | family-level latents, 2x above permutation null; dictionary not sparse | stronger sparsity, held-out scoring |
+
+None of the four is ready to go into the main model yet. The GAT is the only one with a concrete fix to try.
+

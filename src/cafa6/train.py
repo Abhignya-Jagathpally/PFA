@@ -173,6 +173,7 @@ def main():
     vocab = pd.read_csv(PROC / "vocab.tsv", sep="\t")
     Y = sp.load_npz(PROC / "Y.npz").tocsr()
     anc = np.load(PROC / "go_ancestors.npy")
+    go_edges = np.load(PROC / "go_edges.npy") if cfg.get("use_go_gat") else None   # proc_gogpt has no edges file
     ia = vocab.ia.values.astype(np.float32)
     aspect = vocab.aspect.values
     tmap = taxon_index(df[df.split == "train"])
@@ -203,7 +204,9 @@ def main():
                  lora_r=cfg.get("lora_r", 8), d=cfg.get("d", 256), hier_query=cfg.get("hier_query", True),
                  pooling=cfg.get("pooling", "entmax"), use_mcm=cfg.get("use_mcm", True),
                  use_taxon=cfg.get("use_taxon", True),
-                 lora_targets=cfg.get("lora_targets", ["query", "value"])).to(device)
+                 lora_targets=cfg.get("lora_targets", ["query", "value"]), go_edges=go_edges,
+                 use_go_gat=cfg.get("use_go_gat", False), gat_layers=cfg.get("gat_layers", 2),
+                 gat_heads=cfg.get("gat_heads", 4), n_slots=cfg.get("n_slots", 8)).to(device)
     if cfg.get("grad_ckpt"):
         model.plm.gradient_checkpointing_enable()
         if hasattr(model.plm, "enable_input_require_grads"):

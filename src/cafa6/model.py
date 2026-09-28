@@ -36,7 +36,8 @@ class HiGO(nn.Module):
     def __init__(self, plm_name: str, n_terms: int, anc_pairs: np.ndarray, ia: np.ndarray, n_taxa: int,
                  adapter: str = "lora", lora_r: int = 8, d: int = 256, hier_query: bool = True,
                  pooling: str = "entmax", use_mcm: bool = True, use_taxon: bool = True, entmax_alpha: float = 1.5,
-                 lora_targets=("query", "value")):
+                 lora_targets=("query", "value"), go_edges: np.ndarray | None = None, use_go_gat: bool = False,
+                 gat_layers: int = 2, gat_heads: int = 4, n_slots: int = 8):
         super().__init__()
         self.plm = build_backbone(plm_name, adapter, r=lora_r, alpha=2 * lora_r, targets=tuple(lora_targets))
         h = self.plm.config.hidden_size
@@ -49,6 +50,17 @@ class HiGO(nn.Module):
         self.hier_query, self.pooling, self.use_mcm, self.use_taxon = hier_query, pooling, use_mcm, use_taxon
         self.entmax_alpha = entmax_alpha
         self.taxon_emb = nn.Embedding(n_taxa, d) if use_taxon else None
+        # --- pilot: GO-DAG graph conditioning (opt-in, additive refinement of the ancestor-mean query) ---
+        self.use_go_gat = use_go_gat
+        if use_go_gat:
+            from cafa6.go_graph import GOGraphEncoder
+            assert go_edges is not None, "use_go_gat=True requires go_edges"
+            self.go_gat = GOGraphEncoder(n_terms, d, go_edges, n_layers=gat_layers, heads=gat_heads)
+        # --- pilot: slot-based domain-aware pooling (opt-in, selected via pooling="slots") ---
+        self.n_slots = n_slots
+        if pooling == "slots":
+            self.slot_query = nn.Parameter(torch.randn(n_slots, d) * 0.02)
+            self.slot_key = nn.Linear(d, d, bias=False)
         # ancestor-mean operator A (T x T, row-normalised) as sparse buffer
         c, a = anc_pairs[:, 0], anc_pairs[:, 1]
         deg = np.bincount(c, minlength=n_terms).astype(np.float32)
@@ -66,6 +78,8 @@ class HiGO(nn.Module):
         if self.hier_query:
             with torch.autocast("cuda", enabled=False):
                 q = q + torch.sparse.mm(self.A, self.term_emb.float())
+        if self.use_go_gat:
+            q = self.go_gat(q)
         return q
 
     def mcm(self, p: torch.Tensor) -> torch.Tensor:
@@ -76,15 +90,24 @@ class HiGO(nn.Module):
 
     def forward(self, input_ids, attention_mask, res_mask, taxon=None, return_attn: bool = False,
                 term_chunk: int = 2048):
-        """res_mask marks real residues (no <cls>/<eos>/<pad>), so padding never receives evidence."""
+        """res_mask marks sequence residues (no <cls>/<eos>/<pad>), so padding never receives evidence."""
         H = self.plm(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
         H = self.proj(H.float())                                   # B x L x d
         mask = res_mask.bool()
         K = self.key(H)                                           # B x L x d
         q = self.queries()                                        # T x d
         ctx = self.taxon_emb(taxon) if (self.use_taxon and taxon is not None) else None
-        logits, attns = [], []
         scale = self.d ** -0.5
+        if self.pooling == "slots":
+            # BioBlobs-inspired: learn n_slots residue-region summaries (unsupervised, from the same
+            # masked entmax-1.5 mechanism as per-term pooling), then let term queries attend over the
+            # compact slots instead of raw residue positions.
+            sc_s = torch.einsum("nd,bld->bnl", self.slot_query, K) * scale
+            sc_s = sc_s.masked_fill(~mask[:, None, :], -1e4)
+            a_s = entmax_bisect(sc_s, alpha=self.entmax_alpha, dim=-1, n_iter=30)
+            S = torch.einsum("bnl,bld->bnd", a_s, H)              # B x n_slots x d
+            Kt = self.slot_key(S)                                 # B x n_slots x d
+        logits, attns = [], []
         for s in range(0, self.n_terms, term_chunk):
             qc = q[s:s + term_chunk]
             if self.pooling == "mean":
@@ -92,6 +115,10 @@ class HiGO(nn.Module):
                 v = (H * m[..., None]).sum(1) / m.sum(1, keepdim=True).clamp(min=1)   # B x d
                 v = v[:, None, :].expand(-1, qc.size(0), -1)
                 a = None
+            elif self.pooling == "slots":
+                sc = torch.einsum("td,bnd->btn", qc, Kt) * scale
+                a = entmax_bisect(sc, alpha=self.entmax_alpha, dim=-1, n_iter=30)
+                v = torch.einsum("btn,bnd->btd", a, S)            # B x t x d
             else:
                 sc = torch.einsum("td,bld->btl", qc, K) * scale
                 sc = sc.masked_fill(~mask[:, None, :], -1e4)

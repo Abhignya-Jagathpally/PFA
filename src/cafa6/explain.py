@@ -35,7 +35,10 @@ def load_run(name, device="cuda"):
                  n_taxa=len(tmap) + 1, adapter=cfg["adapter"], lora_r=cfg.get("lora_r", 8), d=cfg.get("d", 256),
                  hier_query=cfg.get("hier_query", True), pooling=cfg.get("pooling", "entmax"),
                  use_mcm=cfg.get("use_mcm", True), use_taxon=cfg.get("use_taxon", True),
-                 lora_targets=cfg.get("lora_targets", ["query", "value"]))
+                 lora_targets=cfg.get("lora_targets", ["query", "value"]),
+                 go_edges=np.load(PROC / "go_edges.npy") if cfg.get("use_go_gat") else None,
+                 use_go_gat=cfg.get("use_go_gat", False), gat_layers=cfg.get("gat_layers", 2),
+                 gat_heads=cfg.get("gat_heads", 4), n_slots=cfg.get("n_slots", 8))
     model.load_state_dict(torch.load(run / "trainable_weights.pt"), strict=False)
     return model.to(device).eval(), cfg, vocab, tmap, AutoTokenizer.from_pretrained(cfg["plm"])
 
