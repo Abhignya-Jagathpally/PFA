@@ -1,0 +1,51 @@
+flowchart TD
+    SEQ["Protein sequence<br/>(windows of 1,022 residues, stride 511)"]
+    TAX["Organism (taxon id)"]
+    DB[("Label database<br/>train proteins, T0 snapshot<br/>full propagated GO sets")]
+
+    subgraph ENC["Frozen encoder (bf16, no_grad)"]
+        E35["ESM2-35M, 12 layers<br/>(C0 frozen / C1 LoRA q,v r8)"]
+        E3B["ESM2-3B truncated after block 30<br/>scalar mix of blocks 18 / 22 / 26 / 30"]
+    end
+
+    subgraph HEAD["HiGO head (trainable)"]
+        PROJ["Projection to d = 256<br/>+ taxon embedding"]
+        Q["Hierarchical term queries<br/>(ancestor mean, 7,901 terms)"]
+        POOL["Per-term attention pooling over residues<br/>(entmax-1.5; residue evidence maps)"]
+        ZH["HiGO logit z_t"]
+    end
+
+    subgraph RET["Retrieval"]
+        DIA["DIAMOND hits<br/>(self hits removed)"]
+        KNN["Sharpened kNN prior T5_k50_g0_na<br/>w = bits x exp((pid - max pid)/5), top 50, aspect norm"]
+    end
+
+    FUSE["In-network fusion (L4a)<br/>z_t + lambda_t(identity) logit p_knn + g_t . phi_t<br/>identity caps during training"]
+    MCM["MCM: max-constraint over GO ancestors<br/>(trained with IA-weighted MCLoss)"]
+    STK["TV v2 stacker, cross-fitted, test-like weights<br/>identity-gated twin (model c) or fusion / twin<br/>candidates: HiGO top-300 union kNN terms, full ontology"]
+    ISO["Per-(aspect, identity bin) isotonic map<br/>fit on TV v2 out-of-fold scores"]
+    PROP["GO max-propagation over the full ontology<br/>(includes out-of-vocabulary kNN terms)"]
+    OUT["Predictions: per-term scores<br/>one Fmax threshold per aspect"]
+
+    SEQ --> E35
+    SEQ --> E3B
+    E35 --> PROJ
+    E3B --> PROJ
+    TAX --> PROJ
+    Q --> POOL
+    PROJ --> POOL --> ZH
+    SEQ -. DIAMOND search .-> DIA
+    DB --> DIA --> KNN
+    ZH --> FUSE
+    KNN --> FUSE
+    FUSE --> MCM
+    MCM -- "HiGO-R logit feature" --> STK
+    KNN -- "p_knn, support, identity features" --> STK
+    STK --> ISO --> PROP --> OUT
+
+    classDef running fill:#fff4cc,stroke:#b38f00;
+    classDef kept fill:#dff3df,stroke:#2e7d32;
+    classDef registered fill:#e3ecfb,stroke:#1f4e9c;
+    class E3B,E35,FUSE running;
+    class Q,POOL,MCM,KNN,DIA,PROP,PROJ kept;
+    class STK,ISO registered;

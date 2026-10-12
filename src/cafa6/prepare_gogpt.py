@@ -36,7 +36,7 @@ def main(min_count: int = 30):
     OUT.mkdir(parents=True, exist_ok=True)
     parts = []
     for split, f in (("train", "data/train-00000-of-00001.parquet"), ("val", "data/validation-00000-of-00001.parquet")):
-        p = hf_hub_download("wanglab/gogpt-training-data", f, repo_type="dataset", local_dir="/tmp/gogpt_train")
+        p = hf_hub_download("wanglab/gogpt-training-data", f, repo_type="dataset", local_dir=str(ROOT / "external/gogpt_tmp_backup/gogpt_train"))
         d = pd.read_parquet(p, columns=["protein_id", "organism", "sequence", "go_bp", "go_mf", "go_cc"])
         d["split"] = split
         parts.append(d)

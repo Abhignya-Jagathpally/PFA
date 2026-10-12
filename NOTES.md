@@ -70,9 +70,9 @@ Validation split: 0.3059 / 0.4365 / 0.4685 respectively.
 | `dev_35m_lora` (q,v r8) | 0.55% | **0.5270** | 8 / 12 (early stop) |
 | `dev_35m_lora_all_r16` (all linear r16) | 4.7% | 0.5253 | 6 / 10 (early stop; val loss rises from epoch 6: over-fits) |
 | `dev_35m_dora` (q,v r8) | 0.59% | 0.5189 at ep 5 (LoRA at ep 5: 0.5194) | stopped after 6 epochs, tracking LoRA to within 0.001 |
-| `base_35m_frozen_mlp` (no adapter, frozen ESM2 + HiGO head) | 0% | 0.4885 | 12 / 15 |
+| `base_35m_frozen_mlp` (no adapter, frozen ESM2 + plain mean-pooling head; no hier. queries, MCM, taxon, IA weight) | 0% | 0.4885 | 12 / 15 |
 
-Decision: plain LoRA on `query,value`, r=8. The user asked to go beyond LoRA only if it helps: DoRA and 8.5x more LoRA capacity did not help at matched budget, while *any* adapter vs none is worth +0.04. The adapter is a second-order factor; the gains come from the head (see ablations). LoRA is kept for the final 3B model (`configs/final_3b.yaml`: 2.95M trainable = 0.10% of 2.84B).
+Decision: plain LoRA on `query,value`, r=8. The user asked to go beyond LoRA only if it helps: DoRA and 8.5x more LoRA capacity did not help at matched budget, while LoRA HiGO vs the frozen plain-head baseline is +0.04; that baseline also lacks the HiGO head, so the +0.04 is not the adapter alone (a frozen backbone with the full HiGO head was not run). LoRA is kept for the final 3B model (`configs/final_3b.yaml`: 2.95M trainable = 0.10% of 2.84B).
 - 3B run: started (0.10% trainable, 36 GB with gradient checkpointing, ~3 s/step on a shared GPU, ~2.5 h/epoch; val Fw 0.485 after epoch 1 vs 35M's 0.445 after epoch 1) and then stopped at the user's request partway into epoch 2. The final model is therefore HiGO-35M (`dev_35m_lora`); `configs/final_3b.yaml` remains for a future run.
 
 ## GO-GPT benchmark on its own test set (`benchmarks/gogpt_eval.py`, `runs/gogpt_cafa5/SUMMARY.md`)
@@ -112,8 +112,8 @@ Gate: per-aspect logistic gate g = sigmoid(w . [max identity/100, has_hit, 1]) f
 |---|---|---|---|---|
 | naive | 0.3631 | 0.2245 | 0.3617 | 0.3164 |
 | DIAMOND + naive | 0.5751 | 0.3281 | 0.4809 | 0.4614 |
-| frozen ESM2-35M + HiGO head | 0.5647 | 0.3330 | 0.5320 | 0.4766 |
-| frozen ESM2-35M + HiGO head + kNN gate | 0.6036 | 0.3620 | 0.5525 | 0.5060 |
+| frozen ESM2-35M + plain head | 0.5647 | 0.3330 | 0.5320 | 0.4766 |
+| frozen ESM2-35M + plain head + kNN gate | 0.6036 | 0.3620 | 0.5525 | 0.5060 |
 | HiGO-35M (LoRA q,v r8) | 0.5835 | 0.3601 | 0.5793 | 0.5077 |
 | **HiGO-35M (LoRA) + kNN gate** | 0.6134 | 0.3793 | 0.5903 | **0.5277** |
 | HiGO-35M (LoRA all r16) + kNN gate | 0.6134 | 0.3843 | 0.5894 | 0.5291 |

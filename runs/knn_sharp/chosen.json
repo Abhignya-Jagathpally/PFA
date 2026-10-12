@@ -1,0 +1,39 @@
+{
+  "T": Infinity,
+  "k": 50,
+  "gamma": 1,
+  "norm": "aspect",
+  "setting": "Tinf_k50_g1_na",
+  "criterion": "mean_testlike",
+  "tv_mean": 0.5184620660268976,
+  "tv_mean_testlike": 0.5550478271606242,
+  "best_tv_setting": "Tinf_k50_g1_na",
+  "best_tv": 0.5550478271606242,
+  "rule": "max TV Fmax (criterion column: TV, or TV reweighted to the test identity mix when TV ranks the red-team test grid the other way beyond its CI); among settings within 0.003 of the best, fewest active knobs (finite T, gamma>0, aspect norm), then highest criterion",
+  "ranking_agreement": {
+    "red_team_test": {
+      "T1_k10_g0": 0.698,
+      "T1_k50_g0": 0.701,
+      "T2_k10_g0": 0.698,
+      "T2_k50_g0": 0.7,
+      "T5_k10_g0": 0.699,
+      "T5_k50_g0": 0.701,
+      "T10_k10_g0": 0.689,
+      "T10_k50_g0": 0.691
+    },
+    "spearman_val_vs_test": -0.5422080293008649,
+    "spearman_tv_vs_test": -0.5422080293008649,
+    "spearman_tvtestlike_vs_test": -0.5422080293008649,
+    "tv_ci_best_vs_worst_overlap": {
+      "diff": 0.04317634144869498,
+      "lo": 0.03374510288176014,
+      "hi": 0.058194759316955995,
+      "reps": 1000,
+      "pair": [
+        "T10_k50_g0",
+        "T1_k50_g0"
+      ]
+    }
+  },
+  "registered_at": "2026-10-12 06:01:25"
+}

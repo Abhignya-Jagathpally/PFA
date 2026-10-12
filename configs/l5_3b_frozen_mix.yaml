@@ -1,0 +1,35 @@
+# Ladder L5: frozen ESM2-3B truncated after layer 30 (GO-GPT's readout depth), scalar-mix readout over layers
+# 18/22/26/30 into the full HiGO head. The encoder runs under no_grad, so only the head trains. Run with
+# CAFA6_PROC=data/proc_gogpt_tv; compare against the same head on 35M (l3_c0_frozen_full) at equal wall-clock.
+name: l5_3b_frozen_mix
+plm: facebook/esm2_t36_3B_UR50D
+adapter: frozen
+plm_layers: 30         # drop blocks 31-36
+plm_bf16: true         # frozen weights stored in bf16: half the memory, no per-step weight casts
+readout: mix
+readout_layers: [18, 22, 26, 30]
+mix_top_init: 5.0      # ~97% weight on layer 30 at the start
+d: 256
+pooling: entmax
+hier_query: true
+use_mcm: true
+use_taxon: true
+ia_weight: true
+max_len: 1022
+tokens_per_batch: 16384
+max_batch: 32
+grad_accum: 1
+lr: 3.0e-4             # unused: no adapter parameters
+head_lr: 1.0e-3
+warmup_frac: 0.06
+epochs: 8
+patience: 2
+taxon_dropout: 0.1
+seed: 0
+term_bias_init: prior
+wd_exclude: true
+resume: true
+ckpt_every: 1000
+pred_topk: 500
+pred_splits: [val, test, tv]
+pred_id_sets: {tv_all: tv_ids.txt}

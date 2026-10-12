@@ -1,0 +1,46 @@
+flowchart TB
+    IN["Protein sequence + species"]
+
+    subgraph HIGO["HiGO-35M (learned)"]
+        direction TB
+        ESM["ESM2-35M, frozen<br/>+ LoRA r=8 on query/value (0.55% trainable)<br/>1,022-residue windows, stride 511 at inference"]
+        PROJ["Residue projection<br/>Linear 256 + LayerNorm"]
+        Q["GO query per term (6,276)<br/>q_t = e_t + mean of ancestor embeddings"]
+        POOL["Per-term evidence pooling<br/>entmax-1.5 attention over residues<br/>(attention row = evidence map)"]
+        TAX["Species embedding<br/>(41 species, 10% dropout)"]
+        HEAD["Term logit<br/>z_t = GELU(W v_t + taxon) · q_t + b_t"]
+        MCM1["Max-constraint module<br/>p(parent) >= p(child)"]
+        ESM --> PROJ --> POOL
+        Q --> POOL
+        POOL --> HEAD
+        TAX --> HEAD
+        Q --> HEAD
+        HEAD --> MCM1
+    end
+
+    subgraph EV["Evidence (computed for every protein)"]
+        direction TB
+        KNN["DIAMOND vs 82k labelled proteins<br/>kNN label transfer, max identity, has hit"]
+        DOM["InterPro matches<br/>(UniProt/UniParc, InterProScan fallback)<br/>-> interpro2go, closed over is_a/part_of = D"]
+        ORT["DIAMOND vs 10 reference proteomes<br/>same species removed<br/>-> hit training labels = O, hit GOA = G"]
+        LIG["Ligand support = L<br/>GO term -> ChEBI + SMILES<br/>(GO logical defs, Rhea, ExPASy ENZYME)<br/>matched to domain terms and ortholog binding/cofactor sites"]
+        DOM --> LIG
+        ORT --> LIG
+    end
+
+    CAL["Grounding calibrator (one per aspect: MF, BP, CC)<br/>logistic model over 13 features:<br/>HiGO and kNN logits, identity, has hit, D, O, G, L,<br/>has ligand, term frequency, 3 interactions<br/>fit on validation"]
+    MCM2["Max-constraint module again<br/>0 ontology violations"]
+    OUT["Grounded GO set per protein<br/>term, path to root, score, confidence band,<br/>domains, top orthologs, ligand SMILES, top residues"]
+
+    IN --> ESM
+    IN --> TAX
+    IN --> KNN
+    IN --> DOM
+    IN --> ORT
+    MCM1 --> CAL
+    KNN --> CAL
+    DOM --> CAL
+    ORT --> CAL
+    LIG --> CAL
+    CAL --> MCM2 --> OUT
+    POOL -. "evidence maps" .-> OUT

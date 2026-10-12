@@ -1,0 +1,31 @@
+# Ladder L3, arm C0: frozen ESM2-35M + full HiGO head (entmax pooling, hierarchical queries, MCM, taxon, IA weight).
+# The missing control: the earlier frozen baseline (base_35m_frozen_mlp) also dropped the head components.
+# Identical to l3_c1_lora.yaml except for `adapter`; the encoder runs under no_grad.
+name: l3_c0_tv2
+plm: facebook/esm2_t12_35M_UR50D
+adapter: frozen        # lora | dora | frozen
+lora_r: 8
+d: 256
+pooling: entmax
+hier_query: true
+use_mcm: true
+use_taxon: true
+ia_weight: true
+max_len: 1022
+tokens_per_batch: 16384
+max_batch: 32
+grad_accum: 1
+lr: 3.0e-4             # unused: no adapter parameters
+head_lr: 1.0e-3
+warmup_frac: 0.06
+epochs: 15             # cosine horizon = planned epochs (sched_epochs defaults to epochs)
+patience: 3
+taxon_dropout: 0.1
+seed: 0
+term_bias_init: prior
+wd_exclude: true
+resume: true
+ckpt_every: 1000
+pred_topk: 500
+pred_splits: [val, test, tv]
+pred_id_sets: {tv_all: tv_ids.txt}

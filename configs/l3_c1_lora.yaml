@@ -1,0 +1,31 @@
+# Ladder L3, arm C1: ESM2-35M + LoRA q,v r8 + full HiGO head, trained to convergence on the GO-GPT benchmark with
+# temporal-validation labels removed (CAFA6_PROC=data/proc_gogpt_tv). Identical to l3_c0_frozen_full.yaml except
+# for `adapter`, so C1 - C0 measures the adapter alone.
+name: l3_c1_lora
+plm: facebook/esm2_t12_35M_UR50D
+adapter: lora          # lora | dora | frozen
+lora_r: 8              # alpha = 2r, dropout 0.05, targets query/value
+d: 256
+pooling: entmax
+hier_query: true
+use_mcm: true
+use_taxon: true
+ia_weight: true
+max_len: 1022
+tokens_per_batch: 16384
+max_batch: 32
+grad_accum: 1
+lr: 3.0e-4
+head_lr: 1.0e-3
+warmup_frac: 0.06
+epochs: 15             # cosine horizon = planned epochs (sched_epochs defaults to epochs)
+patience: 3
+taxon_dropout: 0.1
+seed: 0
+term_bias_init: prior  # logit of the train label frequency
+wd_exclude: true       # no weight decay on embeddings, LayerNorm, biases
+resume: true           # rerunning the same command continues from runs/<name>/checkpoint_last.pt
+ckpt_every: 1000       # optimizer steps between mid-epoch checkpoints
+pred_topk: 500         # sparse float16 predictions (read with cafa6.data.load_pred)
+pred_splits: [val, test, tv]
+pred_id_sets: {tv_all: tv_ids.txt}   # NK (split tv) and LK (kept in train) TV proteins, in tv_ids.txt order

@@ -11,6 +11,13 @@ Predictions are unscored GO sets; they are written with score 1.0 (the paper's "
 --decode beam (default) is the released predictor's setting; --decode greedy is argmax decoding (model.generate
 with top_k=1), the paper's literal "greedy decoding".
 
+--decode sample is the paper's "probability" mode (section 4.2.3): --n_samples sequences per protein and aspect drawn
+as in GOGPT.generate (temperature 0.7, top-k 20, up to 300 new tokens), with a key/value cache for the GO tokens as
+well (with top_k=1 it reproduces --decode greedy token for token). Samples go to samples_shard*.jsonl.gz; scoring
+gives each term the fraction of samples that contain it ("_freq"), plus a variant where every sample is first
+propagated to its ancestors ("_freq_prop"), and evaluates both with the bench_gogpt evaluator and subsets
+(S3_all, S6_noknowledge, identity bins), next to the beam and greedy runs from runs/gogpt_cafa5.
+
 Scoring uses the CAFA-evaluator CLI (prop=max, norm=cafa). Protocols:
   S3_all          go-basic 2023-01-01 + CAFA-5 IA.txt from the BioReason-Pro repo, all 8,630 test proteins
                   (paper Table S3: MF/BP/CC n = 2080/5819/3440)
@@ -25,12 +32,16 @@ Usage
                    FASTA header, e.g. CAFA-6 testsuperset-taxon-list.tsv) or a header-less protein<TAB>taxon-id map
                    (species names then come from --taxon_names).
   stages:          gen | score | all
+  ten samples:     python benchmarks/gogpt_eval.py all --decode sample --out runs/gogpt_sample10 --batch 128
+                   --token_budget 66000
 """
 from __future__ import annotations
 
 import argparse
 import ast
+import gzip
 import json
+import os
 import re
 import subprocess
 import sys
@@ -43,7 +54,7 @@ import torch
 import torch.nn.functional as F
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, "/tmp/BioReason-Pro-main/gogpt/src")
+sys.path.insert(0, str(ROOT / "external/gogpt_tmp_backup/BioReason-Pro-main/gogpt/src"))
 sys.path.insert(0, str(ROOT / "src"))
 REF = ROOT / "runs" / "gogpt_cafa5" / "ref"
 CAFAEVAL = Path(sys.executable).parent / "cafaeval"
@@ -182,6 +193,97 @@ def greedy(model, protein_mask, go, organism_id, emb, max_new_tokens):
     return go
 
 
+def _go_step(model, cache, mask, tp, tok, pos, organism_id):
+    """One GO token per row through the GO stream. `cache` holds one preallocated (K, V) buffer per layer of shape
+    (rows, heads, tp + max_new_tokens, head_dim) with the protein keys/values in the first tp slots; this step's GO
+    key/value is written at slot tp + pos. `mask` (rows, 1, 1, slots) marks valid protein residues and GO slots.
+    Exact incremental form of _go_stream for rows that are still decoding: such rows have no masked GO positions,
+    so each new token attends to the valid protein residues, all earlier GO tokens and itself."""
+    tr, cfg = model.transformer, model.config
+    b = tok.size(0)
+    C, H = cfg.n_embd, cfg.n_head
+    x = tr.wte(tok)[:, None] + tr.wpe.weight[pos][None, None]
+    if organism_id is not None:
+        x = x + model.organism_embedding(organism_id)[:, None, :]
+    L = tp + pos + 1
+    m = mask[..., :L]
+    for blk, (K, V) in zip(tr.h, cache):
+        a = blk.attn
+        xn = blk.ln_1_go(x)
+        q, k, v = (tt.view(b, 1, H, C // H).transpose(1, 2) for tt in a.go_qkv(xn).split(C, dim=2))
+        K[:, :, L - 1:L] = k
+        V[:, :, L - 1:L] = v
+        o = F.scaled_dot_product_attention(q.to(K.dtype), K[:, :, :L], V[:, :, :L], attn_mask=m)
+        o = o.transpose(1, 2).reshape(b, 1, C)
+        if a.use_gated_attention:
+            o = o * torch.sigmoid(a.go_gate_proj(xn))
+        x = x + a.go_proj(o)
+        x = x + blk.mlp_go(blk.ln_2_go(x))
+    return model.lm_head(tr.ln_f_go(x))[:, -1, :]
+
+
+@torch.no_grad()
+def sample(model, cache, mask, tp, start, organism_id, max_new_tokens, temperature, top_k):
+    """Ancestral sampling as in GOGPT.generate(temperature, top_k): logits / temperature, keep the top_k logits
+    (ties with the k-th kept), softmax, multinomial; finished rows emit pad. Uses a GO key/value cache."""
+    cfg = model.config
+    end_ids = torch.tensor([cfg.mf_end_token_id, cfg.bp_end_token_id, cfg.cc_end_token_id], device=start.device)
+    b = start.size(0)
+    finished = torch.zeros(b, dtype=torch.bool, device=start.device)
+    out = [start]
+    tok = start
+    for pos in range(max_new_tokens):
+        logits = _go_step(model, cache, mask, tp, tok, pos, organism_id).float() / temperature
+        if top_k is not None:
+            v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+            logits = logits.masked_fill(logits < v[:, [-1]], float("-inf"))
+        nxt = torch.multinomial(F.softmax(logits, dim=-1), 1).squeeze(1)
+        nxt = torch.where(finished, torch.zeros_like(nxt), nxt)
+        out.append(nxt)
+        finished = finished | torch.isin(nxt, end_ids)
+        tok = nxt
+        if pos % 8 == 7 and finished.all():
+            break
+    return torch.stack(out, 1)
+
+
+@torch.no_grad()
+def generate_samples(pred, seqs, organisms, n_samples=10, temperature=0.7, top_k=20, max_new_tokens=300,
+                     bf16=False):
+    """n_samples sampled GO sequences per protein and aspect; returns per protein {aspect: [list of terms] * n}."""
+    info = pred.tokenizer_info
+    start = {"MF": info["mf_start_token_id"], "BP": info["bp_start_token_id"], "CC": info["cc_start_token_id"]}
+    model, dev = pred.model, pred.device
+    enc = pred.protein_tokenizer(list(seqs), return_tensors="pt", padding="longest", truncation=True, max_length=1024)
+    toks, mask = enc["input_ids"].to(dev), enc["attention_mask"].to(dev)
+    org = torch.tensor([pred.organism_mapper.map_organism(o) for o in organisms], device=dev)
+    emb = esm_layer(model, toks, mask) * mask[..., None].float()
+    del toks
+    with torch.autocast("cuda", dtype=torch.bfloat16, enabled=bf16):
+        kv = _protein_stream(model, emb, mask)
+        del emb
+        rows, tp = len(seqs) * n_samples, mask.size(1)
+        cache = []
+        for k, v in kv:
+            bufs = []
+            for t in (k, v):
+                buf = t.new_empty(rows, t.size(1), tp + max_new_tokens, t.size(3))
+                buf[:, :, :tp] = t.repeat_interleave(n_samples, 0)
+                bufs.append(buf)
+            cache.append(bufs)
+        del kv
+        full_mask = torch.ones(rows, 1, 1, tp + max_new_tokens, dtype=torch.bool, device=dev)
+        full_mask[:, 0, 0, :tp] = mask.bool().repeat_interleave(n_samples, 0)
+        org_r = org.repeat_interleave(n_samples, 0)
+        out = [{a: [] for a in ASPECTS} for _ in seqs]
+        for asp in ASPECTS:
+            go = torch.full((rows,), start[asp], device=dev)
+            gen = sample(model, cache, full_mask, tp, go, org_r, max_new_tokens, temperature, top_k).cpu()
+            for r in range(gen.size(0)):
+                out[r // n_samples][asp].append(pred._decode_tokens(gen[r:r + 1], asp))
+    return out
+
+
 @torch.no_grad()
 def generate(pred, seqs, organisms, decode="beam", beam_size=5, length_penalty=0.3, max_new_tokens=300):
     info = pred.tokenizer_info
@@ -293,22 +395,45 @@ def cmd_gen(a):
     df["organism_resolved"] = df.organism.map(resolve)
     known = (df.organism_resolved != "<UNKNOWN>").mean()
     log(f"{len(df)} proteins; organism in GO-GPT vocabulary for {known:.1%}")
-    path = out / f"preds_shard{a.shard}.jsonl"
-    done = {json.loads(l)["protein_id"] for l in open(path)} if path.exists() else set()
+    sampling = a.decode == "sample"
+    if sampling:
+        torch.manual_seed(a.seed + a.shard)
+        path = out / f"samples_shard{a.shard}.jsonl.gz"
+        opener = lambda p, m: gzip.open(p, m + "t")   # appended gzip members read back as one stream
+    else:
+        path = out / f"preds_shard{a.shard}.jsonl"
+        opener = open
+    done = {json.loads(l)["protein_id"] for l in opener(path, "r")} if path.exists() else set()
     todo = df[~df.protein_id.isin(done)]
     todo = todo.loc[todo.sequence.str.len().sort_values().index]
+    if a.limit:
+        todo = todo.iloc[:a.limit] if a.limit > 0 else todo.iloc[a.limit:]
     log(f"{len(done)} already done, {len(todo)} to go (batch {a.batch})")
     t0 = time.time()
-    with open(path, "a") as f:
-        for s in range(0, len(todo), a.batch):
-            chunk = todo.iloc[s:s + a.batch]
-            res = generate(pred, chunk.sequence.tolist(), chunk.organism_resolved.tolist(), decode=a.decode)
+    # padded protein length, plus the GO slots of the preallocated sampling cache
+    lens = (todo.sequence.str.len().clip(upper=1022) + 2 + (300 if sampling else 0)).to_numpy()
+    starts, s = [], 0
+    while s < len(todo):
+        starts.append(s)
+        e = s + 1
+        while e < len(todo) and e - s < a.batch and (e - s + 1) * lens[e] <= (a.token_budget or np.inf):
+            e += 1
+        s = e
+    starts.append(len(todo))
+    with opener(path, "a") as f:
+        for bi, (s, e) in enumerate(zip(starts[:-1], starts[1:])):
+            chunk = todo.iloc[s:e]
+            if sampling:
+                res = generate_samples(pred, chunk.sequence.tolist(), chunk.organism_resolved.tolist(),
+                                       n_samples=a.n_samples, temperature=a.temperature, top_k=a.top_k, bf16=a.bf16)
+            else:
+                res = generate(pred, chunk.sequence.tolist(), chunk.organism_resolved.tolist(), decode=a.decode)
             for pid, org, r in zip(chunk.protein_id, chunk.organism_resolved, res):
                 f.write(json.dumps({"protein_id": pid, "organism": org, **r}) + "\n")
             f.flush()
             n = s + len(chunk)
             el = time.time() - t0
-            if (s // a.batch) % 10 == 0 or n == len(todo):
+            if bi % 10 == 0 or n == len(todo):
                 log(f"shard {a.shard}: {n}/{len(todo)}  {el:.0f}s  {el / n:.3f}s/protein  "
                     f"maxlen {chunk.sequence.str.len().max()}  peak {torch.cuda.max_memory_allocated() / 2**30:.1f}GiB")
     (out / f"gen_time_shard{a.shard}.json").write_text(json.dumps({"n": len(todo), "seconds": time.time() - t0}))
@@ -371,6 +496,89 @@ def cmd_score(a):
     print(wide.sort_index(axis=1).round(4).to_string(), flush=True)
 
 
+def load_samples(out: Path) -> dict:
+    s = {}
+    for p in sorted(out.glob("samples_shard*.jsonl.gz")):
+        for l in gzip.open(p, "rt"):
+            r = json.loads(l)
+            s[r["protein_id"]] = {k: r[k] for k in ASPECTS}
+    return s
+
+
+def frequency_scores(samples: dict, closure=None, alt=None) -> pd.DataFrame:
+    """Score of a term = fraction of a protein's samples that contain it. With `closure`, every sample is first
+    propagated to its ancestors (alt ids mapped), so a term also counts when only a descendant was sampled."""
+    rows = []
+    for pid, asp in samples.items():
+        for runs in asp.values():
+            n = len(runs)
+            cnt = {}
+            for terms in runs:
+                ts = set(terms)
+                if closure is not None:
+                    ts = {alt.get(t, t) for t in ts}
+                    ts = ts.union(*(closure.get(t, ()) for t in ts))
+                for t in ts:
+                    cnt[t] = cnt.get(t, 0) + 1
+            rows += [(pid, t, round(c / n, 3)) for t, c in cnt.items()]
+    return pd.DataFrame(rows, columns=["id", "term", "score"]).drop_duplicates(["id", "term"])
+
+
+def cmd_score_sample(a):
+    """Scores ten-sample frequencies on the paper test set with the bench_gogpt evaluator and subsets
+    (S3_all, S6_noknowledge, identity bins), alongside the beam and greedy runs as a consistency check."""
+    os.environ.setdefault("CAFA6_PROC", str(ROOT / "data" / "proc_gogpt"))
+    from cafa6.data import PROC, ancestor_closure, load_go
+    from cafa6.evaluate import evaluate
+    from cafa6.homology import identity_bin
+    out = Path(a.out)
+    samples = load_samples(out)
+    n = {len(r) for asp in samples.values() for r in asp.values()}
+    log(f"{len(samples)} proteins with samples; samples per aspect: {sorted(n)}")
+    parents, _, alt = load_go(REF / "go-basic_gogpt.obo")
+    closure = ancestor_closure(parents)
+    tag = f"gogpt_sample{a.n_samples}"
+    preds = {f"{tag}_freq": frequency_scores(samples), f"{tag}_freq_prop": frequency_scores(samples, closure, alt)}
+    for name, df in preds.items():
+        df.to_csv(out / f"{name}.tsv.gz", sep="\t", index=False, header=False, compression="gzip")
+        log(f"{name}: {len(df)} rows, {df.groupby('id').size().mean():.1f} terms/protein")
+    for name, sub in (("gogpt_beam", ""), ("gogpt_greedy", "greedy")):
+        rows = []
+        for f in sorted((ROOT / "runs" / "gogpt_cafa5" / sub).glob("preds_shard*.jsonl")):
+            for l in open(f):
+                r = json.loads(l)
+                rows += [(r["protein_id"], t, 1.0) for k in ASPECTS for t in r.get(k, [])]
+        preds[name] = pd.DataFrame(rows, columns=["id", "term", "score"]).drop_duplicates(["id", "term"])
+
+    df = pd.read_parquet(PROC / "train.parquet", columns=["id", "split"])
+    te_ids = df.id.values[df.split.values == "test"]
+    missing = set(te_ids) - set(samples)
+    if missing:
+        log(f"WARNING: {len(missing)} test proteins have no samples (scored as empty predictions)")
+    common = set(open(REF / "common_proteins.txt").read().split())
+    subsets = {"S3_all": list(te_ids), "S6_noknowledge": [p for p in te_ids if p not in common]}
+    ident = pd.read_parquet(PROC / "identity.parquet")
+    idt = ident[ident.split == "test"].set_index("id").loc[te_ids]
+    bins = identity_bin(idt.max_pident)
+    for b in ["no_hit", "<30%", "30-50%", ">=50%"]:
+        subsets[f"identity {b}"] = list(idt.index[bins == b])
+    tables, long = [], []
+    for name, ids in subsets.items():
+        res = evaluate(preds, PROC / "gt_test.tsv", ids_subset=ids, obo=REF / "go-basic_gogpt.obo", ia=REF / "IA.txt")
+        res["subset"], res["n"] = name, len(ids)
+        long.append(res)
+        w = res.pivot(index="method", columns="aspect", values="Fmax_w")[list(ASPECTS)]
+        u = res.pivot(index="method", columns="aspect", values="Fmax")[list(ASPECTS)]
+        s = w.add_prefix("Fw_").join(u.add_prefix("F_"))
+        s["mean_Fw"], s["mean_F"] = w.mean(axis=1), u.mean(axis=1)
+        s["subset"], s["n"] = name, len(ids)
+        s = s.sort_values("mean_Fw", ascending=False)
+        tables.append(s)
+        log(f"== {name} (n={len(ids)})\n{s.drop(columns=['subset', 'n']).round(4).to_string()}")
+    pd.concat(tables).reset_index().to_csv(out / "summary.tsv", sep="\t", index=False)
+    pd.concat(long).to_csv(out / "metrics.tsv", sep="\t", index=False)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", choices=["gen", "score", "all"])
@@ -380,13 +588,22 @@ def main():
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--n_shards", type=int, default=1)
     ap.add_argument("--batch", type=int, default=16)
+    ap.add_argument("--token_budget", type=int, default=0,
+                    help="cap proteins x padded length per batch (0 = only --batch); lets short proteins batch wider")
     ap.add_argument("--sample", type=int, default=0, help="random subset (seed 0); 0 = all")
-    ap.add_argument("--decode", choices=["beam", "greedy"], default="beam")
+    ap.add_argument("--decode", choices=["beam", "greedy", "sample"], default="beam")
+    ap.add_argument("--n_samples", type=int, default=10, help="--decode sample: samples per protein and aspect")
+    ap.add_argument("--temperature", type=float, default=0.7, help="--decode sample (paper section 4.2.3: 0.7)")
+    ap.add_argument("--top_k", type=int, default=20, help="--decode sample (paper section 4.2.3: 20)")
+    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--bf16", action="store_true", help="--decode sample: bf16 autocast for the GO decoder")
+    ap.add_argument("--limit", type=int, default=0, help="only the first N (shortest) proteins still to do, "
+                                                         "or the last |N| (longest) if negative; for profiling")
     a = ap.parse_args()
     if a.cmd in ("gen", "all"):
         cmd_gen(a)
     if a.cmd in ("score", "all"):
-        cmd_score(a)
+        cmd_score_sample(a) if a.decode == "sample" else cmd_score(a)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,275 @@
+{
+  "T": 5.0,
+  "k": 50,
+  "gamma": 0,
+  "norm": "aspect",
+  "setting": "T5_k50_g0_na",
+  "criterion": "mean_testlike_v2",
+  "rule": "criterion = TV v2 mean Fmax with every TV v2 protein weighted so that the cells (organism group zebrafish/rat/human/mouse/other x identity bin x best hit in the same organism) carry their test shares; a cell with < 15 TV v2 proteins is merged over the same-organism flag, then over organism groups within its bin. Choice: among settings within 0.003 of the best criterion, fewest active knobs (finite T, gamma>0, aspect norm), then highest criterion. Test cell shares are dataset statistics (DIAMOND hits only); no test labels are used.",
+  "tv2_mean_testlike": 0.7168043328928242,
+  "tv2_mean": 0.7344757799025836,
+  "best_setting": "T5_k50_g0_na",
+  "best_criterion": 0.7168043328928242,
+  "chosen_minus_v1_choice_testlike": {
+    "diff": 0.0974837961559345,
+    "lo": 0.09171477386199506,
+    "hi": 0.10312923963647774,
+    "reps": 500
+  },
+  "chosen_minus_T2_k10_testlike": {
+    "diff": 0.015077753406493088,
+    "lo": 0.011932332475474863,
+    "hi": 0.018252711437683772,
+    "reps": 500
+  },
+  "v1_choice": "Tinf_k50_g1_na",
+  "weights": {
+    "n_cells": 44,
+    "test_mass_without_tv_cell": 0.0,
+    "effective_n": 959.9,
+    "cells": {
+      "*|30-50": {
+        "tv_n": 12,
+        "test_share": 0.0306
+      },
+      "*|50-80": {
+        "tv_n": 25,
+        "test_share": 0.1338
+      },
+      "*|<30": {
+        "tv_n": 12,
+        "test_share": 0.0014
+      },
+      "*|no_hit": {
+        "tv_n": 9,
+        "test_share": 0.007
+      },
+      "human|100|False": {
+        "tv_n": 181,
+        "test_share": 0.0046
+      },
+      "human|100|True": {
+        "tv_n": 959,
+        "test_share": 0.0728
+      },
+      "human|30-50": {
+        "tv_n": 37,
+        "test_share": 0.0048
+      },
+      "human|50-80": {
+        "tv_n": 54,
+        "test_share": 0.0129
+      },
+      "human|80-95|False": {
+        "tv_n": 118,
+        "test_share": 0.0086
+      },
+      "human|80-95|True": {
+        "tv_n": 239,
+        "test_share": 0.025
+      },
+      "human|95-99.9|False": {
+        "tv_n": 157,
+        "test_share": 0.0036
+      },
+      "human|95-99.9|True": {
+        "tv_n": 441,
+        "test_share": 0.0539
+      },
+      "human|no_hit|False": {
+        "tv_n": 22,
+        "test_share": 0.0043
+      },
+      "mouse|100|False": {
+        "tv_n": 93,
+        "test_share": 0.0012
+      },
+      "mouse|100|True": {
+        "tv_n": 208,
+        "test_share": 0.0016
+      },
+      "mouse|50-80": {
+        "tv_n": 51,
+        "test_share": 0.0058
+      },
+      "mouse|80-95|False": {
+        "tv_n": 178,
+        "test_share": 0.0102
+      },
+      "mouse|80-95|True": {
+        "tv_n": 98,
+        "test_share": 0.0003
+      },
+      "mouse|95-99.9|False": {
+        "tv_n": 214,
+        "test_share": 0.0072
+      },
+      "mouse|95-99.9|True": {
+        "tv_n": 164,
+        "test_share": 0.0017
+      },
+      "other|100|False": {
+        "tv_n": 56,
+        "test_share": 0.005
+      },
+      "other|100|True": {
+        "tv_n": 550,
+        "test_share": 0.0023
+      },
+      "other|30-50|False": {
+        "tv_n": 133,
+        "test_share": 0.0393
+      },
+      "other|30-50|True": {
+        "tv_n": 62,
+        "test_share": 0.0058
+      },
+      "other|50-80|False": {
+        "tv_n": 91,
+        "test_share": 0.0322
+      },
+      "other|50-80|True": {
+        "tv_n": 80,
+        "test_share": 0.0038
+      },
+      "other|80-95|False": {
+        "tv_n": 53,
+        "test_share": 0.0098
+      },
+      "other|80-95|True": {
+        "tv_n": 609,
+        "test_share": 0.0019
+      },
+      "other|95-99.9|False": {
+        "tv_n": 35,
+        "test_share": 0.0041
+      },
+      "other|95-99.9|True": {
+        "tv_n": 733,
+        "test_share": 0.0017
+      },
+      "other|<30|False": {
+        "tv_n": 29,
+        "test_share": 0.0072
+      },
+      "other|<30|True": {
+        "tv_n": 28,
+        "test_share": 0.0006
+      },
+      "other|no_hit|False": {
+        "tv_n": 60,
+        "test_share": 0.0177
+      },
+      "rat|100|False": {
+        "tv_n": 136,
+        "test_share": 0.0116
+      },
+      "rat|100|True": {
+        "tv_n": 268,
+        "test_share": 0.1057
+      },
+      "rat|80-95|False": {
+        "tv_n": 103,
+        "test_share": 0.0136
+      },
+      "rat|80-95|True": {
+        "tv_n": 91,
+        "test_share": 0.0067
+      },
+      "rat|95-99.9|False": {
+        "tv_n": 187,
+        "test_share": 0.0167
+      },
+      "rat|95-99.9|True": {
+        "tv_n": 353,
+        "test_share": 0.0328
+      },
+      "zebrafish|100": {
+        "tv_n": 112,
+        "test_share": 0.049
+      },
+      "zebrafish|80-95|False": {
+        "tv_n": 45,
+        "test_share": 0.0326
+      },
+      "zebrafish|80-95|True": {
+        "tv_n": 100,
+        "test_share": 0.0489
+      },
+      "zebrafish|95-99.9|False": {
+        "tv_n": 16,
+        "test_share": 0.0029
+      },
+      "zebrafish|95-99.9|True": {
+        "tv_n": 364,
+        "test_share": 0.157
+      }
+    }
+  },
+  "ranking_agreement": {
+    "spearman_vs_red_team_test": {
+      "val": -0.5422080293008649,
+      "tv2": -0.13253974049576697,
+      "tv2_testlike": -0.084343471224579,
+      "tv2_hi_identity": 0.9157291161525718,
+      "tv2_DA": 0.25303041367373696,
+      "tv2_dated": -0.5422080293008649
+    },
+    "spearman_tv2testlike_vs_val_all60": 0.3105307029730481,
+    "red_team_direction": "test: T in {1,2,5} beats T=10 by ~0.01 (k 10 and 50)",
+    "sharp_minus_flat": {
+      "T2_k10_g0 - T10_k10_g0": {
+        "testlike": {
+          "diff": 0.00043724598537009385,
+          "lo": -0.002323891524333346,
+          "hi": 0.0034559027332748786,
+          "reps": 500
+        },
+        "hi_identity_bins": {
+          "100": 0.0039940632722546,
+          "95-99.9": 0.0015983740135109281
+        },
+        "low_identity_bins": {
+          "80-95": -0.008086164747320157,
+          "50-80": -0.042095898918927066,
+          "30-50": -0.05369313161146144
+        }
+      },
+      "T2_k10_g0 - Tinf_k10_g0": {
+        "testlike": {
+          "diff": 0.07810734845324818,
+          "lo": 0.07177286472667158,
+          "hi": 0.08354643196008942,
+          "reps": 500
+        },
+        "hi_identity_bins": {
+          "100": 0.041368005943927755,
+          "95-99.9": 0.06764410268091459
+        },
+        "low_identity_bins": {
+          "80-95": 0.020966503223358468,
+          "50-80": -0.0701458385877915,
+          "30-50": -0.07270646251679524
+        }
+      },
+      "T2_k50_g0 - Tinf_k50_g0": {
+        "testlike": {
+          "diff": 0.09576155074749593,
+          "lo": 0.08866882189254811,
+          "hi": 0.10257779184936204,
+          "reps": 500
+        },
+        "hi_identity_bins": {
+          "100": 0.06352070961656064,
+          "95-99.9": 0.09683595287600733
+        },
+        "low_identity_bins": {
+          "80-95": 0.028200696770265155,
+          "50-80": -0.08747258215179732,
+          "30-50": -0.08572869478453743
+        }
+      }
+    }
+  },
+  "registered_at": "2026-10-12 06:17:54"
+}

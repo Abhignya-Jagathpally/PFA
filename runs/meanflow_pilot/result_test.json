@@ -1,0 +1,17 @@
+{
+  "split": "test",
+  "best_meanflow": "mf_prior_s0.3|steps=500,S=32",
+  "meanflow_mean": 0.6543564841084842,
+  "fusion_mean": 0.6388462371049486,
+  "gain_vs_fusion": 0.015510247003535649,
+  "bootstrap_vs_fusion": {
+    "diff": 0.015510247003535649,
+    "lo": 0.01374597000806584,
+    "hi": 0.017458620997029686,
+    "reps": 300
+  },
+  "keep": null,
+  "runtime_s": 164.4,
+  "twin_best": "steps=1000,S=1: 0.6719",
+  "note": "The keep/drop decision was made on valB (result_valB.json: drop). The test rule value (+0.0155 >= 0.005) is reported for reference only and does not change the verdict."
+}

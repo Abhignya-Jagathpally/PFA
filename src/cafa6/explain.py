@@ -23,23 +23,20 @@ import yaml
 from transformers import AutoTokenizer
 
 from cafa6.data import PROC, ROOT
-from cafa6.model import HiGO
+from cafa6.model import build_higo, load_trainable
 
 
 def load_run(name, device="cuda"):
+    """Rebuilds a run from its config.yaml and loads its trainable weights, failing on any key mismatch.
+    Runs trained with knn_fusion need retrieval inputs at inference (see dump_preds); without them every protein is
+    scored as if it had no hit."""
     run = ROOT / "runs" / name
     cfg = yaml.safe_load(open(run / "config.yaml"))
     vocab = pd.read_csv(PROC / "vocab.tsv", sep="\t")
     tmap = {int(k): v for k, v in json.load(open(run / "taxa.json")).items()}
-    model = HiGO(cfg["plm"], len(vocab), np.load(PROC / "go_ancestors.npy"), vocab.ia.values.astype(np.float32),
-                 n_taxa=len(tmap) + 1, adapter=cfg["adapter"], lora_r=cfg.get("lora_r", 8), d=cfg.get("d", 256),
-                 hier_query=cfg.get("hier_query", True), pooling=cfg.get("pooling", "entmax"),
-                 use_mcm=cfg.get("use_mcm", True), use_taxon=cfg.get("use_taxon", True),
-                 lora_targets=cfg.get("lora_targets", ["query", "value"]),
-                 go_edges=np.load(PROC / "go_edges.npy") if cfg.get("use_go_gat") else None,
-                 use_go_gat=cfg.get("use_go_gat", False), gat_layers=cfg.get("gat_layers", 2),
-                 gat_heads=cfg.get("gat_heads", 4), n_slots=cfg.get("n_slots", 8))
-    model.load_state_dict(torch.load(run / "trainable_weights.pt"), strict=False)
+    model = build_higo(cfg, vocab, np.load(PROC / "go_ancestors.npy"), len(tmap) + 1,
+                       np.load(PROC / "go_edges.npy") if cfg.get("use_go_gat") else None)
+    load_trainable(model, torch.load(run / "trainable_weights.pt", map_location="cpu"))
     return model.to(device).eval(), cfg, vocab, tmap, AutoTokenizer.from_pretrained(cfg["plm"])
 
 

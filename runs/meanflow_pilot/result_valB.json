@@ -1,0 +1,16 @@
+{
+  "split": "valB",
+  "best_meanflow": "mf_prior_s0.3|steps=500,S=32",
+  "meanflow_mean": 0.6183207700466138,
+  "fusion_mean": 0.6169353874029991,
+  "gain_vs_fusion": 0.0013853826436146521,
+  "bootstrap_vs_fusion": {
+    "diff": 0.0013853826436146521,
+    "lo": -9.036728817217453e-05,
+    "hi": 0.0028707357851844692,
+    "reps": 300
+  },
+  "keep": false,
+  "runtime_s": 973.2,
+  "twin_best": "steps=1000,S=1: 0.6246"
+}

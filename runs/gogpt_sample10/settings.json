@@ -1,0 +1,40 @@
+{
+  "description": "Public GO-GPT checkpoint (HF wanglab/gogpt), ten-sample frequency scoring (paper section 4.2.3 'probability' mode) on the paper's temporal test set.",
+  "command": "CUDA_VISIBLE_DEVICES=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True PYTHONPATH=src ../bin/python benchmarks/gogpt_eval.py all --decode sample --out runs/gogpt_sample10 --batch 128 --token_budget 66000 --n_samples 10 --temperature 0.7 --top_k 20 --seed 0",
+  "decoding": {
+    "n_samples": 10,
+    "temperature": 0.7,
+    "top_k": 20,
+    "top_k_rule": "as GOGPT.generate: logits below the k-th largest set to -inf (ties kept), softmax, multinomial",
+    "max_new_tokens_per_aspect": 300,
+    "aspects": "MF, BP, CC sampled independently from their start tokens, each with 10 samples",
+    "precision": "fp32 (ESM2-3B layer 30 and GO decoder); bf16 was not faster in profiling",
+    "esm_truncation": 1024,
+    "organism": "species name mapped to GO-GPT organism vocabulary, unknown -> 0 (same as beam/greedy runs)",
+    "seed": "torch.manual_seed(0) at the start of each generation launch; the first 1,024 shortest proteins came from a first launch that stopped on an out-of-memory error and were kept on resume",
+    "source_of_settings": "T=0.7, top-k 20, 10 samples: BioReason-Pro preprint section 4.2.3 (see research_notes sota_critique.md). The GO-GPT repo has no sampling-eval script; its Lightning validation uses T=0.5, top-k 20, 100 tokens, which we did not use.",
+    "exactness_check": "with top_k=1 the cached sampler reproduces the existing greedy decoder token for token (36/36 sequences)"
+  },
+  "scoring": {
+    "gogpt_sample10_freq": "score(term) = fraction of the 10 samples (per aspect) whose generated set contains the term; headline",
+    "gogpt_sample10_freq_prop": "same, but each sample is first propagated to its ancestors in go-basic 2023-01-01 (is_a, part_of; alt ids mapped)",
+    "evaluator": "cafaeval via cafa6.evaluate.evaluate (as bench_gogpt.py): go-basic_gogpt.obo (2023-01-01), CAFA-5 IA.txt, prop=max, norm=cafa, threshold step 0.01",
+    "ground_truth": "data/proc_gogpt/gt_test.tsv",
+    "subsets": "S3_all (8,630), S6_noknowledge (8,159; excludes common_proteins.txt), identity bins from data/proc_gogpt/identity.parquet (no_hit 250, <30% 82, 30-50% 713, >=50% 7,585)",
+    "reference_rows": "gogpt_beam and gogpt_greedy from runs/gogpt_cafa5, rescored in the same call (they match runs/bench_gogpt/summary.tsv)"
+  },
+  "runtime": {
+    "generation_seconds_final_launch": 2361,
+    "generation_proteins_final_launch": 7606,
+    "first_launch": "1,024 shortest proteins in about 6 minutes before the out-of-memory stop",
+    "scoring_seconds": 750,
+    "gpu": "one H100 (GPU 1), peak about 72 GiB"
+  },
+  "files": {
+    "samples_shard0.jsonl.gz": "raw samples: per protein and aspect, a list of 10 GO term lists",
+    "gogpt_sample10_freq.tsv.gz": "protein, term, score (long format, no header)",
+    "gogpt_sample10_freq_prop.tsv.gz": "protein, term, score for the propagated variant",
+    "summary.tsv": "per method and subset: weighted Fmax per aspect (Fw_*), unweighted Fmax (F_*), means",
+    "metrics.tsv": "long format with thresholds, precision/recall, coverage, Smin"
+  }
+}

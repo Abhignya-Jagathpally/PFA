@@ -1,0 +1,10 @@
+{
+  "fusion_lambda": 0.001,
+  "twin_steps": 1000,
+  "meanflow": {
+    "name": "mf_prior_s0.3",
+    "steps": 500,
+    "S": 32
+  },
+  "selected_on": "val half B (random val split, cluster-level 50/50), frozen before any test look"
+}

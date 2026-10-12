@@ -35,7 +35,8 @@ Three questions were addressed:
 ### 3.1 Baselines
 - Naive: training frequency of each term.
 - DIAMOND homology kNN (bit-score weighted label transfer, e<=1e-3, `--more-sensitive`), and DIAMOND + naive.
-- Frozen ESM2-35M with the HiGO head and no adapter.
+- Frozen ESM2-35M, no adapter, with a plain head: mean pooling and none of the HiGO components (no hierarchical
+  queries, MCM, taxon embedding or IA weighting). It is a frozen-PLM baseline, not a frozen-backbone ablation of HiGO.
 
 ### 3.2 HiGO (`src/cafa6/model.py`)
 Each design choice targets a specific property of GO prediction:
@@ -52,8 +53,9 @@ Each design choice targets a specific property of GO prediction:
 
 Adapter choice (the brief asked for something better than LoRA if it helps): DoRA (same rank) and LoRA on all
 linear layers at r=16 (8.5x the parameters) were compared with LoRA q,v r=8 on ESM2-35M. DoRA tracked LoRA to within
-0.001 validation Fw; LoRA-all reached 0.5253 vs 0.5270 and over-fit earlier. Adding *any* adapter to the frozen
-backbone was worth +0.04, so LoRA q,v r=8 was kept: the adapter is a second-order factor and the head does the work.
+0.001 validation Fw; LoRA-all reached 0.5253 vs 0.5270 and over-fit earlier. LoRA HiGO beat the frozen plain-head baseline by
++0.04 on validation, but that gap mixes the adapter with the HiGO head (the baseline has neither), so it does not
+isolate the adapter. LoRA q,v r=8 was kept because larger adapters did not help.
 
 ### 3.3 Training (`src/cafa6/train.py`, `configs/dev.yaml`)
 AdamW (weight decay 0.01), adapter LR 3e-4, head LR 1e-3, 6% linear warm-up then cosine decay, gradient clipping
@@ -109,7 +111,7 @@ homologs.
 |---|---|---|---|---|
 | naive | 0.363 | 0.225 | 0.362 | 0.316 |
 | DIAMOND + naive | 0.575 | 0.328 | 0.481 | 0.461 |
-| frozen ESM2-35M + HiGO head + gate | 0.604 | 0.362 | 0.553 | 0.506 |
+| frozen ESM2-35M + plain head + gate | 0.604 | 0.362 | 0.553 | 0.506 |
 | HiGO-35M (LoRA) | 0.584 | 0.360 | 0.579 | 0.508 |
 | **HiGO-35M (LoRA) + homology gate** | **0.613** | **0.379** | **0.590** | **0.528** |
 
@@ -180,8 +182,8 @@ our clustered test split. The upload needs the user's Kaggle token:
    and plain homology transfer beats GO-GPT on the remaining remote-homology proteins. GO-GPT also saw 96% of
    CAFA-6's labelled proteins with their labels, so its zero-shot 0.897 on CAFA-6 reflects memorization.
 2. **HiGO.** A small, structured fine-tune of ESM2-35M (0.55% of backbone parameters trainable) scores 0.528 on a
-   30%-identity clustered CAFA-6 test split, versus 0.461 for DIAMOND + naive and 0.506 for a frozen PLM with the
-   same head. The biggest gain, +0.16, is on proteins with no detectable homolog, and 5-fold CV confirms
+   30%-identity clustered CAFA-6 test split, versus 0.461 for DIAMOND + naive and 0.506 for a frozen PLM with a
+   plain mean-pooling head. The biggest gain, +0.16, is on proteins with no detectable homolog, and 5-fold CV confirms
    stability (0.514 +- 0.004).
    - What matters: species context, the hierarchy constraint, IA weighting and the homology gate. What doesn't:
      the adapter type (DoRA and LoRA on all layers were no better than LoRA q,v r=8) and softmax vs entmax.
@@ -297,6 +299,60 @@ None of the four is ready to go into the main model yet. The GAT is the only one
 The model output is now a set of GO terms per protein. Every term comes with its ancestors, a calibrated score
 and confidence band, and the evidence behind it: InterPro domains, orthologs in reference genomes, and the
 ligands (ChEBI with SMILES) that the domains or orthologs imply.
+
+```mermaid
+flowchart TB
+    IN["Protein sequence + species"]
+
+    subgraph HIGO["HiGO-35M (learned)"]
+        direction TB
+        ESM["ESM2-35M, frozen<br/>+ LoRA r=8 on query/value (0.55% trainable)<br/>1,022-residue windows, stride 511 at inference"]
+        PROJ["Residue projection<br/>Linear 256 + LayerNorm"]
+        Q["GO query per term (6,276)<br/>q_t = e_t + mean of ancestor embeddings"]
+        POOL["Per-term evidence pooling<br/>entmax-1.5 attention over residues<br/>(attention row = evidence map)"]
+        TAX["Species embedding<br/>(41 species, 10% dropout)"]
+        HEAD["Term logit<br/>z_t = GELU(W v_t + taxon) · q_t + b_t"]
+        MCM1["Max-constraint module<br/>p(parent) >= p(child)"]
+        ESM --> PROJ --> POOL
+        Q --> POOL
+        POOL --> HEAD
+        TAX --> HEAD
+        Q --> HEAD
+        HEAD --> MCM1
+    end
+
+    subgraph EV["Evidence (computed for every protein)"]
+        direction TB
+        KNN["DIAMOND vs 82k labelled proteins<br/>kNN label transfer, max identity, has hit"]
+        DOM["InterPro matches<br/>(UniProt/UniParc, InterProScan fallback)<br/>-> interpro2go, closed over is_a/part_of = D"]
+        ORT["DIAMOND vs 10 reference proteomes<br/>same species removed<br/>-> hit training labels = O, hit GOA = G"]
+        LIG["Ligand support = L<br/>GO term -> ChEBI + SMILES<br/>(GO logical defs, Rhea, ExPASy ENZYME)<br/>matched to domain terms and ortholog binding/cofactor sites"]
+        DOM --> LIG
+        ORT --> LIG
+    end
+
+    CAL["Grounding calibrator (one per aspect: MF, BP, CC)<br/>logistic model over 13 features:<br/>HiGO and kNN logits, identity, has hit, D, O, G, L,<br/>has ligand, term frequency, 3 interactions<br/>fit on validation"]
+    MCM2["Max-constraint module again<br/>0 ontology violations"]
+    OUT["Grounded GO set per protein<br/>term, path to root, score, confidence band,<br/>domains, top orthologs, ligand SMILES, top residues"]
+
+    IN --> ESM
+    IN --> TAX
+    IN --> KNN
+    IN --> DOM
+    IN --> ORT
+    MCM1 --> CAL
+    KNN --> CAL
+    DOM --> CAL
+    ORT --> CAL
+    LIG --> CAL
+    CAL --> MCM2 --> OUT
+    POOL -. "evidence maps" .-> OUT
+```
+
+Rendered version: `docs/model_diagram.png` (source `docs/model_diagram.mmd`).
+
+Training (stage 1 only): IA-weighted MCLoss on the 65,603 training proteins, AdamW, early stopping on validation
+IA-weighted Fmax. The calibrator is fit afterwards on the 8,377 validation proteins with HiGO frozen.
 
 ### 8.1 Evidence sources (`grounding_data.py`, `data/grounding/README.md`)
 
@@ -435,9 +491,10 @@ biological process root, is negative regulation of biological process.
 
 ### 8.7 Does fine-tuning a PLM with the GO hierarchy pay off?
 
-- **Fine-tuning vs a frozen PLM.** With the same head, LoRA on ESM2-35M beats the frozen backbone by 0.031
-  (0.508 vs 0.477) without the gate and 0.022 (0.528 vs 0.506) with it. Most of that gain is on proteins
-  without a close homolog.
+- **Fine-tuning vs a frozen PLM.** LoRA HiGO beats a frozen ESM2-35M with a plain mean-pooling head by 0.031
+  (0.508 vs 0.477) without the gate and 0.022 (0.528 vs 0.506) with it. The baseline lacks both the adapter and
+  the HiGO head, so this is the gain of the whole fine-tuned model over a frozen PLM, not of LoRA alone. A frozen
+  backbone with the full HiGO head has not been run, so the adapter's own share is not measured.
 - **The hierarchy inside the model.** At convergence the MCM constraint is worth 0.012 on validation. On test,
   after the homology gate, the hierarchy constraint keeps 0.004 and ancestor-shared queries give 0.000.
   The main value of the hierarchy is that the output is always consistent (0 violations everywhere), which is

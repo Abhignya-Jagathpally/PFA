@@ -1,0 +1,43 @@
+# Ladder L4(a): retrieval-conditioned logits (per-term kNN prior with learned trust lambda_t) on the L3 setup.
+# Set `adapter` to the L3 winner before launching. CAFA6_PROC=data/proc_gogpt_tv2.
+# Needs data/proc_gogpt_tv2/knn/train_hits.parquet (train-vs-train DIAMOND hits, self excluded by the loader) for the
+# per-batch identity caps; val/test/tv priors come from knn_sharp.py's {split}_knn.npz contract files.
+name: l4a_knn_prior
+plm: facebook/esm2_t12_35M_UR50D
+adapter: frozen        # replace with the L3 winner
+lora_r: 8
+d: 256
+pooling: entmax
+hier_query: true
+use_mcm: true
+use_taxon: true
+ia_weight: true
+max_len: 1022
+tokens_per_batch: 16384
+max_batch: 32
+grad_accum: 1
+lr: 3.0e-4
+head_lr: 1.0e-3
+warmup_frac: 0.06
+epochs: 15
+patience: 3
+taxon_dropout: 0.1
+seed: 0
+term_bias_init: prior
+wd_exclude: true
+resume: true
+ckpt_every: 1000
+pred_topk: 500
+pred_splits: [val, test, tv]
+pred_id_sets: {tv_all: tv_ids.txt}
+knn_fusion: true
+knn_T: 5.0             # T, k, gamma, norm must match the contract's pre-registered setting (runs/knn_sharp/chosen_v2.json: T5_k50_g0_na)
+knn_topk: 50
+knn_gamma: 0
+knn_norm: aspect
+knn_eval_source: contract   # or `hits`: same code path as training, full phi, from diamond_hits_{valtest,tv}.parquet
+knn_phi: [max_id, has_hit, ia, depth]   # the contract has no s_star / frac / count
+knn_caps: [[0, 0.25], [30, 0.25], [50, 0.20], [70, 0.15], [null, 0.15]]
+knn_eps: 1.0e-3
+knn_lambda_init: 0.5
+knn_delta_wd: 1.0
