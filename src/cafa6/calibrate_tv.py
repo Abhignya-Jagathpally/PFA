@@ -94,7 +94,12 @@ from cafa6 import stacker_tv as st  # noqa: E402
 from cafa6.data import ROOT  # noqa: E402
 
 TV2 = ROOT / "data" / "proc_gogpt_tv2"
-KNN_DIR = TV2 / "knn"
+KNN_DIR = Path(os.environ.get("CAFA6_KNN_DIR", TV2 / "knn"))  # e.g. TV2/knn_trainval: train + val references
+
+
+def knn_dir(split: str) -> Path:
+    """KNN_DIR when it has this split's prior, else the train-only TV2/knn (knn_trainval has no val prior)."""
+    return KNN_DIR if (KNN_DIR / f"{split}_knn.npz").exists() else TV2 / "knn"
 OUT_ROOT = ROOT / "runs" / "calibrate_tv"
 TEST_LOOKS = ROOT / "runs" / "test_looks.md"
 ORDER = ["no_hit", "<30", "30-50", "50-80", "80-95", "95-99.9", "100"]
@@ -175,7 +180,7 @@ def load_sparse(path: Path, onto) -> tuple[np.ndarray, sp.csr_matrix]:
 
 def knn_prior(split: str, onto) -> tuple[np.ndarray, sp.csr_matrix, np.ndarray]:
     """T5_k50_g0_na p_full over ontology columns, cut at 0.01 and max-propagated (as stacker_tv.Ctx.matrix)."""
-    K = ks.load_knn(split, KNN_DIR)
+    K = ks.load_knn(split, knn_dir(split))
     cols = np.array([onto.idx[t] for t in K["terms_full"]])
     pf = K["p_full"].tocoo()
     P = sp.csr_matrix((pf.data, (pf.row, cols[pf.col])), shape=(len(K["ids"]), len(onto.terms)))
@@ -185,7 +190,7 @@ def knn_prior(split: str, onto) -> tuple[np.ndarray, sp.csr_matrix, np.ndarray]:
 
 
 def identity(split: str) -> pd.Series:
-    K = ks.load_knn(split, KNN_DIR)
+    K = ks.load_knn(split, knn_dir(split))
     return pd.Series(K["max_pident"].astype(np.float32), index=K["ids"].astype(str))
 
 

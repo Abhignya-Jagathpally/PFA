@@ -1,0 +1,102 @@
+{
+  "test": {
+    "n": 8630,
+    "improved": 599,
+    "improved_share": 0.0694,
+    "bin_changed": 397,
+    "into_ge95": 233,
+    "into_100": 129,
+    "ge95_before": 4620,
+    "ge95_after": 4853,
+    "100_before": 2190,
+    "100_after": 2319,
+    "no_hit_before": 250,
+    "no_hit_after": 233,
+    "best_same_org_before": 5138,
+    "best_same_org_after": 5387,
+    "improved_by_same_org_val_hit": 361,
+    "into_ge95_same_org": 213,
+    "into_100_same_org": 123,
+    "queries_with_val_hit": 7126,
+    "improved_same_org_by_after_bin": {
+      "no_hit": {
+        "n": 0,
+        "same_org": 0
+      },
+      "<30": {
+        "n": 7,
+        "same_org": 1
+      },
+      "30-50": {
+        "n": 67,
+        "same_org": 2
+      },
+      "50-80": {
+        "n": 87,
+        "same_org": 8
+      },
+      "80-95": {
+        "n": 108,
+        "same_org": 49
+      },
+      "95-99.9": {
+        "n": 201,
+        "same_org": 178
+      },
+      "100": {
+        "n": 129,
+        "same_org": 123
+      }
+    }
+  },
+  "tv": {
+    "n": 7566,
+    "improved": 465,
+    "improved_share": 0.0615,
+    "bin_changed": 230,
+    "into_ge95": 89,
+    "into_100": 105,
+    "ge95_before": 5227,
+    "ge95_after": 5316,
+    "100_before": 2563,
+    "100_after": 2668,
+    "no_hit_before": 91,
+    "no_hit_after": 83,
+    "best_same_org_before": 5498,
+    "best_same_org_after": 5539,
+    "improved_by_same_org_val_hit": 269,
+    "into_ge95_same_org": 55,
+    "into_100_same_org": 88,
+    "queries_with_val_hit": 6150,
+    "improved_same_org_by_after_bin": {
+      "no_hit": {
+        "n": 0,
+        "same_org": 0
+      },
+      "<30": {
+        "n": 15,
+        "same_org": 9
+      },
+      "30-50": {
+        "n": 35,
+        "same_org": 12
+      },
+      "50-80": {
+        "n": 41,
+        "same_org": 13
+      },
+      "80-95": {
+        "n": 103,
+        "same_org": 41
+      },
+      "95-99.9": {
+        "n": 166,
+        "same_org": 106
+      },
+      "100": {
+        "n": 105,
+        "same_org": 88
+      }
+    }
+  }
+}

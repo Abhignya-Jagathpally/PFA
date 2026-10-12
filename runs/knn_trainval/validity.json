@@ -1,0 +1,42 @@
+{
+  "label_snapshot": "GO-GPT val and train both come from wanglab/gogpt-training-data (validation and train parquet of the same release, annotations up to Nov 2022, random 90/10 split); the test set holds annotations gained Mar 2023 - Feb 2024 (prepare_gogpt.py, REPORT.md 4.1).",
+  "val_test_accession_overlap": 87,
+  "val_test_sequence_overlap_test_proteins": 148,
+  "val_test_sequence_overlap_same_accession": 86,
+  "train_test_accession_overlap": 673,
+  "train_test_sequence_overlap_test_proteins": 1242,
+  "val_tv_accession_overlap": 0,
+  "val_tv_sequence_overlap_tv_proteins": 60,
+  "val_hits_with_self_accession": 0,
+  "val_hits_of_overlapping_test_accessions": 762,
+  "val_t0_stripping": {
+    "dated_rows": {
+      "rows_by_source": {
+        "goa_reference": 68068,
+        "rgd": 7392,
+        "zfin": 2819,
+        "goa_zebrafish_proteome": 1653
+      },
+      "proteins_by_source": {
+        "goa_reference": 7240,
+        "goa_zebrafish_proteome": 238,
+        "rgd": 779,
+        "zfin": 450
+      },
+      "rows_via_secondary_accession": 134
+    },
+    "aspect_stats": {
+      "tv_aspects": 177,
+      "win_but_no_gogpt_label": 56,
+      "pk_aspects": 386,
+      "rejected_unexplained_labels": 53,
+      "rejected_cover_ge_0.9": 7
+    },
+    "stripped_pairs": {
+      "pk": 4594,
+      "tv": 2471
+    },
+    "val_proteins_with_stripped_terms": 469,
+    "val_proteins_left_without_labels": 52
+  }
+}

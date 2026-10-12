@@ -79,7 +79,12 @@ from cafa6 import knn_sharp as ks
 from cafa6.data import ROOT, load_pred
 
 TV2 = ROOT / "data" / "proc_gogpt_tv2"
-KNN_DIR = TV2 / "knn"
+KNN_DIR = Path(os.environ.get("CAFA6_KNN_DIR", TV2 / "knn"))  # e.g. TV2/knn_trainval: train + val references
+
+
+def knn_dir(split: str) -> Path:
+    """KNN_DIR when it has this split's prior, else the train-only TV2/knn (knn_trainval has no val prior)."""
+    return KNN_DIR if (KNN_DIR / f"{split}_knn.npz").exists() else TV2 / "knn"
 TEST_LOOKS = ROOT / "runs" / "test_looks.md"
 ORGS = ("human", "mouse", "rat", "zebrafish", "other")
 RBF_C = np.array([0.25, 0.4, 0.55, 0.7, 0.8, 0.9, 0.95, 0.98, 1.0], np.float32)
@@ -221,7 +226,7 @@ def build_split(split: str, onto, higo_run: Path | None, topk: int, with_gt: boo
     """Rows and features of one split; with_gt adds labels, the scored mask, test-like weights w and the row loss
     weights m = scored * sqrt(w) (* IA / mean IA for loss ia_bce)."""
     t0 = time.time()
-    K = ks.load_knn(split, KNN_DIR)
+    K = ks.load_knn(split, knn_dir(split))
     ids = K["ids"].astype(str)
     n, nT = len(ids), len(onto.terms)
     cols = np.array([onto.idx[t] for t in K["terms_full"]])

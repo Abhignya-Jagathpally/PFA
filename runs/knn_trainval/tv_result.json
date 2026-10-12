@@ -1,0 +1,47 @@
+{
+  "setting": "T5_k50_g0_na",
+  "rule": "'kNN reference set = train + val' (GO-GPT validation proteins added as references to the sharpened kNN prior T5_k50_g0_na; TV v2 queries copy val labels stripped to T0 by the TV v2 dated GOA rule; DIAMOND --more-sensitive e<=1e-3 top 50 by bitscore over the merged train+val hits) is KEPT if its TV v2 test-like mean Fmax (chosen_v2 cell weights, knn_sharp.Scorer) minus the train-only prior's is >= 0.003, the paired protein bootstrap 95% CI of that difference (1000 reps, seed 0, test-like weights) excludes 0, and the plain (unweighted) TV v2 mean Fmax is not lower by more than 0.002. Weights recomputed from train+val cells are a diagnostic only. Keeping it writes data/proc_gogpt_tv2/knn_trainval/{tv,test}_knn.npz but does not by itself trigger a test look.",
+  "baseline_matches_contract_max_abs_diff": 0.0,
+  "testlike_v2": {
+    "train_only": 0.7168043328928242,
+    "train_val": 0.7258900003790764,
+    "bootstrap": {
+      "diff": 0.00908566748625217,
+      "lo": 0.006951866337481708,
+      "hi": 0.01104081948469495,
+      "reps": 1000
+    }
+  },
+  "plain": {
+    "train_only": 0.7344757799025836,
+    "train_val": 0.7377933949307183,
+    "bootstrap": {
+      "diff": 0.0033176150281346573,
+      "lo": 0.0017858674876921443,
+      "hi": 0.004818301043845127,
+      "reps": 1000
+    }
+  },
+  "diagnostic_testlike_trainval_cells": {
+    "bootstrap": {
+      "diff": 0.003623980254017223,
+      "lo": 0.0019627052049091933,
+      "hi": 0.005133607500123305,
+      "reps": 1000
+    },
+    "weights": {
+      "n_cells": 44,
+      "effective_n": 907.7,
+      "test_mass_without_tv_cell": 0.0
+    }
+  },
+  "n_tv_scored": 7566,
+  "n_tv_best_identity_improved": 465,
+  "criteria": {
+    "gain_ge_0.003": true,
+    "ci_excludes_0": true,
+    "plain_not_lower_by_gt_0.002": true
+  },
+  "kept": true,
+  "scored_at": "2026-10-12 09:12:11"
+}
