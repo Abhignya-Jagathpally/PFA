@@ -14,6 +14,45 @@ Diagram: `docs/higo_r2_pipeline.png` (source `docs/higo_r2_pipeline.mmd`).
 
 ---
 
+## 0. Result and final status (2026-10-12, 22:50; supersedes the RUNNING / PLANNED states below)
+
+**Test look #3** (`runs/test_look/look3_l3c0_twin/`, `logs/look3.log`) scored the pipeline chosen by the
+pre-registered rule (`runs/test_looks.md`, 08:52:00 / 09:20:00 / 22:48:00):
+frozen ESM2-35M HiGO head (`runs/l3_c0_tv2`) + sharpened kNN over train + val references, combined by the twin
+stacker fitted on TV v2, no calibration.
+
+| GO-GPT temporal test, 8,630 proteins | MF | BP | CC | mean IA-weighted Fmax |
+|---|---|---|---|---|
+| **HiGO-R2 (look #3)** | **0.7378** | **0.6579** | **0.7576** | **0.7178** |
+| GO-GPT ten-sample (the bar) | 0.7203 | 0.6296 | 0.7454 | 0.6984 |
+| GO-GPT beam (released checkpoint) | 0.7143 | 0.6171 | 0.7284 | 0.6866 |
+
+- Against ten-sample: **+0.0193 [+0.0138, +0.0250]**. Against beam: **+0.0312 [+0.0254, +0.0374]**. Paired
+  protein bootstrap with 1,000 replicates; the scorer reproduced both GO-GPT rows exactly.
+- **Per identity bin** (train-only best hit), HiGO-R2 against ten-sample: 100% 0.879 vs 0.842; 95-99.9% 0.858 vs
+  0.836; 80-95% 0.675 vs 0.667; 50-80% 0.506 vs 0.493; 30-50% 0.480 vs 0.450; <30% 0.451 vs 0.461; no hit 0.342 vs
+  0.382. HiGO-R2 loses the two remote bins, which hold 329 of 8,630 proteins (3.8%). That is the open weakness: a
+  35M frozen encoder does not match GO-GPT's 3B decoder where there is no homologue.
+- **Test looks used:** 3 of 4. Look #4 is reserved by the 22:55:00 optimiser rule.
+
+**TV v2 decisions** (cross-fitted test-like mean Fmax of the stacked pipeline; raw kNN with train + val references
+scores 0.7259):
+
+| niche | decision | evidence (TV v2 test-like) | status |
+|---|---|---|---|
+| 1. Backbone | frozen ESM2-35M | 3B layer-mix stack 0.7306 (gated twin +0.0047 [+0.0008, +0.0084], under the +0.005 bar) vs 35M stack 0.7342 | 35M KEPT; frozen 3B DROPPED |
+| 2. Adapter | none | LoRA stack: best gated twin +0.0028 [-0.0013, +0.0064], not kept; C1 - C0 = -0.0055 against the +0.01 rule | LoRA DROPPED; CRLA and LST not built, by rule |
+| 3. Pooling | per-term query, entmax-1.5 cross-attention | unchanged from the earlier ablations | KEPT |
+| 4. Hierarchy | MCM + MCLoss, max-propagation after the stacker | 0 violations in the look-3 file | KEPT |
+| 5a. Retrieval prior | sharpened kNN T5_k50_g0_na, references train + val | +0.0091 [+0.0070, +0.0110] for adding val references (09:12:11) | KEPT |
+| 5b. In-network fusion (L4a) | dropped | stack +0.0016 [-0.0021, +0.0050] over kNN | DROPPED |
+| 6. Loss / optimiser | IA-weighted MCLoss; AdamW + cosine | head-to-head of Schedule-Free vs WSD + tail averaging running (rule 22:55:00) | KEPT, optimiser comparison IN PROGRESS |
+| 7. Stacking | twin refiner, cross-fitted on TV v2 | +0.0083 [+0.0040, +0.0120]; gated twin +0.0067; logistic fusion +0.0000 | twin KEPT; fusion DROPPED |
+| 8. Calibration | none on the stacker output | isotonic on the twin 0.7287 vs 0.7342 uncalibrated; kNN + isotonic +0.0031 kept but 0.7290 < 0.7312, so not chosen | isotonic DROPPED for the final pipeline |
+| 9. Ensembling and seeds | single seed | not run | PLANNED, outside the delivered model |
+
+---
+
 ## 1. The bar and the evaluation protocol
 
 ### 1.1 The bar
@@ -317,7 +356,20 @@ HiGO-R2 differs in three linked ways:
    the test's duplicate-accession mechanism and is reweighted to the test's organism x identity x same-organism
    cells. Per-identity-bin isotonic maps align the bins to one global Fmax threshold.
 
-What the evidence supports so far:
+**After the TV v2 decisions and look #3 (section 0):**
+- Claims 1 and 2 above describe what was built and tested, not the delivered model. In-network retrieval trust
+  (L4a) and the 3B layer-mix readout were both dropped on TV v2.
+- The delivered HiGO-R2 differs from GO-GPT, DeepGOPlus, SPROF-GO and ProtBoost in three ways:
+  - A per-term-query, hierarchy-closed HiGO head on a frozen ESM2-35M.
+  - An identity-sharpened kNN prior over the full ontology, with GO-GPT's validation proteins added as references.
+  - A small nonlinear per-term refiner that combines the two. It is fitted only on a temporal validation set
+    reweighted to the test's organism x identity x same-organism cells, with cross-fitting and pre-registered keep
+    rules.
+- That combination scores 0.7178 against GO-GPT's 0.6984 on GO-GPT's own temporal test (+0.0193 [+0.0138, +0.0250]).
+- The gain comes from the close-homologue bins, where GO-GPT's autoregressive decoder transfers neighbour labels less
+  well than explicit retrieval. GO-GPT still leads at <30% identity and with no hit.
+
+The rest of this section was written before those decisions. What the evidence supported at that point:
 - The selection protocol decides whether learned fusion can beat a zero-training kNN on this test. Every combiner
   fit on random val lost to sharpened kNN, mostly at >=95% identity.
 - Sharpened kNN alone ties the bar (0.701 vs 0.6984, no CI).

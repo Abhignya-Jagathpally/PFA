@@ -22,6 +22,17 @@ Throughput and logging keys (outputs unchanged unless noted):
                           tolerance in fp32, but under bf16 autocast it differs from entmax_bisect at bf16 rounding level.
 - fused_adamw: false      fused CUDA AdamW kernel; equal to float tolerance, not bit-identical.
 
+Optimiser (default keeps the original AdamW + cosine):
+- optimizer: adamw_cosine AdamW (Loshchilov & Hutter, ICLR 2019), linear warm-up then cosine decay.
+             schedulefree AdamW Schedule-Free (Defazio et al., NeurIPS 2024; facebookresearch/schedule_free): no decay
+                          schedule; validation and saved weights use the averaged x sequence (opt.eval()).
+             wsd_avg      AdamW with warmup-stable-decay (Hägele et al., NeurIPS 2024): constant lr after warm-up, linear
+                          decay to 0 over the last `decay_frac` (0.2) of steps, and a uniform average of the trainable
+                          weights over that decay phase (dense averaging as in SWAD, Cha et al., NeurIPS 2021); epochs
+                          inside the decay phase are validated and saved with the averaged weights. The average is not
+                          checkpointed, so use resume: false.
+  Both non-default options only make sense with patience >= epochs: the full step budget defines the schedule.
+
 Multi-GPU: run independent jobs, one per GPU (CUDA_VISIBLE_DEVICES=k), e.g. two seeds or two arms in parallel.
 There is no DDP path; per-run throughput on one H100 is enough for 35M, and frozen 3B fits one GPU.
 """
@@ -312,11 +323,10 @@ def main():
 
     groups = param_groups(model, cfg)
     all_params = [p for g in groups for p in g["params"]]
-    opt = torch.optim.AdamW(groups, weight_decay=0.01, **({"fused": True} if cfg.get("fused_adamw") else {}))
     accum = cfg.get("grad_accum", 1)
     steps_per_epoch = math.ceil(len(batcher.batches(tr_idx, True)) / accum)
     total = steps_per_epoch * cfg.get("sched_epochs", cfg["epochs"])
-    sched = get_cosine_schedule_with_warmup(opt, int(cfg.get("warmup_frac", 0.06) * total), total)
+    opt, sched, tavg = build_optimizer(cfg, groups, all_params, total)
     Yd = Y[va_idx].toarray()
     log = open(run / "train_log.jsonl", "a")
     best, bad, start_ep, skip, elapsed0 = -1.0, 0, 0, 0, 0.0
@@ -337,6 +347,8 @@ def main():
         if stop:
             break
         model.train()
+        if hasattr(opt, "train"):   # schedule-free: gradients are taken at the interpolated y sequence
+            opt.train()
         nb = 0
         tot_t = torch.zeros((), dtype=torch.float64, device=device)   # running loss sum without a per-step sync
         ep_rng = random.getstate()
@@ -356,6 +368,8 @@ def main():
             if (bi + 1) % accum == 0:
                 torch.nn.utils.clip_grad_norm_(all_params, 1.0)
                 opt.step(); sched.step(); opt.zero_grad(set_to_none=True)
+                if tavg is not None:
+                    tavg.update(sched.last_epoch)
                 if cfg.get("resume") and cfg.get("ckpt_every") and ((bi + 1) // accum) % cfg["ckpt_every"] == 0:
                     save_checkpoint(ckpt_path, model, opt, sched, ep, bi + 1, best, bad, ep_rng, time.time() - t0)
             tot_t += loss.detach().double() * accum; nb += 1; win_tok += n_tok
@@ -374,6 +388,12 @@ def main():
         tot = tot_t.item()
         skip = 0
         train_s = time.time() - ep_t0
+        if hasattr(opt, "eval"):    # schedule-free: evaluate and save the averaged x sequence
+            opt.eval()
+        averaged = tavg is not None and tavg.n > 0
+        if averaged:
+            tavg.swap()
+            print(f"validating with the tail average of {tavg.n} steps", flush=True)
         # validation: loss + fast weighted Fmax
         pv = predict(model, batcher, seqs, taxa, va_idx, device).astype(np.float32)
         pvc = np.clip(pv, 1e-6, 1 - 1e-6)
@@ -393,6 +413,8 @@ def main():
             bad += 1
             stop = bad >= patience
         diag = fmt_diag(diagnostics(model))
+        if averaged:
+            tavg.swap()
         print(f"== epoch {ep + 1}/{cfg['epochs']} | train {rec['train_loss']:.5f} val {vloss:.5f} | val Fw "
               f"F {fm['F']:.4f} P {fm['P']:.4f} C {fm['C']:.4f} mean {fm['mean']:.4f} | best {best:.4f}"
               f"{' (new)' if improved else ''} patience {bad}/{patience} | train {fmt_dur(train_s)} "
@@ -479,6 +501,59 @@ def param_groups(model, cfg):
             key = side
         groups[key]["params"].append(p)
     return [g for g in groups.values() if g["params"]]
+
+
+class TailAverage:
+    """Uniform running mean of the trainable weights over optimizer steps >= start (the WSD decay phase)."""
+
+    def __init__(self, params, start: int):
+        self.params, self.start, self.n, self.avg = list(params), start, 0, None
+
+    @torch.no_grad()
+    def update(self, step: int):
+        if step < self.start:
+            return
+        if self.avg is None:
+            self.avg = [p.detach().clone() for p in self.params]
+        else:
+            for a, p in zip(self.avg, self.params):
+                a.add_(p.detach() - a, alpha=1.0 / (self.n + 1))
+        self.n += 1
+
+    @torch.no_grad()
+    def swap(self):
+        """Exchange the live weights with the average (call twice to restore)."""
+        for a, p in zip(self.avg, self.params):
+            tmp = p.detach().clone()
+            p.copy_(a)
+            a.copy_(tmp)
+
+
+def build_optimizer(cfg, groups, all_params, total: int):
+    """(optimizer, per-step scheduler, TailAverage or None) for cfg['optimizer']; see the module docstring."""
+    kind = cfg.get("optimizer", "adamw_cosine")
+    warm = int(cfg.get("warmup_frac", 0.06) * total)
+    if kind == "adamw_cosine":
+        opt = torch.optim.AdamW(groups, weight_decay=0.01, **({"fused": True} if cfg.get("fused_adamw") else {}))
+        return opt, get_cosine_schedule_with_warmup(opt, warm, total), None
+    if kind == "schedulefree":
+        import schedulefree
+        opt = schedulefree.AdamWScheduleFree(groups, weight_decay=0.01, warmup_steps=warm)
+        print(f"optimizer: AdamW schedule-free, warm-up {warm} of {total} steps", flush=True)
+        return opt, torch.optim.lr_scheduler.LambdaLR(opt, lambda s: 1.0), None
+    if kind == "wsd_avg":
+        d0 = int(total * (1 - cfg.get("decay_frac", 0.2)))
+
+        def wsd(s):
+            if s < warm:
+                return (s + 1) / max(warm, 1)
+            return 1.0 if s < d0 else max(0.0, (total - s) / max(total - d0, 1))
+
+        opt = torch.optim.AdamW(groups, weight_decay=0.01, **({"fused": True} if cfg.get("fused_adamw") else {}))
+        print(f"optimizer: AdamW warmup-stable-decay, warm-up {warm}, decay from step {d0} of {total}, "
+              f"tail average over the decay phase", flush=True)
+        return opt, torch.optim.lr_scheduler.LambdaLR(opt, wsd), TailAverage(all_params, d0)
+    raise ValueError(f"unknown optimizer {kind!r}")
 
 
 def save_checkpoint(path, model, opt, sched, epoch, step, best, bad, ep_rng, elapsed):

@@ -335,3 +335,27 @@ in each 50-95% bin, under 0.001 in each remote bin).
 - The other headline facts check out against the files: L0 v1 `Tinf_k50_g1_na` 0.5961 on G-test (look #1); MeanFlow
   +0.0014 on G-valB vs bar 0.005, BCE twin better; TV1 disagreement explained by duplicate accessions; HiGO alone
   0.4547 on G-test.
+
+## 5. Update 2026-10-12 22:50: TV v2 decisions and test look #3
+
+All numbers are cross-fitted TV v2 test-like mean Fmax unless marked. The reference is raw sharpened kNN over train +
+val references, at 0.7259. Rules are in `runs/test_looks.md`.
+
+| component | evidence | verdict | files |
+|---|---|---|---|
+| kNN references = train + val (GO-GPT val proteins added) | +0.0091 [+0.0070, +0.0110]; +0.0036 [+0.0020, +0.0051] with weights from the new identities; 599 test proteins (6.9%) get a closer hit | KEEP | `runs/knn_trainval/` |
+| Twin stacker on frozen-35M HiGO (l3_c0_tv2) | 0.7342, +0.0083 [+0.0040, +0.0120] | KEEP (chosen pipeline) | `runs/stacker_tv/l3_c0/result.json` |
+| Identity-gated twin on l3_c0 | 0.7326, +0.0067 [+0.0027, +0.0103] | kept by rule, not chosen (lower) | same |
+| Per-term logistic fusion (any input) | +0.0000 (lofo picks step 0) | DROP | `runs/stacker_tv/*/result.json` |
+| LoRA 35M (l3_c1_tv2) through the stacker | best gated twin 0.7287, +0.0028 [-0.0013, +0.0064] | DROP (adapter) | `runs/stacker_tv/l3_c1/result.json` |
+| In-network kNN fusion (l4a_tv2) through the stacker | best 0.7275, +0.0016 [-0.0021, +0.0050] (random-val lead of +0.06 did not transfer) | DROP | `runs/stacker_tv/l4a/result.json` |
+| Frozen ESM2-3B, layer mix 18/22/26/30 (l5_3b_tv2) | best gated twin 0.7306, +0.0047 [+0.0008, +0.0084], under the +0.005 bar | DROP | `runs/stacker_tv/l5_3b/result.json` |
+| Isotonic calibration on the l3_c0 twin | 0.7287 vs 0.7342 uncalibrated | DROP | `runs/calibrate_tv/l3_c0_iso/result.json` |
+| kNN + isotonic (train + val) | 0.7290, +0.0031 [+0.0016, +0.0042] | kept by rule, not chosen (more than 0.003 below the twin) | `runs/calibrate_tv/knn_trainval_iso/result.json` |
+| **Test look #3**: l3_c0 twin pipeline on G-test | 0.7178 vs GO-GPT ten-sample 0.6984 (+0.0193 [+0.0138, +0.0250]) and beam 0.6866 (+0.0312 [+0.0254, +0.0374]); loses <30% (0.451 vs 0.461) and no hit (0.342 vs 0.382) | **beats the bar** | `runs/test_look/look3_l3c0_twin/` |
+| Optimiser: Schedule-Free vs WSD + tail averaging | 2 seeds each, running; rule 22:55:00 | OPEN | `logs/opt_*.log` |
+
+**What the split mismatch looked like this time:** on random val, in-network fusion led the plain head by
++0.06 and 3B led 35M by +0.01 to +0.04. On TV v2, neither improved the stacked pipeline over the 35M HiGO feature.
+The random-split lesson from section 3 held again: random val rewards retrieval-like gains that the stacker, given the
+kNN prior directly, already captures.

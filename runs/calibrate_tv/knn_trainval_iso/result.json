@@ -1,0 +1,147 @@
+{
+  "input": "kNN-only stand-in T5_k50_g0_na (data/proc_gogpt_tv2/knn)",
+  "stacker_run": "none",
+  "model": null,
+  "decision_run": true,
+  "method": "iso",
+  "rule": "candidate = per-(aspect, identity-bin) isotonic regression of src/cafa6/calibrate_tv.py (--method iso): sklearn IsotonicRegression (increasing, out_of_bounds='clip', linear interpolation between knots, map outputs clipped to [0.001, 0.999]), fit by IA x sqrt(test-like w) weighted least squares on the input's nonzero scores, the same merged bins as the temperature + bias rule (no_hit/<30/30-50/50-80/80-95/95-99.9/100 merged per aspect to >= 40 TV v2 proteins with ground truth; a group with < 40 training proteins in a given fit keeps the identity map), cross-fitted over the stacker_tv protein folds (5 folds, best-hit/TV-link/cluster components), followed by GO max-propagation, scored with knn_sharp.Scorer. For a given input calibration is KEPT only if (i) its pooled cross-fitted TV v2 test-like mean Fmax minus the uncalibrated input's is >= 0.003, (ii) the paired protein bootstrap 95% CI of that difference (1000 reps, test-like weights) excludes 0, and (iii) the plain (unweighted) TV v2 mean Fmax does not drop by more than 0.002. The rule applies to the stacker outputs runs/stacker_tv/{l3_c0,l3_c1,l4a} (the stacker's kept model; a model passed with --model when the stacker kept none is diagnostic only) and to the kNN prior T5_k50_g0_na alone as the fallback pipeline. The kNN stand-in isotonic result (+0.0064 [+0.0045, +0.0079], runs/calibrate_tv/knn_standin, no output clip, 08:45) was observed BEFORE this registration and is not counted as confirmation; the kNN fallback verdict under this rule is recorded but flagged as not independently confirmed. A kept calibration replaces its input in any later pre-registered test look but does not by itself trigger one. The 08:44:58 temperature + bias rule stays as registered (its candidate is --method tb).",
+  "rule_tag": "TV calibration isotonic (calibrate_tv.py --method iso)",
+  "groups": {
+    "MF": {
+      "no_hit+<30": 68,
+      "30-50": 123,
+      "50-80": 161,
+      "80-95": 875,
+      "95-99.9": 1347,
+      "100": 1264
+    },
+    "BP": {
+      "no_hit+<30": 63,
+      "30-50": 118,
+      "50-80": 149,
+      "80-95": 962,
+      "95-99.9": 1794,
+      "100": 1551
+    },
+    "CC": {
+      "no_hit+<30": 43,
+      "30-50": 63,
+      "50-80": 89,
+      "80-95": 955,
+      "95-99.9": 1605,
+      "100": 1965
+    }
+  },
+  "tv_testlike": {
+    "uncal": 0.7258900003790764,
+    "tb": 0.7252632140326543,
+    "iso": 0.7289954964699993
+  },
+  "tv_unweighted": {
+    "uncal": 0.7377933949307183,
+    "tb": 0.7348673106991047,
+    "iso": 0.7369369634441525
+  },
+  "tv_testlike_aspects": {
+    "uncal": {
+      "MF": 0.7534416885443566,
+      "BP": 0.6717838291006603,
+      "CC": 0.7524444834922123
+    },
+    "tb": {
+      "MF": 0.7450066911544595,
+      "BP": 0.669520034130865,
+      "CC": 0.7612629168126381
+    },
+    "iso": {
+      "MF": 0.752403844410026,
+      "BP": 0.6714948274911685,
+      "CC": 0.7630878175088035
+    }
+  },
+  "self_checks": {
+    "tv_all": {
+      "maps_checked": 15,
+      "adjacent_pairs": 289873,
+      "inversions": 0,
+      "new_ties": 221772,
+      "entries_raised_by_propagation": 0
+    },
+    "val": {
+      "maps_checked": 15,
+      "adjacent_pairs": 494126,
+      "inversions": 0,
+      "new_ties": 371014,
+      "entries_raised_by_propagation": 0
+    },
+    "test": {
+      "maps_checked": 15,
+      "adjacent_pairs": 437267,
+      "inversions": 0,
+      "new_ties": 342662,
+      "entries_raised_by_propagation": 0
+    }
+  },
+  "knn_fallback_not_confirmation": true,
+  "bootstrap_vs_uncal": {
+    "tb": {
+      "diff": -0.0006267863464221035,
+      "lo": -0.0029095353034415267,
+      "hi": 0.0012270085145060668,
+      "reps": 1000
+    },
+    "iso": {
+      "diff": 0.0031054960909229212,
+      "lo": 0.0015513144874728963,
+      "hi": 0.004213941764048284,
+      "reps": 1000
+    }
+  },
+  "per_fold": [
+    {
+      "fold": 0,
+      "n_test": 1514,
+      "uncal": 0.7276059816383248,
+      "tb": 0.7282974425487215,
+      "iso": 0.7277937988152109
+    },
+    {
+      "fold": 1,
+      "n_test": 1513,
+      "uncal": 0.7080036125152902,
+      "tb": 0.7055371954065394,
+      "iso": 0.7049826261039156
+    },
+    {
+      "fold": 2,
+      "n_test": 1513,
+      "uncal": 0.7099329882185766,
+      "tb": 0.7050056944514725,
+      "iso": 0.7072762743719748
+    },
+    {
+      "fold": 3,
+      "n_test": 1513,
+      "uncal": 0.7497001988240571,
+      "tb": 0.7483965124648723,
+      "iso": 0.7585432884566293
+    },
+    {
+      "fold": 4,
+      "n_test": 1513,
+      "uncal": 0.7526390093528583,
+      "tb": 0.7570729268320863,
+      "iso": 0.761127160148425
+    }
+  ],
+  "val_unweighted": {
+    "uncal": 0.5948113440849142,
+    "iso": 0.5943598064722848
+  },
+  "keep": true,
+  "verdict": "KEEP calibration (iso) (kNN fallback: observed before the isotonic registration, not independently confirmed)",
+  "weights": {
+    "effective_n": 959.9
+  },
+  "runtime_s": 64
+}
