@@ -369,3 +369,14 @@ kNN prior directly, already captures.
 | Seed spread of the stacked 35M pipeline (5 runs) | twin 0.7182-0.7342, SD about 0.006; only l3_c0 passed its rule | the l3_c0 TV gain is the top of the spread | same, plus `runs/stacker_tv/l3_c0/` |
 
 Look #4 was not used. The look-3 pipeline is final.
+
+### 5.2 Update 2026-10-18: full evaluation suite (`runs/eval_suite/`)
+
+| observation | evidence (G-test, descriptive) | consequence |
+|---|---|---|
+| The stacker does not beat its own kNN prior on test | kNN prior (train+val) Fmax_w 0.7206 vs pipeline 0.7178; MF 0.758 vs 0.738, BP 0.649 vs 0.658, CC 0.755 vs 0.758 | the TV v2 gain of the twin (+0.0083) did not transfer; the GO-GPT margin comes from the retrieval prior |
+| Novel proteins | per-protein F1_w no hit 0.133 vs GO-GPT 0.286; <30% 0.335 vs 0.352; 30-50% 0.341 vs 0.375 | HiGO-R2 is the weaker model for proteins without close homologues |
+| Homology dependence | Spearman(F1_w, identity) 0.523 vs 0.431, difference +0.092 [+0.075, +0.108] | same dependence as the kNN prior (0.528) |
+| Hierarchy consistency | 0 violations vs GO-GPT ten-sample 2.87% of pairs | KEEP the max-propagation step |
+| GO term embeddings | direct-neighbour P@1 0.678 (HiGO queries) vs 0.384 untrained ancestor-mean vs 0.154 GO-GPT tokens | the learned queries encode GO structure beyond the ancestor-mean construction |
+| Multiple testing | 51/56 primary comparisons pass Holm; none significant in favour of GO-GPT | the headline holds after correction |

@@ -1,0 +1,73 @@
+model	scores	metric	aspect	cafaeval	eval_suite	abs_diff	tau_cafaeval	tau_eval_suite
+HiGO-R2	submission format (3 decimals)	Fmax	BP	0.6908177819111561	0.6907699298415361	4.785206961999133e-05	0.42	0.42
+HiGO-R2	submission format (3 decimals)	Fmax	CC	0.8267800650347022	0.8267649626447492	1.5102389953058903e-05	0.45	0.45
+HiGO-R2	submission format (3 decimals)	Fmax	MF	0.7775011582844827	0.7776425321992333	0.00014137391475055328	0.28	0.25
+HiGO-R2	submission format (3 decimals)	Fmax_w	BP	0.657853604889494	0.6578864551714374	3.285028194344175e-05	0.35	0.33
+HiGO-R2	submission format (3 decimals)	Fmax_w	CC	0.757647797765293	0.7576105121199824	3.728564531058076e-05	0.45	0.45
+HiGO-R2	submission format (3 decimals)	Fmax_w	MF	0.7376280049193903	0.7378308963658676	0.00020289144647733792	0.25	0.25
+HiGO-R2	submission format (3 decimals)	Fmicro	BP	0.7063368935102902	0.7063249047915744	1.1988718715771896e-05		
+HiGO-R2	submission format (3 decimals)	Fmicro	CC	0.7947861604997597	0.7947147147147148	7.144578504492127e-05		
+HiGO-R2	submission format (3 decimals)	Fmicro	MF	0.7864417916986092	0.7866079005721482	0.00016610887353907255		
+HiGO-R2	submission format (3 decimals)	Fmicro_w	BP	0.6840363510698996	0.6840312783851653	5.0726847342641435e-06		
+HiGO-R2	submission format (3 decimals)	Fmicro_w	CC	0.6974543374187372	0.6974019980977003	5.233932103687611e-05		
+HiGO-R2	submission format (3 decimals)	Fmicro_w	MF	0.739480206949939	0.7396845233146515	0.00020431636471252013		
+HiGO-R2	submission format (3 decimals)	Smin	BP	11.63950307671852	11.63875289351628	0.0007501832022409616	0.59	0.59
+HiGO-R2	submission format (3 decimals)	Smin	CC	3.4690096479252683	3.4688943256825855	0.00011532224268284708	0.57	0.57
+HiGO-R2	submission format (3 decimals)	Smin	MF	2.825293388179348	2.829782698078281	0.004489309898933147	0.54	0.54
+HiGO-R2	submission format (3 decimals)	s_w at best_s tau	BP	13.224845244298663	13.224728263753006	0.0001169805456573414	0.59	0.59
+HiGO-R2	submission format (3 decimals)	s_w at best_s tau	CC	4.387781028393322	4.387036901324871	0.0007441270684509504	0.57	0.57
+HiGO-R2	submission format (3 decimals)	s_w at best_s tau	MF	5.0959789913331575	5.100516937950612	0.004537946617454658	0.54	0.54
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax	BP	0.6908177819111561	0.6908177819111567	6.661338147750939e-16	0.42	0.42
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax	CC	0.8267800650347022	0.8267800650347026	3.3306690738754696e-16	0.45	0.45
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax	MF	0.7775011582844827	0.7775011582844824	3.3306690738754696e-16	0.28	0.28
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax_w	BP	0.657853604889494	0.6578536048894938	1.1102230246251565e-16	0.35	0.35
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax_w	CC	0.757647797765293	0.7576477977652915	1.5543122344752192e-15	0.45	0.45
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax_w	MF	0.7376280049193903	0.7376280049193901	2.220446049250313e-16	0.25	0.25
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro	BP	0.7063368935102902	0.7063368935102902	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro	CC	0.7947861604997597	0.7947861604997597	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro	MF	0.7864417916986092	0.7864417916986092	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro_w	BP	0.6840363510698996	0.6840363510698996	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro_w	CC	0.6974543374187372	0.6974543374187359	1.3322676295501878e-15		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro_w	MF	0.739480206949939	0.739480206949939	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Smin	BP	11.63950307671852	11.639503076718519	1.7763568394002505e-15	0.59	0.59
+HiGO-R2	cafaeval input file replica (4 decimals)	Smin	CC	3.4690096479252683	3.4690096479252683	0.0	0.57	0.57
+HiGO-R2	cafaeval input file replica (4 decimals)	Smin	MF	2.825293388179348	2.825293388179348	0.0	0.54	0.54
+HiGO-R2	cafaeval input file replica (4 decimals)	s_w at best_s tau	BP	13.224845244298663	13.224845244298665	1.7763568394002505e-15	0.59	0.59
+HiGO-R2	cafaeval input file replica (4 decimals)	s_w at best_s tau	CC	4.387781028393322	4.387781028393322	0.0	0.57	0.57
+HiGO-R2	cafaeval input file replica (4 decimals)	s_w at best_s tau	MF	5.0959789913331575	5.0959789913331575	0.0	0.54	0.54
+GO-GPT ten-sample	submission format (3 decimals)	Fmax	BP	0.678032122748107	0.6780321227481071	1.1102230246251565e-16	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Fmax	CC	0.8258405946301012	0.8258405946301045	3.3306690738754696e-15	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Fmax	MF	0.7802077534148588	0.7802077534148585	3.3306690738754696e-16	0.31	0.31
+GO-GPT ten-sample	submission format (3 decimals)	Fmax_w	BP	0.6296467026261598	0.6296467026261598	0.0	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Fmax_w	CC	0.745366732528716	0.7453667325287164	4.440892098500626e-16	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Fmax_w	MF	0.7203160446133604	0.7203160446133595	8.881784197001252e-16	0.11	0.11
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro	BP	0.6922499909126657	0.6922499909126657	0.0		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro	CC	0.7886785370774392	0.7886785370774392	0.0		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro	MF	0.7784886264216974	0.7784886264216972	1.1102230246251565e-16		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro_w	BP	0.6593706287410718	0.6593706287410717	1.1102230246251565e-16		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro_w	CC	0.6786570794511527	0.6786570794511533	5.551115123125783e-16		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro_w	MF	0.7175683715237792	0.7175683715237787	4.440892098500626e-16		
+GO-GPT ten-sample	submission format (3 decimals)	Smin	BP	12.146219821049389	12.146219821049389	0.0	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Smin	CC	3.72763043647076	3.7276304364707604	4.440892098500626e-16	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Smin	MF	2.93354543076781	2.93354543076781	0.0	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	s_w at best_s tau	BP	14.16984854675882	14.16984854675882	0.0	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	s_w at best_s tau	CC	4.91720020127052	4.9172002012705205	8.881784197001252e-16	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	s_w at best_s tau	MF	5.615536701417341	5.615536701417342	8.881784197001252e-16	0.91	0.91
+GO-GPT beam	submission format (3 decimals)	Fmax	BP	0.6593592247350647	0.6593592247350646	1.1102230246251565e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax	CC	0.8121236972625979	0.8121236972626009	2.9976021664879227e-15	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax	MF	0.776552532140644	0.7765525321406438	2.220446049250313e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax_w	BP	0.6170734946053975	0.6170734946053985	9.992007221626409e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax_w	CC	0.7283760998311721	0.7283760998311721	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax_w	MF	0.7143436687233293	0.714343668723329	3.3306690738754696e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmicro	BP	0.6571824000922669	0.6571824000922669	0.0		
+GO-GPT beam	submission format (3 decimals)	Fmicro	CC	0.771065147660657	0.7710651476606569	1.1102230246251565e-16		
+GO-GPT beam	submission format (3 decimals)	Fmicro	MF	0.7731232719495018	0.7731232719495019	1.1102230246251565e-16		
+GO-GPT beam	submission format (3 decimals)	Fmicro_w	BP	0.6260643931568869	0.6260643931568867	2.220446049250313e-16		
+GO-GPT beam	submission format (3 decimals)	Fmicro_w	CC	0.6544157387638584	0.6544157387638594	9.992007221626409e-16		
+GO-GPT beam	submission format (3 decimals)	Fmicro_w	MF	0.7148315741890605	0.7148315741890602	3.3306690738754696e-16		
+GO-GPT beam	submission format (3 decimals)	Smin	BP	14.479745978565193	14.479745978565193	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Smin	CC	4.506387247849709	4.506387247849709	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Smin	MF	2.985311133344366	2.985311133344366	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	s_w at best_s tau	BP	16.076377934547835	16.076377934547835	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	s_w at best_s tau	CC	6.014693600805056	6.014693600805055	8.881784197001252e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	s_w at best_s tau	MF	5.507342405083987	5.507342405083987	0.0	0.01	0.01

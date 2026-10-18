@@ -35,6 +35,51 @@ stacker fitted on TV v2, no calibration.
   35M frozen encoder does not match GO-GPT's 3B decoder where there is no homologue.
 - **Test looks used:** 3 of 4. Look #4 is reserved by the 22:55:00 optimiser rule.
 
+**Component check on test (2026-10-18, `runs/eval_suite/`, descriptive; logged in `runs/test_looks.md`):**
+
+| G-test, IA-weighted Fmax | MF | BP | CC | mean |
+|---|---|---|---|---|
+| HiGO-R2 pipeline (look #3) | 0.7378 | 0.6579 | 0.7576 | 0.7178 |
+| component: sharpened kNN prior, train + val references | 0.7582 | 0.6488 | 0.7548 | 0.7206 |
+| component: HiGO head alone | 0.5292 | 0.3873 | 0.5280 | 0.4815 |
+
+- On test, the twin stacker does not add to its own kNN prior. It is behind by 0.0028 overall, ahead in BP and CC,
+  and behind in MF. On TV v2 it added +0.0083 [+0.0040, +0.0120], so this TV v2 gain did not transfer.
+- The margin over GO-GPT therefore comes from retrieval:
+  - identity-sharpened label transfer with per-aspect normalisation;
+  - over the full ontology;
+  - with GO-GPT's validation proteins added as references.
+- The pre-registered choice is not changed after seeing this, because that would be selection on test.
+- A future claim that the learned part helps needs a new temporal split, or look #4 with a rule registered before it.
+
+**Novel-protein generalisation** (`runs/eval_suite/identity_bins.tsv`, per-protein IA-weighted F1, HiGO-R2 vs GO-GPT
+ten-sample):
+
+| nearest training identity | n | HiGO-R2 | GO-GPT ten-sample |
+|---|---|---|---|
+| no hit | 250 | 0.133 | 0.286 |
+| <30% | 79 | 0.335 | 0.352 |
+| 30-50% | 694 | 0.341 | 0.375 |
+| 50-80% | 1,627 | 0.407 | 0.414 |
+| 80-95% | 1,360 | 0.611 | 0.597 |
+| 95-99.9% | 2,430 | 0.819 | 0.789 |
+| 100% | 2,190 | 0.845 | 0.801 |
+
+- HiGO-R2 leads only at 80% identity and above.
+- Its quality tracks homology more than GO-GPT's does. The Spearman correlation of per-protein weighted F1 with
+  identity is 0.523 against 0.431, a difference of +0.092 [+0.075, +0.108].
+- For novel proteins (no hit, or under 50% identity), GO-GPT is the better predictor.
+
+**Hierarchy and GO embeddings:**
+- **Hierarchy violations:** HiGO-R2 has 0 violations in 2.75M child-parent pairs. GO-GPT ten-sample has 2.87% of pairs,
+  in 27.3% of proteins.
+- **GO relationship retrieval:** HiGO's learned term queries recover direct GO neighbours with P@1 0.678 and R@10
+  0.724. That compares with 0.384 / 0.401 for untrained vectors through the same ancestor-mean, and 0.154 / 0.126 for
+  GO-GPT's token embeddings.
+- **Statistics:** 51 of 56 primary paired comparisons against GO-GPT pass Holm-Bonferroni. These are weighted Fmax,
+  Smin, AUPR and unweighted Fmax, per aspect and mean, against both GO-GPT rows. None of the significant differences
+  favours GO-GPT.
+
 **TV v2 decisions** (cross-fitted test-like mean Fmax of the stacked pipeline; raw kNN with train + val references
 scores 0.7259):
 
@@ -376,6 +421,9 @@ HiGO-R2 differs in three linked ways:
     reweighted to the test's organism x identity x same-organism cells, with cross-fitting and pre-registered keep
     rules.
 - That combination scores 0.7178 against GO-GPT's 0.6984 on GO-GPT's own temporal test (+0.0193 [+0.0138, +0.0250]).
+- On test, its kNN component alone scores 0.7206, so the refiner's TV v2 gain did not carry over. The defensible
+  claim is about retrieval: on this benchmark, a well-designed retrieval prior with a hierarchy-closed output beats
+  GO-GPT's generative decoder. It is not a claim that the learned head or the refiner adds accuracy.
 - The gain comes from the close-homologue bins, where GO-GPT's autoregressive decoder transfers neighbour labels less
   well than explicit retrieval. GO-GPT still leads at <30% identity and with no hit.
 
