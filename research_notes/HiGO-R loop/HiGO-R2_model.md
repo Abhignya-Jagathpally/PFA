@@ -46,10 +46,20 @@ scores 0.7259):
 | 4. Hierarchy | MCM + MCLoss, max-propagation after the stacker | 0 violations in the look-3 file | KEPT |
 | 5a. Retrieval prior | sharpened kNN T5_k50_g0_na, references train + val | +0.0091 [+0.0070, +0.0110] for adding val references (09:12:11) | KEPT |
 | 5b. In-network fusion (L4a) | dropped | stack +0.0016 [-0.0021, +0.0050] over kNN | DROPPED |
-| 6. Loss / optimiser | IA-weighted MCLoss; AdamW + cosine | head-to-head of Schedule-Free vs WSD + tail averaging running (rule 22:55:00) | KEPT, optimiser comparison IN PROGRESS |
+| 6. Loss / optimiser | IA-weighted MCLoss; AdamW + cosine | Schedule-Free (twin 0.7271 / 0.7233) vs WSD + tail averaging (0.7283 / 0.7182), 2 seeds each: SF leads by 0.0020 with seed pairs disagreeing in sign; neither clears the +0.005 replacement bar (rule 22:55:00, result 2026-10-18) | AdamW + cosine KEPT; both alternatives DROPPED; look #4 not used |
 | 7. Stacking | twin refiner, cross-fitted on TV v2 | +0.0083 [+0.0040, +0.0120]; gated twin +0.0067; logistic fusion +0.0000 | twin KEPT; fusion DROPPED |
 | 8. Calibration | none on the stacker output | isotonic on the twin 0.7287 vs 0.7342 uncalibrated; kNN + isotonic +0.0031 kept but 0.7290 < 0.7312, so not chosen | isotonic DROPPED for the final pipeline |
 | 9. Ensembling and seeds | single seed | not run | PLANNED, outside the delivered model |
+
+**Seed spread of the HiGO feature in the stacker.** Five 35M frozen runs went through the same stacker: l3_c0_tv2
+plus the four optimiser runs. Their twin scores are 0.7342, 0.7283, 0.7271, 0.7233 and 0.7182, with a mean of 0.7262
+and an SD of about 0.006. Only l3_c0 passed the keep rule. Its +0.0083 TV v2 gain is therefore the top of a spread,
+and the expected HiGO contribution for a new seed is close to zero on TV v2.
+- The look-3 result stands as measured: one pre-registered look of a fixed file.
+- How much of the +0.019 over GO-GPT comes from the HiGO feature, and how much from the sharpened train + val kNN, is
+  not separated on test. Doing so would cost look #4.
+- The cheapest next step that needs no test look: average the five HiGO runs in logit space before the stacker
+  (niche 9), and keep the average only if it beats kNN by ≥ 0.005 on TV v2.
 
 ---
 

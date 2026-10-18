@@ -1,0 +1,116 @@
+{
+  "split": "tv",
+  "higo_run": "/home/aj0486@students.ad.unt.edu/PFA/cafa6/runs/opt_wsd_s1",
+  "smoke": false,
+  "selection_run": true,
+  "rule": "candidates = models a (per-term logistic fusion), b (twin refiner), c (identity-gated twin) of src/cafa6/stacker_tv.py, for each L3 HiGO run with TV v2 predictions (runs/l3_c0_tv2, runs/l3_c1_tv2), each fit on TV v2 with 5-fold cross-fitting grouped by best-hit / TV-link / cluster components, test-like weights (chosen_v2 rule) as sample weights, each fold's step count chosen on the other four folds' held-out test-like Fmax curves (lofo), pooled out-of-fold predictions max-propagated and scored with knn_sharp.Scorer. A candidate is KEPT only if its cross-fitted TV v2 test-like mean Fmax minus that of the raw T5_k50_g0_na kNN prior is >= 0.005 AND the paired protein bootstrap 95% CI of that difference (1000 reps, test-like weights) excludes 0. Among kept candidates the highest cross-fitted test-like Fmax goes forward to a single test look; if none is kept, no stacker goes forward (the raw kNN prior stays). Smoke runs, val-split runs and HiGO-less runs are not selection runs.",
+  "knn_testlike": 0.7258900003790764,
+  "knn_unweighted": 0.7377933949307183,
+  "models": {
+    "fusion": {
+      "lofo_testlike": 0.725877704225128,
+      "delta": -1.2296153948376798e-05,
+      "ci": [
+        -4.544327039597839e-05,
+        0.00011752424227295106
+      ],
+      "keep": false
+    },
+    "twin": {
+      "lofo_testlike": 0.7182415940213319,
+      "delta": -0.007648406357744442,
+      "ci": [
+        -0.010680256190816344,
+        -0.004475449988885494
+      ],
+      "keep": false
+    },
+    "gated_twin": {
+      "lofo_testlike": 0.7256293265788646,
+      "delta": -0.0002606738002117748,
+      "ci": [
+        -0.004289892825919683,
+        0.0030962572727974975
+      ],
+      "keep": false
+    }
+  },
+  "steps": {
+    "fusion": {
+      "lofo": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "es": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 100,
+        "4": 0
+      },
+      "refit": 0
+    },
+    "twin": {
+      "lofo": {
+        "0": 0,
+        "1": 0,
+        "2": 400,
+        "3": 600,
+        "4": 600
+      },
+      "es": {
+        "0": 600,
+        "1": 800,
+        "2": 0,
+        "3": 400,
+        "4": 0
+      },
+      "refit": 400
+    },
+    "gated_twin": {
+      "lofo": {
+        "0": 600,
+        "1": 600,
+        "2": 400,
+        "3": 600,
+        "4": 600
+      },
+      "es": {
+        "0": 600,
+        "1": 800,
+        "2": 900,
+        "3": 400,
+        "4": 0
+      },
+      "refit": 600
+    }
+  },
+  "chosen": null,
+  "verdict": "no model kept: raw kNN stays",
+  "sizes": {
+    "split": "tv",
+    "proteins": 7566,
+    "rows": 4340904,
+    "rows_per_protein_mean": 573.7,
+    "rows_per_protein_max": 1871,
+    "knn_rows": 3178082,
+    "higo_topk_rows": 2269800,
+    "both": 1106978,
+    "feature_MB": 380.9,
+    "build_s": 3.4,
+    "scored_rows": 2814023,
+    "positives": 260083,
+    "pos_rate": 0.0924,
+    "gt_terms_covered": 0.9248,
+    "testlike_effective_n": 959.9
+  },
+  "runtime_s": 1016,
+  "val": {
+    "knn": 0.5948113440849142,
+    "twin": 0.6246233045222755,
+    "gated_twin": 0.6251784365061531
+  }
+}

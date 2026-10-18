@@ -359,3 +359,13 @@ val references, at 0.7259. Rules are in `runs/test_looks.md`.
 +0.06 and 3B led 35M by +0.01 to +0.04. On TV v2, neither improved the stacked pipeline over the 35M HiGO feature.
 The random-split lesson from section 3 held again: random val rewards retrieval-like gains that the stacker, given the
 kNN prior directly, already captures.
+
+### 5.1 Update 2026-10-18: optimiser head-to-head
+
+| component | evidence (TV v2 test-like, twin stacker) | verdict | files |
+|---|---|---|---|
+| AdamW Schedule-Free (NeurIPS 2024), 2 seeds | 0.7271, 0.7233 | DROP (no gain; seeds disagree) | `runs/stacker_tv/opt_sf_s*/result.json` |
+| AdamW WSD + tail averaging (NeurIPS 2024 / SWAD NeurIPS 2021), 2 seeds | 0.7283, 0.7182 | DROP | `runs/stacker_tv/opt_wsd_s*/result.json` |
+| Seed spread of the stacked 35M pipeline (5 runs) | twin 0.7182-0.7342, SD about 0.006; only l3_c0 passed its rule | the l3_c0 TV gain is the top of the spread | same, plus `runs/stacker_tv/l3_c0/` |
+
+Look #4 was not used. The look-3 pipeline is final.
