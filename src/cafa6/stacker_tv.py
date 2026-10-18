@@ -51,7 +51,8 @@ See SELECTION_RULE below; its text is the registration.
 
 Outputs (--out): log.txt, sizes.json, folds.tsv, curves.tsv, summary.tsv, per_bin.tsv, result.json, and for full
 runs with a HiGO run: pred_tv_oof_{model}.npz (cross-fitted) and pred_{val,test}_{model}.npz from a refit on all TV
-at the median lofo step (val is scored, test is written but NOT scored).
+at the median lofo step (val is scored, test is written but NOT scored). --save-model DIR also writes each refit
+model to DIR/model_{model}.pt for cafa6.predict_r2.
 
 Usage:
   python -m cafa6.stacker_tv --higo-run runs/l3_c1_tv2 --out runs/stacker_tv/l3_c1
@@ -644,6 +645,9 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--no-apply", action="store_true", help="skip the refit on all TV and val/test predictions")
     ap.add_argument("--refit-steps", type=int, default=None, help="override the median lofo step for the refit")
+    ap.add_argument("--save-model", default=None, metavar="DIR",
+                    help="also write each refit model to DIR/model_{model}.pt (state_dict + constructor sizes + "
+                         "feature constants; read by cafa6.predict_r2); default off")
     ap.add_argument("--register-rule", action="store_true", help="append the selection rule to runs/test_looks.md")
     a = ap.parse_args()
     ks.use_tv("v2")
@@ -769,6 +773,17 @@ def main():
                 continue
             tf = time.time()
             model = train_fold(kind, d, D, None, np.arange(len(d["ids"])), None, a, 99, steps=st)
+            if a.save_model:
+                sm = Path(a.save_model) if Path(a.save_model).is_absolute() else ROOT / a.save_model
+                sm.mkdir(parents=True, exist_ok=True)
+                # features use fixed scalings only (no fitted normalisation); the constants below define them
+                torch.save({"kind": kind, "state_dict": {k: v.detach().cpu() for k, v in model.state_dict().items()},
+                            "init": {"nT": int(d["nT"]), "nf": int(d["X"].shape[1]), "nq": int(d["Q"].shape[1])},
+                            "refit_steps": st, "terms": list(onto.terms), "higo_run": str(higo),
+                            "higo_topk": a.higo_topk, "knn_dir": str(KNN_DIR), "orgs": list(ORGS),
+                            "rbf_c": RBF_C.tolist(), "rbf_s": RBF_S, "eps": EPS, "config": vars(a)},
+                           sm / f"model_{kind}.pt")
+                log(f"  {kind}: saved refit model to {sm / f'model_{kind}.pt'}")
             for s_, ds in (("val", dv), ("test", dt)):
                 Ds = Data(ds, dev)
                 p = predict(model, Ds, np.arange(len(ds["ids"])))
