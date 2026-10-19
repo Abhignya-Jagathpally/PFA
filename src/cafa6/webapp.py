@@ -36,6 +36,7 @@ from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
+from cafa6.eval_page import EVAL_CSS, evaluation_body
 from cafa6.predict_r2 import (ASPECTS, THRESH, Predictor, low_identity_note, parse_fasta, resolve_device, to_tsv,
                               validate)
 
@@ -180,7 +181,7 @@ def predictor() -> Predictor:
 
 
 NAV = f"""<nav><a class="logo" href="/">{BRAND}<b>.</b></a><div class="links"><a href="/#what">Background</a><a href="/#how">How it works</a>
-<a href="/#scores">Scores</a><a href="/#results">Results</a><a href="/#limits">Reliability</a><a href="/#run">Run it</a></div></nav>"""
+<a href="/#scores">Scores</a><a href="/#results">Results</a><a href="/evaluation">Full evaluation</a><a href="/#limits">Reliability</a><a href="/#run">Run it</a></div></nav>"""
 
 FOOTER = ""
 
@@ -455,7 +456,7 @@ full pipeline on Fmax, while the full pipeline makes fewer missed or wrong speci
 A plain BLAST best hit with the same references is also close (+0.009 for {BRAND}, 95% interval +0.004 to +0.015).
 So the margin over GO-GPT comes mainly from how the homology evidence is used, not from the language-model branch.</p>
 <p>IA-weighted Fmax by ontology: <b>molecular function 0.738</b>, <b>biological process 0.658</b>,
-<b>cellular component 0.758</b>.</p></div></div></section>
+<b>cellular component 0.758</b>.</p><p><a class="cta ghost" style="margin-left:0" href="/evaluation">See the full evaluation</a></p></div></div></section>
 <section class="block soft" id="limits"><div class="eyebrow">When to trust a prediction</div>
 <h2>When should you trust a prediction?</h2>
 <div class="versus"><div class="sub" style="margin:0"><p style="margin-top:0">Most of the accuracy comes from
@@ -579,6 +580,14 @@ def remember_tsv(results: list[dict]) -> str:
 @app.get("/", response_class=HTMLResponse)
 def index():
     return landing_page()
+
+
+@app.get("/evaluation", response_class=HTMLResponse)
+def evaluation():
+    return HTMLResponse(f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>{BRAND} | full evaluation</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><style>{CSS}{EVAL_CSS}</style></head><body>
+{NAV}{evaluation_body()}{FOOTER}</body></html>""")
 
 
 @app.get("/health")
