@@ -1,0 +1,253 @@
+model	scores	metric	aspect	cafaeval	eval_suite	abs_diff	tau_cafaeval	tau_eval_suite
+HiGO-R2	submission format (3 decimals)	Fmax	BP	0.6908177819111561	0.6907699298415361	4.785206961999133e-05	0.42	0.42
+HiGO-R2	submission format (3 decimals)	Fmax	CC	0.8267800650347022	0.8267649626447492	1.5102389953058903e-05	0.45	0.45
+HiGO-R2	submission format (3 decimals)	Fmax	MF	0.7775011582844827	0.7776425321992333	0.00014137391475055328	0.28	0.25
+HiGO-R2	submission format (3 decimals)	Fmax_w	BP	0.657853604889494	0.6578864551714374	3.285028194344175e-05	0.35	0.33
+HiGO-R2	submission format (3 decimals)	Fmax_w	CC	0.757647797765293	0.7576105121199824	3.728564531058076e-05	0.45	0.45
+HiGO-R2	submission format (3 decimals)	Fmax_w	MF	0.7376280049193903	0.7378308963658676	0.00020289144647733792	0.25	0.25
+HiGO-R2	submission format (3 decimals)	Fmicro	BP	0.7063368935102902	0.7063249047915744	1.1988718715771896e-05		
+HiGO-R2	submission format (3 decimals)	Fmicro	CC	0.7947861604997597	0.7947147147147148	7.144578504492127e-05		
+HiGO-R2	submission format (3 decimals)	Fmicro	MF	0.7864417916986092	0.7866079005721482	0.00016610887353907255		
+HiGO-R2	submission format (3 decimals)	Fmicro_w	BP	0.6840363510698996	0.6840312783851653	5.0726847342641435e-06		
+HiGO-R2	submission format (3 decimals)	Fmicro_w	CC	0.6974543374187372	0.6974019980977003	5.233932103687611e-05		
+HiGO-R2	submission format (3 decimals)	Fmicro_w	MF	0.739480206949939	0.7396845233146515	0.00020431636471252013		
+HiGO-R2	submission format (3 decimals)	Smin	BP	11.63950307671852	11.63875289351628	0.0007501832022409616	0.59	0.59
+HiGO-R2	submission format (3 decimals)	Smin	CC	3.4690096479252683	3.4688943256825855	0.00011532224268284708	0.57	0.57
+HiGO-R2	submission format (3 decimals)	Smin	MF	2.825293388179348	2.829782698078281	0.004489309898933147	0.54	0.54
+HiGO-R2	submission format (3 decimals)	s_w at best_s tau	BP	13.224845244298663	13.224728263753006	0.0001169805456573414	0.59	0.59
+HiGO-R2	submission format (3 decimals)	s_w at best_s tau	CC	4.387781028393322	4.387036901324871	0.0007441270684509504	0.57	0.57
+HiGO-R2	submission format (3 decimals)	s_w at best_s tau	MF	5.0959789913331575	5.100516937950612	0.004537946617454658	0.54	0.54
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax	BP	0.6908177819111561	0.6908177819111567	6.661338147750939e-16	0.42	0.42
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax	CC	0.8267800650347022	0.8267800650347026	3.3306690738754696e-16	0.45	0.45
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax	MF	0.7775011582844827	0.7775011582844824	3.3306690738754696e-16	0.28	0.28
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax_w	BP	0.657853604889494	0.6578536048894938	1.1102230246251565e-16	0.35	0.35
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax_w	CC	0.757647797765293	0.7576477977652915	1.5543122344752192e-15	0.45	0.45
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmax_w	MF	0.7376280049193903	0.7376280049193901	2.220446049250313e-16	0.25	0.25
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro	BP	0.7063368935102902	0.7063368935102902	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro	CC	0.7947861604997597	0.7947861604997597	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro	MF	0.7864417916986092	0.7864417916986092	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro_w	BP	0.6840363510698996	0.6840363510698996	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro_w	CC	0.6974543374187372	0.6974543374187359	1.3322676295501878e-15		
+HiGO-R2	cafaeval input file replica (4 decimals)	Fmicro_w	MF	0.739480206949939	0.739480206949939	0.0		
+HiGO-R2	cafaeval input file replica (4 decimals)	Smin	BP	11.63950307671852	11.639503076718519	1.7763568394002505e-15	0.59	0.59
+HiGO-R2	cafaeval input file replica (4 decimals)	Smin	CC	3.4690096479252683	3.4690096479252683	0.0	0.57	0.57
+HiGO-R2	cafaeval input file replica (4 decimals)	Smin	MF	2.825293388179348	2.825293388179348	0.0	0.54	0.54
+HiGO-R2	cafaeval input file replica (4 decimals)	s_w at best_s tau	BP	13.224845244298663	13.224845244298665	1.7763568394002505e-15	0.59	0.59
+HiGO-R2	cafaeval input file replica (4 decimals)	s_w at best_s tau	CC	4.387781028393322	4.387781028393322	0.0	0.57	0.57
+HiGO-R2	cafaeval input file replica (4 decimals)	s_w at best_s tau	MF	5.0959789913331575	5.0959789913331575	0.0	0.54	0.54
+GO-GPT ten-sample	submission format (3 decimals)	Fmax	BP	0.678032122748107	0.6780321227481071	1.1102230246251565e-16	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Fmax	CC	0.8258405946301012	0.8258405946301045	3.3306690738754696e-15	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Fmax	MF	0.7802077534148588	0.7802077534148585	3.3306690738754696e-16	0.31	0.31
+GO-GPT ten-sample	submission format (3 decimals)	Fmax_w	BP	0.6296467026261598	0.6296467026261598	0.0	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Fmax_w	CC	0.745366732528716	0.7453667325287164	4.440892098500626e-16	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Fmax_w	MF	0.7203160446133604	0.7203160446133595	8.881784197001252e-16	0.11	0.11
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro	BP	0.6922499909126657	0.6922499909126657	0.0		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro	CC	0.7886785370774392	0.7886785370774392	0.0		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro	MF	0.7784886264216974	0.7784886264216972	1.1102230246251565e-16		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro_w	BP	0.6593706287410718	0.6593706287410717	1.1102230246251565e-16		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro_w	CC	0.6786570794511527	0.6786570794511533	5.551115123125783e-16		
+GO-GPT ten-sample	submission format (3 decimals)	Fmicro_w	MF	0.7175683715237792	0.7175683715237787	4.440892098500626e-16		
+GO-GPT ten-sample	submission format (3 decimals)	Smin	BP	12.146219821049389	12.146219821049389	0.0	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Smin	CC	3.72763043647076	3.7276304364707604	4.440892098500626e-16	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	Smin	MF	2.93354543076781	2.93354543076781	0.0	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	s_w at best_s tau	BP	14.16984854675882	14.16984854675882	0.0	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	s_w at best_s tau	CC	4.91720020127052	4.9172002012705205	8.881784197001252e-16	0.91	0.91
+GO-GPT ten-sample	submission format (3 decimals)	s_w at best_s tau	MF	5.615536701417341	5.615536701417342	8.881784197001252e-16	0.91	0.91
+GO-GPT beam	submission format (3 decimals)	Fmax	BP	0.6593592247350647	0.6593592247350646	1.1102230246251565e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax	CC	0.8121236972625979	0.8121236972626009	2.9976021664879227e-15	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax	MF	0.776552532140644	0.7765525321406438	2.220446049250313e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax_w	BP	0.6170734946053975	0.6170734946053985	9.992007221626409e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax_w	CC	0.7283760998311721	0.7283760998311721	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmax_w	MF	0.7143436687233293	0.714343668723329	3.3306690738754696e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Fmicro	BP	0.6571824000922669	0.6571824000922669	0.0		
+GO-GPT beam	submission format (3 decimals)	Fmicro	CC	0.771065147660657	0.7710651476606569	1.1102230246251565e-16		
+GO-GPT beam	submission format (3 decimals)	Fmicro	MF	0.7731232719495018	0.7731232719495019	1.1102230246251565e-16		
+GO-GPT beam	submission format (3 decimals)	Fmicro_w	BP	0.6260643931568869	0.6260643931568867	2.220446049250313e-16		
+GO-GPT beam	submission format (3 decimals)	Fmicro_w	CC	0.6544157387638584	0.6544157387638594	9.992007221626409e-16		
+GO-GPT beam	submission format (3 decimals)	Fmicro_w	MF	0.7148315741890605	0.7148315741890602	3.3306690738754696e-16		
+GO-GPT beam	submission format (3 decimals)	Smin	BP	14.479745978565193	14.479745978565193	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Smin	CC	4.506387247849709	4.506387247849709	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	Smin	MF	2.985311133344366	2.985311133344366	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	s_w at best_s tau	BP	16.076377934547835	16.076377934547835	0.0	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	s_w at best_s tau	CC	6.014693600805056	6.014693600805055	8.881784197001252e-16	0.01	0.01
+GO-GPT beam	submission format (3 decimals)	s_w at best_s tau	MF	5.507342405083987	5.507342405083987	0.0	0.01	0.01
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.7378	0.7378308963658676	3.089636586761646e-05	0.25	0.25
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.6579	0.6578864551714374	1.3544828562639388e-05	0.33	0.33
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.7576	0.7576105121199824	1.0512119982375445e-05	0.45	0.45
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.7178	0.7177759545524292	2.4045447570841816e-05		
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	5.0931	5.093085470371627	1.4529628372450532e-05		
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	13.2059	13.205861804194955	3.819580504504927e-05		
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	4.387	4.38703690132487	3.6901324870441954e-05		
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	7.562	7.561994725297151	5.274702849611401e-06		
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.7776	0.7776425321992333	4.2532199233336065e-05		
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.6908	0.6907699298415361	3.007015846390182e-05		
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.8268	0.8267649626447492	3.503735525078877e-05		
+HiGO-R2	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.7651	0.7650591415618395	4.0858438160484845e-05		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.7203	0.7203160446133595	1.6044613359467164e-05	0.11	0.11
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.6296	0.6296467026261598	4.6702626159800253e-05	0.91	0.91
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.7454	0.7453667325287164	3.3267471283515704e-05	0.91	0.91
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.6984	0.6984431599227453	4.315992274528391e-05		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	5.4662	5.466157602918867	4.2397081132961034e-05		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	14.1209	14.120859180941265	4.081905873576375e-05		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	4.9172	4.91720020127052	2.0127051936214002e-07		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	8.1681	8.168072328376885	2.7671623115566035e-05		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.7802	0.7802077534148585	7.753414858480134e-06		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.678	0.6780321227481071	3.2122748107044075e-05		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.8258	0.8258405946301045	4.059463010452902e-05		
+GO-GPT ten-sample	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.7614	0.7613601569310234	3.984306897653056e-05		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.7143	0.714343668723329	4.3668723328949e-05	0.01	0.01
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.6171	0.6170734946053985	2.650539460147261e-05	0.01	0.01
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.7284	0.7283760998311721	2.3900168827917234e-05	0.01	0.01
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.6866	0.6865977543866332	2.2456133668136147e-06		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	5.5073	5.50734240508399	4.2405083990004755e-05		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	16.0764	16.076377934547835	2.2065452164099497e-05		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	6.0147	6.014693600805051	6.399194949047171e-06		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	9.1995	9.19947131347896	2.8686521041265678e-05		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.7766	0.7765525321406438	4.746785935616504e-05		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.6594	0.6593592247350646	4.0775264935399846e-05		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.8121	0.8121236972626009	2.369726260087468e-05		
+GO-GPT beam	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.7493	0.7493451513794364	4.515137943639225e-05		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.7155	0.7155101032633586	1.0103263358596237e-05	0.01	0.01
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.6156	0.6156245727902421	2.4572790242038955e-05	0.01	0.01
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.7279	0.727940996706024	4.099670602397687e-05	0.01	0.01
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.6864	0.6863585575865416	4.144241345838129e-05		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	5.5829	5.582890997611114	9.002388886791834e-06		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	16.7555	16.75554096367833	4.09636783302858e-05		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	6.0466	6.046640140467773	4.014046777367497e-05		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	9.4617	9.46169070058574	9.299414260866001e-06		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.7776	0.7775542573784671	4.574262153289599e-05		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.6577	0.6577371806169401	3.7180616940135636e-05		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.8117	0.8117330457182672	3.304571826723279e-05		
+GO-GPT greedy	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.749	0.7490081612378914	8.161237891379791e-06		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.6916	0.6915708381306582	2.9161869341765012e-05	0.01	0.01
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.5364	0.5364146302866233	1.463028662329613e-05	0.01	0.01
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.7191	0.719130374962915	3.0374962915025172e-05	0.01	0.01
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.649	0.6490386144600655	3.8614460065478085e-05		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	6.0314	6.031423146398311	2.3146398310913696e-05		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	20.1826	20.182649227028662	4.9227028661391614e-05		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	5.6485	5.648461389834791	3.861016520900762e-05		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	10.6208	10.620844587753922	4.45877539227979e-05		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.7576	0.7576125508379321	1.2550837932057135e-05		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.5805	0.5804561894184225	4.381058157754136e-05		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.806	0.8060307657350327	3.0765735032689534e-05		
+BioReason-Pro RL	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.7147	0.7146998353304624	1.6466953756122393e-07		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.7275	0.7274551526400383	4.4847359961686095e-05	0.26	0.26
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.6473	0.6472688152423576	3.118475764241069e-05	0.82	0.82
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.7104	0.7103596065668292	4.039343317085997e-05	0.24	0.24
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.695	0.6950278581497417	2.7858149741710747e-05		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	5.7745	5.774460240279618	3.975972038183784e-05		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	14.054	14.053950945042983	4.905495701734708e-05		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	6.3399	6.339924636342083	2.4636342082828833e-05		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	8.7228	8.722778607221562	2.1392778437601123e-05		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.7584	0.7583684175580953	3.158244190470949e-05		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.6577	0.6576769503419263	2.3049658073648338e-05		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.7691	0.7691384619861792	3.8461986179183505e-05		
+BLAST-KNN (training refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.7284	0.728394609962067	5.390037933095115e-06		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.7328	0.7327579829576326	4.2017042367392676e-05	0.26	0.26
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.6686	0.6686199783950525	1.9978395052522302e-05	0.82	0.82
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.7241	0.7240514346553701	4.856534462982509e-05	0.24	0.24
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.7085	0.7084764653360184	2.353466398163917e-05		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	5.6719	5.67193743129304	3.74312930402354e-05		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	13.3776	13.37757106956051	2.8930439489371906e-05		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	6.2147	6.214737364901587	3.7364901587011445e-05		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	8.4214	8.421415288585045	1.5288585045070135e-05		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.7631	0.763124371823934	2.4371823933999615e-05		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.6781	0.6780533663792337	4.663362076628985e-05		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.7817	0.7817387241552335	3.872415523353823e-05		
+BLAST-KNN (train+val refs)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.741	0.740972154119467	2.7845880532950673e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.679	0.6790174360427489	1.7436042748841807e-05	0.24	0.24
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.423	0.42296216824327754	3.783175672245065e-05	0.22	0.22
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.6375	0.6375091092130429	9.109213042979292e-06	0.33	0.33
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.5798	0.5798295711663565	2.9571166356490153e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	6.6156	6.615583947469797	1.605253020287023e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	24.2472	24.2471893457365	1.065426349811105e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	6.643	6.642987123297567	1.2876702433217702e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	12.5019	12.501920138834622	2.0138834623040225e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.7208	0.720782512425847	1.748757415298563e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.4679	0.467860816531751	3.9183468248993325e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.7403	0.7402721555534156	2.7844446584324167e-05		
+DIAMONDScore	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.643	0.6429718281703378	2.817182966219356e-05		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.1845	0.18445294029444406	4.7059705555935194e-05	0.08	0.08
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.2087	0.20866939372770194	3.0606272298061565e-05	0.16	0.16
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.3372	0.3372200342425531	2.003424255309083e-05	0.19	0.19
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.2434	0.24344745608823304	4.745608823303327e-05		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	13.4074	13.40742792742091	2.7927420909179546e-05		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	28.2118	28.211835356355156	3.535635515561353e-05		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	9.3083	9.308329962776238	2.9962776238789957e-05		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	16.9759	16.975864415517435	3.558448256413271e-05		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.3753	0.37528411291662905	1.5887083370969002e-05		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.2789	0.27893428097483325	3.428097483326731e-05		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.5931	0.5931080783756757	8.078375675735217e-06		
+Naive	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.4158	0.4157754907557127	2.4509244287318488e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.6151	0.6150556437348811	4.4356265118894456e-05	0.27	0.27
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.4003	0.4002823736541997	1.7626345800270116e-05	0.21	0.21
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.6085	0.6084733261890768	2.6673810923250052e-05	0.33	0.33
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.5413	0.5412704478593858	2.9552140614175215e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	8.1033	8.103250884939357	4.911506064431137e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	24.4928	24.492781525175985	1.847482401373668e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	6.5801	6.580134271557306	3.427155730584275e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	13.0587	13.058722227224216	2.222722421585388e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.6945	0.6945316724418374	3.1672441837438114e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.4534	0.4533738162977745	2.6183702225512917e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.736	0.7360186802481795	1.8680248179525627e-05		
+SPROF-GO	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.628	0.6279747229959306	2.52770040694017e-05		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.5393	0.5392840382353264	1.596176467355548e-05	0.25	0.25
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.2635	0.26351235812301277	1.2358123012756739e-05	0.25	0.25
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.4811	0.48106583923762847	3.416076237156007e-05	0.29	0.29
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.428	0.42795407853198925	4.592146801074559e-05		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	9.712	9.7119821576145	1.7842385499733382e-05		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	29.0449	29.044909539126937	9.539126939017706e-06		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	8.6393	8.639268231023117	3.176897688383917e-05		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	15.7987	15.798719975921516	1.9975921516035555e-05		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.6289	0.6288936954980846	6.304501915410654e-06		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.3318	0.3317504985180317	4.950148196830595e-05		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.6535	0.6534657674555171	3.423254448287061e-05		
+DeepGOPlus	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.538	0.5380366538238778	3.665382387774141e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.5142	0.5142350294803367	3.5029480336734586e-05	0.42	0.42
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.2531	0.2531420924385088	4.209243850883393e-05	0.35	0.35
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.4841	0.4841142613746074	1.4261374607416055e-05	0.4	0.4
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.4172	0.417163794431151	3.620556884903481e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	12.1498	12.149817048336072	1.7048336070857317e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	30.6058	30.605751839968388	4.8160031610677834e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	8.8296	8.82961381748643	1.3817486431477732e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	17.1951	17.195060901930297	3.909806970270324e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.5986	0.5985881752308194	1.1824769180601713e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.3214	0.3214272119536819	2.7211953681882672e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.6499	0.6499456415383194	4.564153831931872e-05		
+ProteInfer (5-model ensemble)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.5233	0.5233203429076069	2.0342907606885063e-05		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.5216	0.5215629713256957	3.702867430421808e-05	0.4	0.4
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.2534	0.25340054291238606	5.429123860478668e-07	0.33	0.33
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.1312	0.1311694999262235	3.0500073776501546e-05	0.61	0.61
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.302	0.30204433805476844	4.433805476844466e-05		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	9.763	9.763036468112865	3.646811286550644e-05		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	28.8387	28.838723258014376	2.3258014376636993e-05		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	10.5697	10.569717067485723	1.7067485723387676e-05		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	16.3905	16.390492264537656	7.73546234356104e-06		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.6315	0.6314843030141236	1.56969858763345e-05		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.3224	0.32242980877324223	2.980877324221254e-05		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.3669	0.36685436138158684	4.563861841316852e-05		
+DeepGO-SE	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.4403	0.4402561577229842	4.3842277015815334e-05		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.282	0.28200279001390816	2.790013908182676e-06	0.11	0.11
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.1787	0.1786938781499039	6.1218500961024436e-06	0.06	0.06
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.3598	0.3597737289498056	2.6271050194426326e-05	0.15	0.15
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.2735	0.27349013237120584	9.867628794180128e-06		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	13.1151	13.115091138176	8.861823999950502e-06		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	29.9531	29.953143746373833	4.374637383364188e-05		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	9.4817	9.481749151343452	4.915134345218064e-05		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	17.5167	17.51666134529776	3.865470224084788e-05		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.3717	0.37166303094308295	3.6969056917024457e-05		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.2373	0.23725686729434792	4.3132705652093595e-05		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.5449	0.5449497766626257	4.9776662625622414e-05		
+DeepFRI (sequence CNN)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.3846	0.3846232249666855	2.3224966685497783e-05		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	MF	0.7496	0.7495821494178787	1.7850582121337055e-05	0.35	0.35
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	BP	0.6852	0.6852149793310334	1.4979331033337928e-05	0.37	0.37
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	CC	0.7482	0.7481953115023753	4.6884976246941434e-06	0.4	0.4
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax_w	mean	0.7277	0.7276641467504291	3.5853249570894086e-05		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	MF	5.1405	5.140501108348784	1.108348783418478e-06		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	BP	13.5141	13.514133894000837	3.3894000837975113e-05		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	CC	4.7514	4.751385380282993	1.4619717007668953e-05		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Smin_w	mean	7.802	7.802006794210872	6.7942108721297245e-06		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	MF	0.785	0.785005904705956	5.904705955961376e-06		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	BP	0.7179	0.7179045015637273	4.50156372733268e-06		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	CC	0.8247	0.8247364880475703	3.6488047570282234e-05		
+InterLabelGO+ (leaked)	vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)	Fmax	mean	0.7759	0.7758822981057513	1.7701894248767225e-05		

@@ -134,8 +134,10 @@ def retrieval_table(r: pd.DataFrame) -> str:
     rows = []
     for _, x in r.iterrows():
         lab = label.get(x.vectors, x.vectors.replace("HiGO", "Ontologue"))
-        if x.vectors.startswith("untrained"):
-            lab = "Untrained vectors, same ancestor-mean construction"
+        if x.vectors.startswith("untrained BioReason"):
+            lab = "BioReason-Pro: untrained encoder, same graph"
+        elif x.vectors.startswith("untrained"):
+            lab = "Ontologue: untrained vectors, same ancestor-mean construction"
         cls = "hl" if "effective" in x.vectors else ""
         rows.append(f'<tr class="{cls}"><td>{html.escape(lab)}</td>' + "".join(
             f"<td>{x[f'direct_{k}']:.3f}</td>" for k in ("P@1", "P@5", "P@10", "R@1", "R@5", "R@10")) + "</tr>")
@@ -158,11 +160,11 @@ def tests_html(p: pd.DataFrame) -> str:
     comps = list(dict.fromkeys(t.comparison))
     mets = list(dict.fromkeys(t.metric))
     lower = {"Smin_w", "Smin"}
-    head = "".join(f"<th>vs {html.escape(c.replace('HiGO-R2 - ', ''))}</th>" for c in comps)
+    head = "".join(f"<th>{METRIC_NAMES.get(m_, html.escape(m_))}</th>" for m_ in mets)
     rows = []
-    for met in mets:
+    for c in comps:
         cells = []
-        for c in comps:
+        for met in mets:
             r = t[(t.metric == met) & (t.comparison == c)]
             if not len(r):
                 cells.append("<td>&ndash;</td>")
@@ -172,8 +174,8 @@ def tests_html(p: pd.DataFrame) -> str:
             sig = r.p_holm < 0.05
             mark = "sig-good" if sig and good else ("sig-bad" if sig else "ns")
             cells.append(f'<td class="{mark}">{r["diff"]:+.3f}<span class="ci">{r.lo:+.3f}&ndash;{r.hi:+.3f}</span></td>')
-        rows.append(f"<tr><td>{METRIC_NAMES.get(met, html.escape(met))}</td>{''.join(cells)}</tr>")
-    grid = f'<table class="etable"><tr><th>metric (mean over ontologies)</th>{head}</tr>{"".join(rows)}</table>'
+        rows.append(f"<tr><td>vs {html.escape(c.replace('HiGO-R2 - ', ''))}</td>{''.join(cells)}</tr>")
+    grid = f'<table class="etable"><tr><th>Ontologue minus</th>{head}</tr>{"".join(rows)}</table>'
     full = p[["family", "comparison", "metric", "aspect", "diff", "lo", "hi", "p_raw", "p_holm", "q_bh"]].copy()
     full["comparison"] = full.comparison.str.replace("HiGO-R2", "Ontologue")
     body = "".join("<tr>" + "".join(f"<td>{v:.4g}</td>" if isinstance(v, float) else f"<td>{html.escape(str(v))}</td>"
@@ -248,14 +250,21 @@ intervals are wide.</p></section>
 higher than its parent, which would mean "it is a GTPase but less likely a hydrolase". Checked on the raw output
 files before any evaluator post-processing.</p>
 {consistency_table(co)}
+<p class="hint">High rates have two different causes. Methods that list only specific terms without their parents
+(BioReason-Pro, most strongly) count every missing parent as a violation; methods with graded scores (DeepFRI,
+DeepGO-SE, ProteInfer) score children above their parents. Either way, a user has to propagate the output before
+using it. Evaluators propagate every file before scoring, so the accuracy tables above are not affected.</p>
 <h3>GO relationship retrieval from learned term embeddings</h3><p class="what">For models that learn a vector per GO
 term: rank all other terms by similarity and check whether a term's direct parents and children come first.
-Precision@k and recall@k over the shared vocabulary. Only Ontologue and GO-GPT have such vectors.</p>
+Precision@k and recall@k over the shared vocabulary. Only Ontologue, GO-GPT and BioReason-Pro (its GO-graph encoder)
+have such vectors; the other methods do not learn term embeddings.</p>
 {retrieval_table(rt)}
 <p class="hint">Part of Ontologue's score comes from how its term queries are built (each term shares the mean of its
 ancestors), which is why the untrained row is already well above random (its spread over 5 random seeds is
-below 0.004). Learning adds to it. This table measures how
-GO structure is encoded, not prediction accuracy.</p></section>
+below 0.004). Learning adds to it. For BioReason-Pro, the trained encoder
+scores about the same as an untrained one with the same graph, so its retrieval comes from the graph and the text-based
+input embeddings rather than from training. This table measures how GO structure is encoded, not prediction
+accuracy.</p></section>
 
 <section class="eblock soft" id="stats"><div class="eyebrow">4. Statistical reliability</div>
 <h2>Are the differences real or noise?</h2>

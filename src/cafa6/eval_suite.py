@@ -94,7 +94,21 @@ submission format used for every table (3 decimals; must agree to 1e-3) and as a
 Outputs: runs/eval_suite/{headline,auprc,smin,identity_bins,spearman,consistency,retrieval,differences,pvalues,
 crosscheck,summary}.tsv and report.md.
 
+--extended (outputs in runs/eval_suite_v2/, same file names and columns; the default run is unchanged)
+  Adds the methods of runs/compare_paper, read with cafa6.compare_paper.load_method (the loader behind
+  runs/compare_paper/summary.tsv): GO-GPT greedy (runs/gogpt_cafa5/greedy), BioReason-Pro RL
+  (preds/bioreason_rl.npz: GO ids over the whole response, the 0.649 S3 row; not the _final variant),
+  BLAST-KNN with training and with train+val references, DIAMONDScore and Naive. Every non-component row is a
+  comparison: primary family {7 metrics} x {MF, BP, CC, mean} x 8 comparisons (224), secondary family
+  {7 bins x 2 F1 + 4 Spearman x 2 F1} x 8 (176). Rows whose raw scores are all one value get the AUPR flag.
+  Cross-check: Fmax_w, Smin_w, Fmax and the Fmax_w threshold of every row with a compare_paper key against
+  runs/compare_paper/summary.tsv (S3_all, 4 decimals; required < 1e-3). Retrieval adds BioReason-Pro's GO
+  graph encoder (external/BioReason-Pro-github GOGraphEncoderUnified with go_encoder.pt of the RL checkpoint):
+  per-term output of GAT x3 + output projection (the input of its cross-attention reducer), the last GAT layer,
+  the precomputed term embeddings it starts from, and the same encoder at fresh initialisation (5 seeds).
+
   CAFA6_THREADS=24 PYTHONPATH=src ../bin/python -m cafa6.eval_suite
+  CAFA6_THREADS=24 PYTHONPATH=src ../bin/python -m cafa6.eval_suite --extended
 """
 from __future__ import annotations
 
@@ -142,7 +156,23 @@ CAFAEVAL_NAME = {MAIN: "HiGO-R2.tsv", "GO-GPT ten-sample": "GO-GPT_sample10.tsv"
 PRIMARY = ("Fmax", "Fmax_w", "Smin_w", "AUPR_micro", "AUPR_micro_w", "AUPR_prot", "AUPR_prot_w")
 REPORTED = PRIMARY + ("Smin", "Fmicro", "Fmicro_w", "cov", "cov_w", "Rmax", "Rmax_w")
 LOWER_BETTER = {"Smin", "Smin_w"}
+FLAGS = {"GO-GPT beam": "beam scores are binary: one operating point, not a ranking"}
 T0 = time.time()
+
+OUT_EXT = ROOT / "runs" / "eval_suite_v2"
+COMPARE = ROOT / "runs" / "compare_paper"
+EXT_ROWS = (("GO-GPT greedy", "gogpt_greedy"), ("BioReason-Pro RL", "bioreason_rl"),
+            ("BLAST-KNN (training refs)", "blast_knn"), ("BLAST-KNN (train+val refs)", "blast_knn_trainval"),
+            ("DIAMONDScore", "diamondscore"), ("Naive", "naive"), ("SPROF-GO", "sprof_go"),
+            ("DeepGOPlus", "deepgoplus"), ("ProteInfer (5-model ensemble)", "proteinfer_e5"), ("DeepGO-SE", "deepgose"),
+            ("DeepFRI (sequence CNN)", "deepfri_cnn"), ("InterLabelGO+ (leaked)", "interlabelgo_plus"))
+# scored on every metric but kept out of the paired-test families: its released training labels contain 96.1% of the
+# test answers (runs/compare_paper/extra_models.md)
+NO_TEST = {"InterLabelGO+ (leaked)"}
+CP_KEY = {MAIN: "higo_r2", "GO-GPT ten-sample": "gogpt_sample10", "GO-GPT beam": "gogpt_beam", **dict(EXT_ROWS)}
+BR_REPO = ROOT / "external" / "BioReason-Pro-github"
+BR_CKPT = Path("/dev/shm/cmp_paper_bioreason_rl")
+BR_EMB = Path("/dev/shm/cmp_paper_go_emb/go_embeddings")
 
 
 def log(msg: str):
@@ -157,7 +187,28 @@ def gogpt_vocab(onto) -> np.ndarray:
     return np.array(cols, dtype=np.int64)
 
 
-def load_models(onto) -> dict:
+def load_extended(onto, gv: np.ndarray) -> dict:
+    """compare_paper rows via compare_paper.load_method, so the scores are those of runs/compare_paper/summary.tsv."""
+    from cafa6 import compare_paper as cp
+    out = {}
+    for name, key in EXT_ROWS:
+        P, ids = cp.load_method(key, onto)
+        if P is None:
+            log(f"  {name}: no prediction file for compare_paper key {key}; row skipped")
+            continue
+        if key.startswith("gogpt"):
+            voc = gv
+        elif key.startswith("bioreason"):
+            # free-text GO ids: the model can emit any ontology term
+            voc = np.arange(len(onto.terms))
+        else:
+            z = np.load(cp.PREDS / f"{key}.npz", allow_pickle=False)
+            voc = np.unique([c[0] for c in map(onto.canon, z["terms"]) if c]).astype(np.int64)
+        out[name] = (ids, P, voc)
+    return out
+
+
+def load_models(onto, extended: bool = False) -> dict:
     """name -> (ids, raw CSR over ontology columns, output-vocabulary column indices)."""
     out = {}
     z = np.load(ROOT / "runs/stacker_tv/l3_c0/pred_test_twin.npz", allow_pickle=False)
@@ -180,6 +231,8 @@ def load_models(onto) -> dict:
     vcols = np.array([onto.idx[t] for t in vocab.term])
     Ph = sp.csr_matrix((M.data, (M.row, vcols[M.col])), shape=(M.shape[0], len(onto.terms)))
     out["[component] HiGO head alone"] = (rid, Ph, vcols)
+    if extended:
+        out.update(load_extended(onto, gv))
     for k, (ids, P, v) in out.items():
         P = P.tocsr()
         P.sum_duplicates()
@@ -546,7 +599,96 @@ def gogpt_vectors(onto) -> tuple[dict, np.ndarray, str]:
     return vecs, np.array(cols), note
 
 
-def run_retrieval(onto, child, parent) -> tuple[pd.DataFrame, dict]:
+def bioreason_retrieval(onto, adj1, adj2, common: np.ndarray, seeds: int = 5) -> tuple[list, dict]:
+    """Per-term vectors of BioReason-Pro's GO graph encoder (the authors' GOGraphEncoderUnified, RL checkpoint
+    weights go_encoder.pt), on CPU. The encoder runs GAT x3 over the obonet graph of the authors' go-basic.obo
+    (all relation types) on the precomputed 2560-d term embeddings, projects back to 2560-d and reduces the
+    43k term vectors to 200 with cross-attention; only those 200 reach the LLM. The reduced output is
+    recomputed and compared with the cached go_embedding.pt of the checkpoint."""
+    import importlib.util
+
+    import torch
+    import torch.nn.functional as F
+    torch.set_num_threads(int(_THREADS))
+    t0 = time.time()
+    spec = importlib.util.spec_from_file_location("bioreason_go_graph_encoder",
+                                                  BR_REPO / "bioreason2/models/go_graph_encoder.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    enc = mod.GOGraphEncoderUnified(str(BR_REPO / "bioreason2/dataset/go-basic.obo"), str(BR_EMB), hidden_dim=512,
+                                    num_gat_layers=3, num_heads=8, num_reduced_embeddings=200, embedding_dim=2560,
+                                    embeddings_load_to="cpu")
+    enc.load_state_dict(torch.load(BR_CKPT / "go_encoder.pt", map_location="cpu", weights_only=True), strict=True)
+    enc.eval()
+    x0 = enc._get_precomputed_embeddings(enc.all_go_terms).float()
+    ei = enc._get_unified_edge_index()
+    rel = pd.Series([k for _, _, k in enc.go_graph.edges(keys=True)]).value_counts()
+    log(f"  BioReason-Pro encoder built in {time.time() - t0:.0f}s: {len(enc.all_go_terms)} terms, {ei.shape[1]} "
+        f"edges ({', '.join(f'{k} {v}' for k, v in rel.items())})")
+
+    def forward():
+        with torch.no_grad():
+            x = x0
+            for layer in enc.gat_layers:
+                x = F.gelu(layer(x, ei))
+            return x, enc.output_projection(x)
+
+    h, y = forward()
+    with torch.no_grad():
+        red = enc.cross_attention_reducer(y.unsqueeze(0))[0]
+    cached = torch.load(BR_CKPT / "go_embedding.pt", map_location="cpu", weights_only=True).float()
+    red_rel = float((red - cached).norm() / cached.norm())
+    red_cos = float(F.cosine_similarity(red, cached, dim=1).min())
+    log(f"  reduced 200 x 2560 output vs cached go_embedding.pt: relative L2 error {red_rel:.2e}, "
+        f"min row cosine {red_cos:.5f}")
+    rows, cols, seen = [], [], set()
+    for i, t in enumerate(enc.all_go_terms):
+        c = onto.canon(t)
+        if len(c) == 1 and c[0] not in seen:
+            rows.append(i); cols.append(c[0]); seen.add(c[0])
+    rows, cols = np.array(rows), np.array(cols)
+    cpos = {c: i for i, c in enumerate(cols)}
+    csel = np.array([cpos[c] for c in common if c in cpos])
+    vocs = (("own", None, f"BioReason-Pro vocab ({len(cols)})"),
+            ("common", csel, f"common ({len(common)})" if len(csel) == len(common)
+             else f"common with BioReason-Pro ({len(csel)})"))
+    vecs = {"BioReason-Pro GO encoder output per term (GAT x3 + projection, 2560-d)": y.numpy()[rows],
+            "BioReason-Pro last GAT layer per term (512-d)": h.numpy()[rows],
+            "BioReason-Pro precomputed GO term embedding (encoder input, frozen)": x0.numpy()[rows]}
+    out = []
+    for _, sel, vname in vocs:
+        cc = cols if sel is None else cols[sel]
+        for name, X in vecs.items():
+            t = time.time()
+            out.append({"vectors": name, "vocabulary": vname, "V": len(cc),
+                        **retrieval_scores(X if sel is None else X[sel], cc, adj1, adj2)})
+            log(f"    {name[:60]:60s} {vname:32s} direct_P@1 {out[-1]['direct_P@1']:.4f} ({time.time() - t:.0f}s)")
+    base = {v: [] for _, _, v in vocs}
+    for seed in range(seeds):
+        torch.manual_seed(seed)
+        for layer in enc.gat_layers:
+            layer.reset_parameters()
+        enc._initialize_weights()
+        X = forward()[1].numpy()[rows]
+        for _, sel, vname in vocs:
+            base[vname].append(retrieval_scores(X if sel is None else X[sel], cols if sel is None else cols[sel],
+                                                adj1, adj2))
+        log(f"    untrained encoder seed {seed}: direct_P@1 own {base[vocs[0][2]][-1]['direct_P@1']:.4f}")
+    for _, sel, vname in vocs:
+        bdf = pd.DataFrame(base[vname])
+        V = len(cols) if sel is None else len(sel)
+        out.append({"vectors": f"untrained BioReason-Pro encoder, fresh init ({seeds} seeds, mean)", "vocabulary": vname,
+                    "V": V, **bdf.mean().to_dict()})
+        out.append({"vectors": f"untrained BioReason-Pro encoder ({seeds} seeds, sd)", "vocabulary": vname, "V": V,
+                    **bdf.std(ddof=1).to_dict()})
+    info = {"br_terms": len(enc.all_go_terms), "br_mapped": int(len(cols)), "br_edges": int(ei.shape[1]),
+            "br_relations": {str(k): int(v) for k, v in rel.items()}, "br_reduced_rel_err": red_rel,
+            "br_reduced_min_cos": red_cos, "br_common": int(len(csel)), "br_seconds": time.time() - t0}
+    log(f"  BioReason-Pro retrieval done in {info['br_seconds']:.0f}s")
+    return out, info
+
+
+def run_retrieval(onto, child, parent, extended: bool = False) -> tuple[pd.DataFrame, dict]:
     nT = len(onto.terms)
     D = sp.csr_matrix((np.ones(len(child)), (child, parent)), shape=(nT, nT))
     adj1 = ((D + D.T) > 0).astype(np.float32).tocsr()
@@ -592,26 +734,78 @@ def run_retrieval(onto, child, parent) -> tuple[pd.DataFrame, dict]:
             add(gname, X if sel_g is None else X[sel_g], gc, gvn)
     info = {"higo_how": how, "higo_query_check_maxabs": err, "gogpt": gnote, "common_vocab": int(len(common)),
             "direct_edges": int(len(child))}
+    if extended:
+        brow, binfo = bioreason_retrieval(onto, adj1, adj2, common)
+        rows += brow
+        info.update(binfo)
     return pd.DataFrame(rows), info
+
+
+CP_SCORES = "vs runs/compare_paper/summary.tsv S3_all (knn_sharp.Scorer, 4 decimals)"
+
+
+def crosscheck_compare_paper(point: dict) -> list[dict]:
+    """Fmax_w, Smin_w, Fmax (and the Fmax_w threshold) of every row with a compare_paper key against
+    runs/compare_paper/summary.tsv, S3_all; the `cafaeval` column holds the compare_paper value."""
+    ref = pd.read_csv(COMPARE / "summary.tsv", sep="\t")
+    ref = ref[ref.subset == "S3_all"].set_index("method")
+    out = []
+    for m in MODELS:
+        key = CP_KEY.get(m)
+        if key is None or key not in ref.index:
+            continue
+        r = ref.loc[key]
+        for met, col in (("Fmax_w", "Fw"), ("Smin_w", "Smin"), ("Fmax", "F")):
+            for asp in COLS:
+                v, rv = float(point[m][asp][met][0]), float(r[f"{col}_{asp}"])
+                row = {"model": m, "scores": CP_SCORES, "metric": met, "aspect": asp, "cafaeval": rv,
+                       "eval_suite": v, "abs_diff": abs(v - rv)}
+                if met == "Fmax_w" and asp != "mean":
+                    row["tau_cafaeval"] = round(float(r[f"tau_w_{asp}"]), 2)
+                    row["tau_eval_suite"] = round(float(point[m][asp]["tau_w"][0]), 2)
+                out.append(row)
+    return out
 
 
 # ------------------------------------------------------------------------------------------------ main
 
 def main():
+    global OUT, MODELS, REFS
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--perm-reps", type=int, default=P_REPS)
     ap.add_argument("--boot-reps", type=int, default=B_REPS)
     ap.add_argument("--skip-retrieval", action="store_true")
+    ap.add_argument("--extended", action="store_true",
+                    help="add the runs/compare_paper methods as rows and comparisons; outputs in runs/eval_suite_v2")
     a = ap.parse_args()
+    if a.extended:
+        OUT = OUT_EXT
     OUT.mkdir(parents=True, exist_ok=True)
     log(f"== eval_suite: descriptive metrics of frozen test predictions (look #3); threads {_THREADS}")
+    if a.extended:
+        log(f"  extended mode: compare_paper methods added as rows and comparisons; outputs in {OUT}")
 
     log("== stage 1: ontology, ground truth, prediction files")
     onto = ks.Ontology()
     sc = ks.Scorer(onto, ks.gt_frame("test"))
     n_a = {a_: int(sc.in_ns[k].sum()) for k, a_ in enumerate(ASPECTS)}
     log(f"  {sc.n} ground-truth proteins; per aspect {n_a}")
-    models = load_models(onto)
+    models = load_models(onto, extended=a.extended)
+    levels = {}
+    if a.extended:
+        MODELS = MODELS + tuple(m for m, _ in EXT_ROWS if m in models)
+        REFS = REFS + tuple(m for m, _ in EXT_ROWS if m in models and m not in NO_TEST)
+        for m in MODELS:
+            ids, P, _ = models[m]
+            nz = np.diff(P.indptr) > 0
+            mx = np.maximum.reduceat(P.data, P.indptr[:-1][nz]) if P.nnz else np.zeros(0)
+            mn = np.minimum.reduceat(P.data, P.indptr[:-1][nz]) if P.nnz else np.zeros(0)
+            levels[m] = {"distinct": int(len(np.unique(P.data))), "one_score_share": float((mx == mn).mean())}
+            if m in REFS and m not in FLAGS and levels[m]["distinct"] == 1:
+                FLAGS[m] = f"{m} scores are binary: one operating point, not a ranking"
+            log(f"  {m:40s} distinct raw scores {levels[m]['distinct']:7d}; proteins whose scores are all one value "
+                f"{levels[m]['one_score_share']:.3f}" + ("  [AUPR flagged: binary]" if m in FLAGS else ""))
+        log(f"  {len(MODELS)} rows, {len(REFS)} comparisons with {MAIN}: {', '.join(REFS)}")
     child, parent = direct_edges(onto)
     log(f"  {len(child)} direct is_a/part_of edges inside namespaces")
 
@@ -671,6 +865,8 @@ def main():
             cx.append({"model": m, "scores": proto, "metric": "s_w at best_s tau", "aspect": asp,
                        "cafaeval": float(r["s_w"]), "eval_suite": sw, "abs_diff": abs(sw - float(r["s_w"])),
                        "tau_cafaeval": round(float(r["tau"]), 2), "tau_eval_suite": round(float(r["tau"]), 2)})
+    if a.extended:
+        cx += crosscheck_compare_paper(point)
     cx = pd.DataFrame(cx)
     cx.to_csv(OUT / "crosscheck.tsv", sep="\t", index=False)
     for proto, g in cx.groupby("scores", sort=False):
@@ -680,6 +876,12 @@ def main():
             f"{g.abs_diff.max():.2e}; thresholds equal {int((t.tau_cafaeval == t.tau_eval_suite).sum())}/{len(t)}")
     fm = cx[cx.metric.isin(["Fmax", "Fmax_w"])]
     assert fm.abs_diff.max() < 1e-3, "Fmax cross-check against cafaeval failed"
+    if a.extended:
+        g = cx[(cx.scores == CP_SCORES) & cx.metric.isin(["Fmax_w", "Smin_w"])]
+        for m, gm in g.groupby("model", sort=False):
+            log(f"  compare_paper check {m:32s} max |diff| Fmax_w {gm[gm.metric == 'Fmax_w'].abs_diff.max():.1e}, "
+                f"Smin_w {gm[gm.metric == 'Smin_w'].abs_diff.max():.1e}")
+        assert g.abs_diff.max() < 1e-3, "Fmax_w / Smin_w cross-check against runs/compare_paper/summary.tsv failed"
 
     log(f"== stage 5: paired protein bootstrap ({a.boot_reps} reps, seed {B_SEED})")
     rng = np.random.default_rng(B_SEED)
@@ -840,8 +1042,7 @@ def main():
                 obs = float(point[MAIN][asp][met][0] - point[ref][asp][met][0])
                 prow.append({"family": "primary", "comparison": f"{MAIN} - {ref}", "metric": met, "aspect": asp,
                              "diff": obs, "p_raw": perm_p(obs, np.concatenate(null[(asp, met)])),
-                             "flag": "beam scores are binary: one operating point, not a ranking"
-                             if ref == "GO-GPT beam" and met.startswith("AUPR") else ""})
+                             "flag": FLAGS.get(ref, "") if met.startswith("AUPR") else ""})
         log(f"  primary vs {ref}: {time.time() - t:.0f}s")
         t = time.time()
         for wn in ("u", "w"):
@@ -917,7 +1118,7 @@ def main():
         retr, rinfo = pd.DataFrame(), {}
     else:
         log("== stage 8: GO-relation retrieval from learned term vectors")
-        retr, rinfo = run_retrieval(onto, child, parent)
+        retr, rinfo = run_retrieval(onto, child, parent, extended=a.extended)
         retr.to_csv(OUT / "retrieval.tsv", sep="\t", index=False)
         log("  " + retr[["vectors", "vocabulary", "direct_P@1", "direct_R@10", "2hop_P@10"]].round(4).to_string()
             .replace("\n", "\n  "))
@@ -930,7 +1131,11 @@ def main():
     summ_all = pd.concat([summ.assign(kind="model"),
                           diffs.rename(columns={"comparison": "model", "diff": "value"}).assign(kind="difference")])
     summ_all.to_csv(OUT / "summary.tsv", sep="\t", index=False)
-    write_report(summ, diffs, pv, binsdf, spdf, cons, cx, retr, rinfo, n_a, a)
+    if a.extended:
+        write_report_extended(summ, diffs, pv, binsdf, spdf, cons, cx, retr, rinfo, n_a, a, levels)
+        log_extended_summary(summ, pv, cons, cx)
+    else:
+        write_report(summ, diffs, pv, binsdf, spdf, cons, cx, retr, rinfo, n_a, a)
     log(f"done; outputs in {OUT}")
 
 
@@ -1358,6 +1563,497 @@ def write_report(summ, diffs, pv, binsdf, spdf, cons, cx, retr, rinfo, n_a, a):
     w("`headline.tsv` (Fmax, Fmax_w, micro-F), `auprc.tsv`, `smin.tsv`, `identity_bins.tsv`, `spearman.tsv`, "
       "`consistency.tsv`, `retrieval.tsv`, `differences.tsv` (bootstrap CIs of HiGO-R2 minus each GO-GPT row), "
       "`pvalues.tsv`, `crosscheck.tsv`, `summary.tsv` (all model rows and differences in long format).\n")
+    (OUT / "report.md").write_text("\n".join(L) + "\n")
+
+
+def favours_main(r) -> bool:
+    return (r["diff"] < 0) if r["metric"] in LOWER_BETTER else (r["diff"] > 0)
+
+
+def test_counts(pv: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+    for ref in REFS:
+        q = pv[pv.comparison == f"{MAIN} - {ref}"]
+        r = {"comparison": f"{MAIN} - {ref}"}
+        for fam in ("primary", "secondary"):
+            f = q[q.family == fam]
+            sig = f[f.p_holm < 0.05]
+            r[f"{fam} tests"] = len(f)
+            r[f"{fam} Holm < 0.05"] = len(sig)
+            r[f"{fam} BH < 0.05"] = int((f.q_bh < 0.05).sum())
+            r[f"{fam} Holm(all) < 0.05"] = int((f.p_holm_all < 0.05).sum())
+            if fam == "primary":
+                r["primary Holm < 0.05 favouring HiGO-R2"] = int(sum(favours_main(x) for _, x in sig.iterrows()))
+        rows.append(r)
+    return pd.DataFrame(rows)
+
+
+def log_extended_summary(summ, pv, cons, cx):
+    def val(m, metric):
+        return float(summ[(summ.model == m) & (summ.metric == metric) & (summ.aspect == "mean")].value.iloc[0])
+
+    ca = cons[cons.aspect == "all"].set_index("model")
+    cnt = test_counts(pv).set_index("comparison")
+    log("  per-row means (Fmax_w, AUPR_micro_w, AUPR_prot_w, Smin_w), violation rate, Holm < 0.05 primary/secondary:")
+    for m in MODELS:
+        c = f"{MAIN} - {m}"
+        sig = (f"{cnt.loc[c, 'primary Holm < 0.05']}/{cnt.loc[c, 'primary tests']} primary, "
+               f"{cnt.loc[c, 'secondary Holm < 0.05']}/{cnt.loc[c, 'secondary tests']} secondary") if c in cnt.index else ""
+        log(f"    {m:40s} {val(m, 'Fmax_w'):.4f} {val(m, 'AUPR_micro_w'):.4f} {val(m, 'AUPR_prot_w'):.4f} "
+            f"{val(m, 'Smin_w'):7.4f}  viol {ca.loc[m, 'rate']:.4f}  {sig}")
+    g = cx[cx.scores == CP_SCORES]
+    t = g.dropna(subset=["tau_cafaeval"])
+    log(f"  compare_paper cross-check: {len(g)} values, max |diff| Fmax_w {g[g.metric == 'Fmax_w'].abs_diff.max():.1e}, "
+        f"Smin_w {g[g.metric == 'Smin_w'].abs_diff.max():.1e}, Fmax {g[g.metric == 'Fmax'].abs_diff.max():.1e}; "
+        f"Fmax_w thresholds equal {int((t.tau_cafaeval == t.tau_eval_suite).sum())}/{len(t)}")
+    pr, se = pv[pv.family == "primary"], pv[pv.family == "secondary"]
+    log(f"  Holm < 0.05: primary {int((pr.p_holm < 0.05).sum())}/{len(pr)}, secondary {int((se.p_holm < 0.05).sum())}/"
+        f"{len(se)}; over all {len(pv)} tests {int((pv.p_holm_all < 0.05).sum())}")
+
+
+def write_report_extended(summ, diffs, pv, binsdf, spdf, cons, cx, retr, rinfo, n_a, a, levels):
+    def val(m, metric, asp="mean"):
+        return float(summ[(summ.model == m) & (summ.metric == metric) & (summ.aspect == asp)].value.iloc[0])
+
+    def wide(metric, models=MODELS, f=".4f"):
+        rows = []
+        for m in models:
+            q = summ[(summ.model == m) & (summ.metric == metric)].set_index("aspect")
+            rows.append({"row": m, **{c: f"{q.loc[c, 'value']:{f}} [{q.loc[c, 'lo']:{f}}, {q.loc[c, 'hi']:{f}}]"
+                                      for c in COLS}})
+        return pd.DataFrame(rows)
+
+    def dv(ref, metric, asp="mean"):
+        q = pv[(pv.comparison == f"{MAIN} - {ref}") & (pv.metric == metric) & (pv.aspect == asp)]
+        if len(q) == 0:
+            q = diffs[(diffs.comparison == f"{MAIN} - {ref}") & (diffs.metric == metric) & (diffs.aspect == asp)]
+        return q.iloc[0]
+
+    def dwide(metric):
+        rows = []
+        for ref in REFS:
+            r = {"difference": f"{MAIN} - {ref}"}
+            for c in COLS:
+                q = dv(ref, metric, c)
+                r[c] = f"{q['diff']:+.4f} [{q['lo']:+.4f}, {q['hi']:+.4f}]" + (
+                    f" (Holm p {q['p_holm']:.4f})" if "p_holm" in q.index else "")
+            rows.append(r)
+        return pd.DataFrame(rows)
+
+    def dtxt(ref, metric, asp="mean", f=".4f"):
+        r = dv(ref, metric, asp)
+        return f"{r['diff']:+{f}} [{r['lo']:+{f}}, {r['hi']:+{f}}]"
+
+    def sides(ref, metric, keys=ASPECTS):
+        up, down, mid = [], [], []
+        for k in keys:
+            r = dv(ref, metric, k)
+            (up if r["lo"] > 0 else down if r["hi"] < 0 else mid).append(k)
+        return up, down, mid
+
+    def lst(x):
+        return ", ".join(x) if x else "none"
+
+    def mds(df):
+        return df.to_markdown(index=False, disable_numparse=True)
+
+    def ranking(metric, lower=False, models=MODELS):
+        o = sorted(models, key=lambda m: val(m, metric), reverse=not lower)
+        return "; ".join(f"{m} {val(m, metric):.4f}" for m in o)
+
+    def per_ref(metric):
+        out = []
+        for ref in REFS:
+            up, down, mid = sides(ref, metric)
+            s = [f"{lab} {', '.join(x)}" for lab, x in (("above 0 in", up), ("below 0 in", down),
+                                                        ("includes 0 in", mid)) if x]
+            out.append(f"vs {ref} {dtxt(ref, metric)} (CI {'; '.join(s)})")
+        return "; ".join(out)
+
+    flagged = [m for m in REFS if m in FLAGS]
+    cps = pd.read_csv(COMPARE / "summary.tsv", sep="\t")
+    gauth = float(cps[(cps.subset == "S3_all") & (cps.method == "gogpt_authors")].Fw_mean.iloc[0])
+    ca = cons[cons.aspect == "all"].set_index("model")
+    cnt = test_counts(pv)
+    cntc = cnt.set_index("comparison")
+    L = []
+    w = L.append
+    w("# HiGO-R2 vs GO-GPT, BioReason-Pro and the compare_paper baselines: evaluation suite on GO-GPT's temporal "
+      "test (extended)\n")
+    w("Generated by `python -m cafa6.eval_suite --extended` (`src/cafa6/eval_suite.py`; metric definitions, "
+      "statistics and scoring protocol in its module docstring, identical to `runs/eval_suite/report.md`). The "
+      "default run and its outputs in `runs/eval_suite/` are unchanged; this directory adds the methods scored in "
+      "`runs/compare_paper/` as rows and as comparisons. Every prediction file was frozen before this run; nothing "
+      "was tuned, selected or changed on these numbers, and no test look is recorded. All numbers below come from "
+      "the tsv files next to this report.\n")
+    w(f"Ground truth: `data/proc_gogpt/gt_test.tsv`, 8,630 proteins (MF {n_a['MF']}, BP {n_a['BP']}, CC "
+      f"{n_a['CC']} with annotations); ontology `runs/gogpt_cafa5/ref/go-basic_gogpt.obo`, IA "
+      "`runs/gogpt_cafa5/ref/IA.txt`, cafaeval protocol (prop=max, norm=cafa, tau 0.01..0.99), scores in the "
+      "3-decimal submission format. Brackets are paired protein bootstrap 95% CIs "
+      f"({a.boot_reps} reps, seed 0, the same draws for every row). \"mean\" is the mean of the three aspects.\n")
+    w("Rows:\n")
+    w("- **HiGO-R2** `runs/stacker_tv/l3_c0/pred_test_twin.npz`; **GO-GPT ten-sample** "
+      "`runs/gogpt_sample10/gogpt_sample10_freq.tsv.gz`; **GO-GPT beam** `runs/gogpt_cafa5/preds_shard*.jsonl`; the "
+      "two `[component]` rows (inputs of HiGO-R2, not models; no tests): as in `runs/eval_suite`.")
+    w("- **GO-GPT greedy** `runs/gogpt_cafa5/greedy/preds_shard*.jsonl` (released checkpoint, greedy decoding, our "
+      "generation; sets with score 1).")
+    w("- **BioReason-Pro RL** `runs/compare_paper/preds/bioreason_rl.npz`: released `wanglab/bioreason-pro-rl`, "
+      "the authors' `eval.py` with the published-benchmark settings of `scripts/sh_eval.sh` (greedy, "
+      "ask_all_go_aspects=False, force_uniprot_summary=False); GO ids are taken from the whole response with "
+      "score 1, as `evals/cafa_evals.py` does. In `cafa6/compare_paper.py` this is method key `bioreason_rl`, the "
+      "row of `runs/compare_paper/summary.tsv` with S3 IA-weighted Fmax mean 0.6490. `bioreason_rl_final.npz` "
+      "(final-answer block only, 0.6478) and the label-independent prompt run (0.6471) are variants and are not "
+      "rows here.")
+    w("- **BLAST-KNN (training refs)** `preds/blast_knn.npz` (paper section 4.4.2: best DIAMOND hit by percent "
+      "identity among GO-GPT training proteins, all its propagated terms with score identity / 100); **BLAST-KNN "
+      "(train+val refs)** `preds/blast_knn_trainval.npz` (same rule, training + validation proteins as references, "
+      "the reference set of HiGO-R2's kNN); **DIAMONDScore** `preds/diamondscore.npz` (bitscore-weighted label mean "
+      "over the top 50 hits); **Naive** `preds/naive.npz` (per-aspect training term frequency, the same vector for "
+      "every protein).\n")
+    w("The seven compare_paper rows (and, for the cross-check, nothing else) are read with "
+      "`cafa6.compare_paper.load_method`, the loader behind `runs/compare_paper/summary.tsv`. Not included as rows: "
+      "the GO-GPT authors' `go_pred` file, the two BioReason-Pro variants, and the BioReason-Pro SFT catalogue "
+      "(1,213 test proteins only).\n")
+    w("Score resolution of the raw files (distinct score values; share of proteins with predictions whose scores "
+      "are all one value) and the AUPR flag:\n")
+    w(mds(pd.DataFrame([{"row": m, "distinct scores": levels[m]["distinct"],
+                        "proteins with one score value": f"{levels[m]['one_score_share']:.3f}",
+                        "AUPR flag": "binary: one operating point" if m in FLAGS else ""} for m in MODELS])))
+    w("")
+
+    w("## Overview\n")
+    rows = []
+    for m in MODELS:
+        c = f"{MAIN} - {m}"
+        rows.append({"row": m, "Fmax_w": f"{val(m, 'Fmax_w'):.4f}", "Fmax": f"{val(m, 'Fmax'):.4f}",
+                     "AUPR_micro_w": f"{val(m, 'AUPR_micro_w'):.4f}" + (" *" if m in FLAGS else ""),
+                     "AUPR_prot_w": f"{val(m, 'AUPR_prot_w'):.4f}" + (" *" if m in FLAGS else ""),
+                     "Smin_w": f"{val(m, 'Smin_w'):.3f}", "violation rate": f"{ca.loc[m, 'rate']:.4f}",
+                     "primary Holm < 0.05": "—" if c not in cntc.index else
+                     f"{cntc.loc[c, 'primary Holm < 0.05']}/{cntc.loc[c, 'primary tests']}",
+                     "secondary Holm < 0.05": "—" if c not in cntc.index else
+                     f"{cntc.loc[c, 'secondary Holm < 0.05']}/{cntc.loc[c, 'secondary tests']}"})
+    w(mds(pd.DataFrame(rows)))
+    w("\nMeans over MF, BP, CC. `*` = binary scores, AUPR measures one operating point. Test counts are tests of "
+      "HiGO-R2 against that row with Holm-adjusted p < 0.05 within the family (section 8); the component rows "
+      "have no tests.\n")
+
+    w("## 0. Cross-checks\n")
+    sub = cx[cx.scores == "submission format (3 decimals)"]
+    rep = cx[cx.scores == "cafaeval input file replica (4 decimals)"]
+    cpx = cx[cx.scores == CP_SCORES]
+    fm = sub[sub.metric.isin(["Fmax", "Fmax_w"])]
+    w(f"Against the official cafaeval output (`runs/test_look/look3_l3c0_twin/cafaeval/best_*.tsv`, the three "
+      f"original rows, as in `runs/eval_suite`): max |diff| of Fmax / Fmax_w {fm.abs_diff.max():.1e} in the "
+      f"submission format and {rep[rep.metric.isin(['Fmax', 'Fmax_w'])].abs_diff.max():.0e} for the HiGO-R2 "
+      "4-decimal replica (the HiGO-R2 file given to cafaeval was rounded to 4 decimals; see the v1 report).\n")
+    t = cpx.dropna(subset=["tau_cafaeval"])
+    ok = cpx[cpx.metric.isin(["Fmax_w", "Smin_w"])].abs_diff.max() < 1e-3
+    w(f"Against `runs/compare_paper/summary.tsv` (S3_all, written with 4 decimals by `knn_sharp.Scorer`, the "
+      f"in-memory cafaeval copy): IA-weighted Fmax, IA-weighted S-min and unweighted Fmax for MF, BP, CC and the "
+      f"mean, for every row that has a compare_paper key. **Check {'passed' if ok else 'FAILED'}: max |diff| "
+      f"Fmax_w {cpx[cpx.metric == 'Fmax_w'].abs_diff.max():.1e}, Smin_w {cpx[cpx.metric == 'Smin_w'].abs_diff.max():.1e}"
+      f" (required < 1e-3), Fmax {cpx[cpx.metric == 'Fmax'].abs_diff.max():.1e}; Fmax_w thresholds equal in "
+      f"{int((t.tau_cafaeval == t.tau_eval_suite).sum())} of {len(t)} aspect rows.** Differences of this size are "
+      "the 4-decimal rounding of summary.tsv. In `crosscheck.tsv` these rows have `scores` = "
+      f"\"{CP_SCORES}\" and the compare_paper value in the `cafaeval` column.\n")
+    rows = []
+    for m, g in cpx.groupby("model", sort=False):
+        tt = g.dropna(subset=["tau_cafaeval"])
+        rows.append({"row": m, "Fmax_w mean (summary.tsv)": f"{g[(g.metric == 'Fmax_w') & (g.aspect == 'mean')].cafaeval.iloc[0]:.4f}",
+                     "Fmax_w mean (suite)": f"{g[(g.metric == 'Fmax_w') & (g.aspect == 'mean')].eval_suite.iloc[0]:.4f}",
+                     "Smin_w mean (summary.tsv)": f"{g[(g.metric == 'Smin_w') & (g.aspect == 'mean')].cafaeval.iloc[0]:.4f}",
+                     "Smin_w mean (suite)": f"{g[(g.metric == 'Smin_w') & (g.aspect == 'mean')].eval_suite.iloc[0]:.4f}",
+                     "max abs diff Fmax_w": f"{g[g.metric == 'Fmax_w'].abs_diff.max():.1e}",
+                     "max abs diff Smin_w": f"{g[g.metric == 'Smin_w'].abs_diff.max():.1e}",
+                     "max abs diff Fmax": f"{g[g.metric == 'Fmax'].abs_diff.max():.1e}",
+                     "tau_w equal": f"{int((tt.tau_cafaeval == tt.tau_eval_suite).sum())}/{len(tt)}"})
+    w(mds(pd.DataFrame(rows)))
+    w("")
+
+    w("## 1. Fmax and IA-weighted Fmax\n")
+    w("Unweighted Fmax:\n")
+    w(md(wide("Fmax")))
+    w("\nIA-weighted Fmax (the CAFA/Kaggle metric):\n")
+    w(md(wide("Fmax_w")))
+    w("\nDifferences HiGO-R2 minus each row (bootstrap CI; Holm-adjusted permutation p within the primary family):\n")
+    w("Fmax_w:\n")
+    w(md(dwide("Fmax_w")))
+    w("\nFmax:\n")
+    w(md(dwide("Fmax")))
+    w("\nCoverage at the Fmax_w threshold (share of annotated proteins with at least one positive-IA prediction "
+      "there):\n")
+    w(md(wide("cov_w")))
+    w(f"\nWhat it shows: mean IA-weighted Fmax by row: {ranking('Fmax_w')}. HiGO-R2 minus each comparison row, "
+      f"IA-weighted: {per_ref('Fmax_w')}. Unweighted: {per_ref('Fmax')}. The BioReason-Pro row "
+      f"({val('BioReason-Pro RL', 'Fmax_w'):.4f}) scores at the level of the GO-GPT authors' predictions that its "
+      f"prompt contains ({gauth:.4f} in `runs/compare_paper/summary.tsv`) and below the released GO-GPT "
+      "checkpoint runs here. BLAST-KNN abstains on proteins without a DIAMOND hit, so its "
+      "coverage stays below the hit rate (table above) and its precision is averaged over fewer proteins. What it "
+      "does not show: Fmax is one operating point per aspect, chosen on the test set for every row (the CAFA "
+      "protocol), and precision averages only over covered proteins.\n")
+
+    w("## 2. AUPRC\n")
+    for met, txt in (("AUPR_micro", "Term-centric micro AUPR (unweighted, roots included)"),
+                     ("AUPR_micro_w", "IA-weighted term-centric micro AUPR"),
+                     ("AUPR_prot", "Protein-centric PR area (unweighted)"),
+                     ("AUPR_prot_w", "Protein-centric PR area (IA-weighted)")):
+        w(f"{txt}:\n")
+        w(md(wide(met)))
+        w("")
+    w("Differences:\n")
+    for met in ("AUPR_micro", "AUPR_micro_w", "AUPR_prot", "AUPR_prot_w"):
+        w(f"{met}:\n")
+        w(md(dwide(met)))
+        w("")
+    w("Recall ceiling R(0.01) of the protein-centric curve (unweighted, then IA-weighted):\n")
+    w(md(wide("Rmax")))
+    w("")
+    w(md(wide("Rmax_w")))
+    one = [m for m in MODELS if m not in FLAGS and levels[m]["one_score_share"] > 0.99]
+    w(f"\n**Flag: {lst(flagged)}.** These rows have binary scores (one distinct value in the raw file), so their "
+      "micro curve has two operating points (score 1 and score 0) and their protein curve one; their AUPR values "
+      "are close to precision x recall at that point and measure one operating point, not a ranking. The AUPR "
+      "tests against them carry the flag in `pvalues.tsv`. "
+      + (f"Not flagged but close to it: {lst(one)} give every term of a protein the same score (BLAST-KNN: the "
+         "identity of the best hit), so within a protein there is no ranking; the curve points come only from "
+         "differences between proteins. " if one else "")
+      + "Naive gives the same vector to every protein, so it ranks terms but not proteins.\n")
+    w(f"What it shows: mean IA-weighted micro AUPR by row: {ranking('AUPR_micro_w')}. Mean IA-weighted "
+      f"protein-centric AUPR: {ranking('AUPR_prot_w')}. HiGO-R2 minus each row on AUPR_micro_w: "
+      f"{per_ref('AUPR_micro_w')}. As in the v1 report, AUPR mixes ranking quality with score resolution and with "
+      "how many pairs a row scores at all (recall ceiling); rows with coarse or binary scores are at a structural "
+      "disadvantage that says nothing about their top predictions.\n")
+
+    w("## 3. S-min\n")
+    w("IA-weighted S-min (lower is better):\n")
+    w(md(wide("Smin_w", f=".3f")))
+    w("\nDifferences (negative = HiGO-R2 lower):\n")
+    w(md(dwide("Smin_w")))
+    w("\nCount-based S-min (unit term weights):\n")
+    w(md(wide("Smin", f=".3f")))
+    w(f"\nWhat it shows: mean IA-weighted S-min by row (lowest first): {ranking('Smin_w', lower=True)}. HiGO-R2 "
+      f"minus each row: {per_ref('Smin_w')}. What it does not show: S-min is not normalised by annotation depth, "
+      "so BP dominates the mean.\n")
+
+    w("## 4. Per-protein F1 by sequence identity to the nearest training protein\n")
+    w("Per-protein F1 at each row's own per-aspect Fmax threshold (F1 at the unweighted, F1_w at the IA-weighted "
+      "one; no prediction = 0), averaged within identity bins and then over the three aspects; n = proteins in the "
+      "bin (any aspect).\n")
+    for view, txt in (("train", "Identity to GO-GPT training proteins only (`data/proc_gogpt_tv2/knn/test_knn.npz`):"),
+                      ("train+val", "Identity to training + validation proteins (`knn_trainval/test_knn.npz`):")):
+        w(txt + "\n")
+        for lab in ("F1", "F1_w"):
+            q = binsdf[(binsdf.identity == view) & (binsdf.aspect == "mean") & (binsdf.f1 == lab)]
+            rows = [{"row": "n proteins", **{b: str(int(q[(q.model == MAIN) & (q.bin == b)].n.iloc[0])) for b in BINS}}]
+            for m in MODELS:
+                qq = q[q.model == m].set_index("bin")
+                rows.append({"row": m, **{b: f"{qq.loc[b, 'mean_f1']:.3f} [{qq.loc[b, 'lo']:.3f}, {qq.loc[b, 'hi']:.3f}]"
+                                          for b in BINS}})
+            w(f"{lab}:\n")
+            w(md(pd.DataFrame(rows)))
+            w("")
+    w("Bin differences HiGO-R2 minus each row (mean over aspects, train identity, bootstrap CI, Holm p within the "
+      "secondary family):\n")
+    rows = []
+    for ref in REFS:
+        for lab in ("F1", "F1_w"):
+            r = {"difference": f"{MAIN} - {ref}", "f1": lab}
+            for b in BINS:
+                qq = dv(ref, f"bin {b} mean-over-aspects {lab} (train identity)")
+                r[b] = f"{qq['diff']:+.3f} [{qq['lo']:+.3f}, {qq['hi']:+.3f}] p={qq['p_holm']:.3f}"
+            rows.append(r)
+    w(md(pd.DataFrame(rows)))
+    hw = binsdf[(binsdf.identity == "train") & (binsdf.aspect == "mean") & (binsdf.f1 == "F1_w")]
+    w("\nShare of proteins with at least one positive-IA prediction at the row's Fmax_w threshold, per bin (mean "
+      "over aspects, train identity):\n")
+    w(mds(pd.DataFrame([{"row": m, **{b: f"{float(hw[(hw.model == m) & (hw.bin == b)].covered.iloc[0]):.3f}"
+                                     for b in BINS}} for m in MODELS])))
+    parts = []
+    for ref in REFS:
+        up, down = [], []
+        for b in BINS:
+            r = dv(ref, f"bin {b} mean-over-aspects F1_w (train identity)")
+            if r["p_holm"] < 0.05:
+                (up if r["diff"] > 0 else down).append(f"{b} ({r['diff']:+.3f})")
+        s = [f"{lab} {', '.join(x)}" for lab, x in (("HiGO-R2 ahead in", up), ("behind in", down)) if x]
+        parts.append(f"vs {ref}: " + ("; ".join(s) if s else "no bin passes"))
+    nohit = sorted(MODELS, key=lambda m: -float(hw[(hw.model == m) & (hw.bin == "no_hit")].mean_f1.iloc[0]))
+    w("\nWhat it shows: bins where the F1_w difference passes Holm in the secondary family (train identity): "
+      + "; ".join(parts) + ". F1_w on proteins without a DIAMOND hit to a training protein: "
+      + "; ".join(f"{m} {float(hw[(hw.model == m) & (hw.bin == 'no_hit')].mean_f1.iloc[0]):.3f}" for m in nohit)
+      + ". The homology rows (BLAST-KNN, DIAMONDScore, the kNN prior) have nothing to transfer there (the "
+      "train+val BLAST-KNN and kNN prior can still hit a val protein), while the generative rows and Naive predict "
+      "for every protein. What it does not show: the low-identity bins are small (see n), so their CIs are wide, "
+      "and per-protein F1 at a global threshold is not Fmax.\n")
+
+    w("## 5. Spearman correlation of per-protein F1 with nearest-training identity\n")
+    rows = []
+    for view in ("train", "train+val"):
+        for lab in ("F1", "F1_w"):
+            for m in MODELS:
+                qq = spdf[(spdf.identity == view) & (spdf.f1 == lab) & (spdf.model == m)].set_index("aspect")
+                rows.append({"identity": view, "f1": lab, "row": m,
+                             **{c: f"{qq.loc[c, 'spearman']:.3f} [{qq.loc[c, 'lo']:.3f}, {qq.loc[c, 'hi']:.3f}]"
+                                for c in COLS}})
+    w(md(pd.DataFrame(rows)))
+    w("\nDifferences in Spearman correlation (train identity, HiGO-R2 minus each row, Holm p within the secondary "
+      "family):\n")
+    rows = []
+    for ref in REFS:
+        for lab in ("F1", "F1_w"):
+            r = {"difference": f"{MAIN} - {ref}", "f1": lab}
+            for c in COLS:
+                q = dv(ref, f"Spearman({lab}, train identity)", c)
+                r[c] = f"{q['diff']:+.3f} [{q['lo']:+.3f}, {q['hi']:+.3f}] p={q['p_holm']:.3f}"
+            rows.append(r)
+    w(md(pd.DataFrame(rows)))
+
+    def rho(m):
+        return float(spdf[(spdf.identity == "train") & (spdf.f1 == "F1_w") & (spdf.model == m)
+                          & (spdf.aspect == "mean")].spearman.iloc[0])
+
+    o = sorted(MODELS, key=rho, reverse=True)
+    w("\nWhat it shows: mean Spearman(F1_w, train identity) by row: " + "; ".join(f"{m} {rho(m):.3f}" for m in o)
+      + ". A larger value means per-protein quality tracks homology more closely; Naive has no protein-specific "
+      "input, so its correlation comes only from which proteins are easy (shallow, frequent annotations). What it "
+      "does not show: the correlation is dominated by the large high-identity bins, and a higher correlation "
+      "together with a higher mean is not a weakness by itself.\n")
+
+    w("## 6. Ontology consistency of the raw predictions\n")
+    w("Violation = score(child) > score(direct parent) + 1e-6 over is_a/part_of edges inside a namespace, counted "
+      "over (protein, child, parent) triples with score(child) > 0, on the raw files. Output vocabulary for "
+      "`rate_parent_in_vocab`: the GO-GPT tokenizer for the GO-GPT rows, every ontology term for BioReason-Pro "
+      "(free-text GO ids), the terms present in the file for the compare_paper baselines.\n")
+    w(md(cons[cons.aspect == "all"][["model", "pairs", "violations", "rate", "share_proteins", "mean_gap",
+                                      "parent_missing_share", "rate_parent_in_vocab"]]))
+    w("\nPer aspect:\n")
+    w(md(cons.pivot(index="model", columns="aspect", values="rate")[list(ASPECTS)].reindex(list(MODELS)).reset_index()))
+    zero = [m for m in MODELS if int(ca.loc[m, "violations"]) == 0]
+    nz = sorted([m for m in MODELS if m not in zero], key=lambda m: -ca.loc[m, "rate"])
+    w(f"\nWhat it shows: rows with no violation: {lst(zero)} (propagated label sets or max-propagated outputs). "
+      "Rows with violations, highest rate first: "
+      + "; ".join(f"{m} {ca.loc[m, 'rate']:.2%} of pairs, {ca.loc[m, 'share_proteins']:.1%} of proteins, "
+                  f"{ca.loc[m, 'parent_missing_share']:.0%} with the parent unscored" for m in nz)
+      + ". For the binary rows (GO-GPT greedy and beam, BioReason-Pro) a violation is a listed term whose parent "
+      "is not listed. The cafaeval scores are unaffected, because every file is max-propagated before scoring.\n")
+
+    w("## 7. GO-relation retrieval from learned term vectors\n")
+    if len(retr):
+        w("HiGO and GO-GPT rows are those of `runs/eval_suite` (same vectors, vocabularies and targets). "
+          f"Targets come from {rinfo['direct_edges']} direct is_a/part_of edges of go-basic_gogpt.obo; cosine "
+          "similarity, all other vocabulary terms ranked; mean over terms with >= 1 target.\n")
+        if "br_terms" in rinfo:
+            rel = ", ".join(f"{k} {v}" for k, v in rinfo["br_relations"].items())
+            w(f"BioReason-Pro has term vectors inside its GO graph encoder, so it is added: the authors' "
+              "`GOGraphEncoderUnified` (`external/BioReason-Pro-github/bioreason2/models/go_graph_encoder.py`) "
+              f"was built on CPU with the RL checkpoint's `go_encoder.pt` and the precomputed term embeddings "
+              f"(`/dev/shm/cmp_paper_go_emb/go_embeddings`, {rinfo['br_terms']} terms, 2560-d). It runs 3 GAT "
+              f"layers over the obonet graph of the authors' go-basic.obo ({rinfo['br_edges']} edges, all relation "
+              f"types: {rel}), then a 2-layer projection back to 2560-d, then a cross-attention reducer to 200 "
+              "vectors; only those 200 vectors reach the LLM, so per-term vectors exist only inside the encoder. "
+              "Recomputing the 200 reduced vectors from the loaded weights reproduces the checkpoint's cached "
+              f"`go_embedding.pt` to relative L2 error {rinfo['br_reduced_rel_err']:.1e} (min row cosine "
+              f"{rinfo['br_reduced_min_cos']:.4f}), so the encoder is loaded as the model uses it. Rows: the "
+              "per-term encoder output (input of the reducer), the last GAT layer (512-d), the precomputed input "
+              "embeddings (frozen, not trained by BioReason-Pro), and the same encoder at fresh initialisation on "
+              f"the same inputs (5 seeds; what the graph propagation gives without training). {rinfo['br_mapped']} "
+              "terms map to a unique term of go-basic_gogpt.obo; on the common vocabulary of HiGO and GO-GPT "
+              f"BioReason-Pro has {rinfo['br_common']} of {rinfo['common_vocab']} terms. Run time "
+              f"{rinfo['br_seconds'] / 60:.1f} min on CPU.\n")
+        cols = ["vectors", "vocabulary", "V", "direct_queries", "direct_mean_targets"] + \
+               [f"direct_{m}@{k}" for m in ("P", "R") for k in (1, 5, 10)]
+        rr = retr[~retr.vectors.str.contains("sd\\)")]
+        rnd = rr.groupby("vocabulary", sort=False).first().reset_index()
+        rnd_rows = []
+        for _, r in rnd.iterrows():
+            rnd_rows.append({"vectors": "random ranking (expected)", "vocabulary": r["vocabulary"], "V": r["V"],
+                             "direct_queries": r["direct_queries"], "direct_mean_targets": r["direct_mean_targets"],
+                             **{f"direct_{m}@{k}": r[f"direct_random_{m}@{k}"] for m in ("P", "R") for k in (1, 5, 10)},
+                             **{f"2hop_{m}@{k}": r[f"2hop_random_{m}@{k}"] for m in ("P", "R") for k in (1, 5, 10)},
+                             "2hop_queries": r["2hop_queries"], "2hop_mean_targets": r["2hop_mean_targets"]})
+        tab = pd.concat([rr, pd.DataFrame(rnd_rows)], ignore_index=True)
+        tab = tab.sort_values("vocabulary", kind="stable")
+        for c_ in ("V", "direct_queries", "2hop_queries"):
+            tab[c_] = tab[c_].round().astype(int)
+        sd = retr[retr.vectors.str.contains("sd\\)")]
+        sdmax = float(sd[[c_ for c_ in sd.columns if "@" in c_ and "random" not in c_]].max().max())
+        w(f"Untrained rows are means over 5 seeds; the largest seed sd of any P@k / R@k is {sdmax:.4f} "
+          "(`retrieval.tsv`).\n")
+        w("Direct parents + children:\n")
+        w(md(tab[cols]))
+        cols2 = ["vectors", "vocabulary", "2hop_queries", "2hop_mean_targets"] + \
+                [f"2hop_{m}@{k}" for m in ("P", "R") for k in (1, 5, 10)]
+        w("\nWithin 2 undirected hops:\n")
+        w(md(tab[cols2]))
+        if "br_terms" in rinfo:
+            cm = tab[tab.vocabulary == f"common ({rinfo['common_vocab']})"].set_index("vectors")
+
+            def g(v, k="direct_P@1"):
+                return float(cm.loc[v, k]) if v in cm.index else float("nan")
+
+            names = (("HiGO effective query q = e + mean_anc(e)", "HiGO effective query"),
+                     ("untrained N(0,0.02^2) e through the same ancestor-mean (5 seeds, mean)", "HiGO construction untrained"),
+                     ("GO-GPT token embedding (wte)", "GO-GPT wte"),
+                     ("BioReason-Pro GO encoder output per term (GAT x3 + projection, 2560-d)", "BioReason-Pro encoder output"),
+                     ("BioReason-Pro last GAT layer per term (512-d)", "BioReason-Pro last GAT layer"),
+                     ("BioReason-Pro precomputed GO term embedding (encoder input, frozen)", "BioReason-Pro input embedding"),
+                     ("untrained BioReason-Pro encoder, fresh init (5 seeds, mean)", "BioReason-Pro encoder untrained"),
+                     ("random ranking (expected)", "random"))
+            own = tab[tab.vocabulary == f"BioReason-Pro vocab ({rinfo['br_mapped']})"].set_index("vectors")
+            bo, bu = names[3][0], names[6][0]
+            bsd = sd[(sd.vocabulary == f"BioReason-Pro vocab ({rinfo['br_mapped']})")].iloc[0]
+            w(f"\nWhat it shows (common vocabulary, direct neighbours, P@1 / R@10): "
+              + "; ".join(f"{lab} {g(v):.3f} / {g(v, 'direct_R@10'):.3f}" for v, lab in names) + ". "
+              f"On its own {rinfo['br_mapped']}-term vocabulary BioReason-Pro's encoder output has direct P@1 "
+              f"{float(own.loc[bo, 'direct_P@1']):.3f} against {float(own.loc[bu, 'direct_P@1']):.3f} for the "
+              f"untrained encoder (seed sd {float(bsd['direct_P@1']):.3f}) and "
+              f"{float(own.loc[names[5][0], 'direct_P@1']):.3f} for its input embeddings. So almost all of its "
+              "neighbourhood structure is there before training: the precomputed inputs already place GO "
+              "neighbours close, and three rounds of message passing over the GO graph (is_a, part_of and the "
+              "regulates relations) average each term with its neighbours whatever the weights are. The same holds, "
+              "less strongly, for HiGO's ancestor-mean construction (untrained row above). What it does not show: "
+              "none of these models is trained for GO-neighbour retrieval, BioReason-Pro's LLM never sees these "
+              "per-term vectors (only the 200 reduced ones), and the numbers say nothing about prediction quality.\n")
+    else:
+        w("Skipped (--skip-retrieval).\n")
+
+    w("## 8. Multiple testing\n")
+    npr, nse = int((pv.family == "primary").sum()), int((pv.family == "secondary").sum())
+    w(f"Paired permutation tests ({a.perm_reps} reps, seed 1; two-sided; smallest attainable p "
+      f"{1 / (1 + a.perm_reps):.1e}), Holm-Bonferroni (`p_holm`) and Benjamini-Hochberg (`q_bh`) within each "
+      f"family, `p_holm_all` / `q_bh_all` over all {len(pv)} tests.\n")
+    w(f"Primary family ({npr} tests): {{Fmax, Fmax_w, Smin_w, AUPR_micro, AUPR_micro_w, AUPR_prot, AUPR_prot_w}} x "
+      f"{{MF, BP, CC, mean}} x {{HiGO-R2 vs each of the {len(REFS)} comparison rows: {', '.join(REFS)}}}.\n")
+    w(f"Secondary family ({nse} tests): mean-over-aspects F1 and F1_w in the 7 train-identity bins (14) and the "
+      f"Spearman(F1 or F1_w, train identity) difference for MF, BP, CC and mean (8), x {len(REFS)} comparison "
+      "rows.\n")
+    w("Counts per comparison:\n")
+    w(md(cnt))
+    pr, se = pv[pv.family == "primary"], pv[pv.family == "secondary"]
+    sig = pr[pr.p_holm < 0.05]
+    against = [f"{r.metric} {r.aspect} vs {r.comparison.split(' - ')[1]} ({r['diff']:+.4f})"
+               for _, r in sig.iterrows() if not favours_main(r)]
+    nsig = [f"{r.metric} {r.aspect} vs {r.comparison.split(' - ')[1]} ({r['diff']:+.4f}, Holm p {r.p_holm:.3f})"
+            for _, r in pr[pr.p_holm >= 0.05].iterrows()]
+    w(f"\nWhat it shows: {len(sig)} of {len(pr)} primary tests have Holm p < 0.05 ({int((pr.q_bh < 0.05).sum())} "
+      f"with BH q < 0.05; {int((pr.p_holm_all < 0.05).sum())} with Holm over all {len(pv)} tests). Significant "
+      f"primary differences in favour of the comparison row: {lst(against)}. Not significant after Holm "
+      f"({len(nsig)}): " + (lst(nsig) if len(nsig) <= 30 else "see the table below") + ". "
+      f"Secondary family: {int((se.p_holm < 0.05).sum())} of {len(se)} pass Holm, "
+      f"{int((se.q_bh < 0.05).sum())} pass BH. What it does not show: the tests condition on the 8,630 test "
+      "proteins; a p at the minimum only says the observed difference exceeds every swapped one; metrics within a "
+      "family are strongly correlated, so Holm is conservative.\n")
+    w("Primary family:\n")
+    w(md(pr[["comparison", "metric", "aspect", "diff", "lo", "hi", "p_raw", "p_holm", "q_bh", "flag"]], ".4g"))
+    w("\nSecondary family:\n")
+    w(md(se[["comparison", "metric", "aspect", "diff", "lo", "hi", "p_raw", "p_holm", "q_bh"]], ".4g"))
+    w("")
+    w("## Files\n")
+    w("Same names and columns as `runs/eval_suite/`: `headline.tsv`, `auprc.tsv`, `smin.tsv`, `identity_bins.tsv`, "
+      "`spearman.tsv`, `consistency.tsv`, `retrieval.tsv`, `differences.tsv` (bootstrap CIs of HiGO-R2 minus each "
+      "comparison row), `pvalues.tsv`, `crosscheck.tsv` (cafaeval rows as in v1, plus the compare_paper rows), "
+      "`summary.tsv`; `log.txt` is the console output of the run.\n")
     (OUT / "report.md").write_text("\n".join(L) + "\n")
 
 
