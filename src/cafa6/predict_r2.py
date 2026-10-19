@@ -573,8 +573,9 @@ def to_tsv(results: list[dict]) -> str:
 
 def low_identity_note(r: dict) -> str | None:
     if r["identity_bin"] in ("<30", "no_hit"):
-        return ("No reference above 30% identity: accuracy is much lower here (look-3 IA-weighted Fmax 0.451 below "
-                "30% identity, 0.342 without a hit, against 0.718 over the whole test set).")
+        return ("No reference protein reaches 30% identity, so these predictions rest mainly on the language-model "
+                "score and are much less accurate (on the benchmark, IA-weighted Fmax 0.45 below 30% identity and 0.34 "
+                "with no match, against 0.72 overall). Treat them as hypotheses.")
     return None
 
 
