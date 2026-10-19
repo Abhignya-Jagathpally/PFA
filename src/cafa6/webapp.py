@@ -233,7 +233,9 @@ M260 330 L200 470 M260 330 L330 470 M340 330 L330 470 M500 330 L470 470 M110 330
 SEQ_DEMO = ("MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYRE"
             "QIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQH")
 ATTN = json.loads((Path(__file__).parent / "web_assets" / "hras_attention.json").read_text())
-MOTIFS = [("P-loop", 10, 17), ("switch I", 30, 38), ("switch II", 57, 64), ("NKxD", 116, 119), ("SAK", 145, 147)]
+# G1-G5 nucleotide-binding boxes of Ras GTPases, positions in human HRAS (Bourne et al., Nature 1991;
+# Vetter & Wittinghofer, Science 2001). Taken from the literature, not from the model.
+MOTIFS = [("G1 P-loop", 10, 17), ("G2", 30, 38), ("G3 DxxG", 57, 60), ("G4 NKxD", 116, 119), ("G5 SAK", 145, 147)]
 
 
 def attention_svg() -> str:
@@ -247,7 +249,7 @@ def attention_svg() -> str:
                     f'rx="3" fill="#2a7f72"/>' for _, s0, e in MOTIFS)
     labels = "".join(f'<text x="{x0 + (s0 - 1) * step + dx:.1f}" y="{y0 + h + 28 + dy}" font-size="11" fill="#1f6156" '
                      f'font-weight="600">{n}</text>'
-                     for (n, s0, e), dx, dy in zip(MOTIFS, (0, 0, 0, -18, 0), (0, 0, 0, 0, 0)))
+                     for (n, s0, e), dx, dy in zip(MOTIFS, (0, 0, 0, -24, 0), (0, 0, 0, 0, 0)))
     ticks = "".join(f'<text x="{x0 + (r - 1) * step:.1f}" y="{y0 + h + 52}" font-size="10" fill="#7d8a8e">{r}</text>'
                     for r in (1, 50, 100, 150))
     head = (f'<text x="{x0}" y="16" font-size="12" fill="#4b47a3" font-weight="700">Measured attention of the '
@@ -326,8 +328,9 @@ with distance: for every 5 percentage points of identity below the best match, a
 <h3>Score functions from the sequence alone</h3><p>A protein language model (ESM2, 35 million parameters, used
 unchanged) turns every residue into a numerical description. For each of 7,901 GO terms, a learned query then weighs
 the residues and produces a score. Above, the measured weights for the example: {m["GO:0003924"]:.0%} of the
-"GTPase activity" query falls on the five known GTP-binding motifs, which make up 19% of the sequence. These weights
-show what the network looks at; they are not proof of which residues matter.</p>
+"GTPase activity" query falls on the five G boxes that bind GTP in Ras proteins (G1 to G5, positions from the
+literature), which make up 17% of the sequence. These weights show what the network looks at; they are not proof of
+which residues matter.</p>
 <p class="tech">Frozen ESM2-35M with per-term sparse attention pooling (HiGO head)</p></div></div>
 </div>
 <div class="arrow1"></div>
