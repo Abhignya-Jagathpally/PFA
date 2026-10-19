@@ -9,8 +9,12 @@ Per identity bin rows use the train-only best-hit identity (data/proc_gogpt_tv2/
 GO-GPT test numbers have been reported with so far.
 
 Outputs runs/test_look/<name>/{summary.tsv, per_bin.tsv, result.json}; appends one line to runs/test_looks.md.
+--out DIR writes the outputs to DIR instead; --no-log skips the runs/test_looks.md line (re-scoring a look that
+is already logged, e.g. scripts/reproduce_tables.sh).
 
   python -m cafa6.test_look --pred runs/stacker_tv/l3_c0/pred_test_twin.npz --name look3_l3c0_twin --look 3
+  python -m cafa6.test_look --pred runs/stacker_tv/l3_c0/pred_test_twin.npz --name look3_l3c0_twin --look 3 \
+      --out /tmp/repro/test_look --no-log
 """
 from __future__ import annotations
 
@@ -59,8 +63,10 @@ def main():
     ap.add_argument("--look", type=int, required=True, help="test look number for runs/test_looks.md")
     ap.add_argument("--desc", default="", help="pipeline description for the log line")
     ap.add_argument("--reps", type=int, default=1000)
+    ap.add_argument("--out", default="", help="output directory (default runs/test_look/<name>)")
+    ap.add_argument("--no-log", action="store_true", help="do not append to runs/test_looks.md")
     a = ap.parse_args()
-    out = ROOT / "runs" / "test_look" / a.name
+    out = Path(a.out) if a.out else ROOT / "runs" / "test_look" / a.name
     out.mkdir(parents=True, exist_ok=True)
 
     onto = ks.Ontology()
@@ -100,6 +106,9 @@ def main():
         log(f"{a.name} - {ref}: {bs['diff']:+.4f} [{bs['lo']:+.4f}, {bs['hi']:+.4f}] ({a.reps} paired protein reps)")
     (out / "result.json").write_text(json.dumps(res, indent=2))
     s10, bm = res["minus_gogpt_sample10"], res["minus_gogpt_beam"]
+    if a.no_log:
+        log(f"--no-log: {ks.TEST_LOOKS} not modified; outputs in {out}")
+        return
     with open(ks.TEST_LOOKS, "a") as f:
         f.write(f"- {time.strftime('%Y-%m-%d %H:%M:%S')} | HiGO-R2 pipeline | TEST LOOK #{a.look}: {a.name} "
                 f"({a.desc or a.pred}) -> test mean Fmax {res['mean']:.4f}; minus GO-GPT ten-sample "

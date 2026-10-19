@@ -1,6 +1,6 @@
 """Full-evaluation page for the Ontologue web app, rendered from the eval_suite output files.
 
-Reads runs/eval_suite_v2/ when it exists (all compared methods), else runs/eval_suite/ (Ontologue vs GO-GPT). Tables
+Reads runs/eval_suite_v2/ once it is marked FINAL (all compared methods), else runs/eval_suite/ (Ontologue vs GO-GPT). Tables
 are grouped by what they measure: primary accuracy, generalisation to novel proteins, ontology consistency and
 statistical reliability. Nothing is computed here; every number comes from the TSV files.
 """
@@ -31,7 +31,7 @@ METRIC_NAMES = {"Fmax": "F-max", "Fmax_w": "IA-weighted F-max", "Smin_w": "S-min
 
 def source_dir() -> Path:
     v2 = ROOT / "runs" / "eval_suite_v2"
-    return v2 if (v2 / "summary.tsv").exists() else ROOT / "runs" / "eval_suite"
+    return v2 if (v2 / "FINAL").exists() else ROOT / "runs" / "eval_suite"   # FINAL: written after the full-rep run
 
 
 def name(m: str) -> str:

@@ -40,6 +40,7 @@ Usage (PYTHONPATH=src, from cafa6/):
   python -m cafa6.compare_paper import-tsv --tsv preds.tsv --name NAME [--header] [--meta JSON]
                                                external (protein, GO id, score) rows -> preds/NAME.npz
   python -m cafa6.compare_paper score          summary.tsv, per_bin.tsv, report tables
+  python -m cafa6.compare_paper score --out DIR; tables --out DIR    same, written to DIR (re-scoring only)
 """
 from __future__ import annotations
 
@@ -776,6 +777,7 @@ def cmd_tables(a):
 
 
 def main():
+    global OUT
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     g = sub.add_parser("bioreason-gen")
@@ -791,7 +793,8 @@ def main():
                    help="ask_all_go_aspects=force_uniprot_summary=True (label-independent prompt, predict.py)")
     sub.add_parser("baselines")
     sub.add_parser("catalogue")
-    sub.add_parser("tables")
+    tb = sub.add_parser("tables")
+    tb.add_argument("--out", default="", help="read and write in this directory instead of runs/compare_paper")
     t = sub.add_parser("import-tsv")
     t.add_argument("--tsv", required=True)
     t.add_argument("--name", required=True)
@@ -804,7 +807,11 @@ def main():
     s = sub.add_parser("score")
     s.add_argument("--reps", type=int, default=1000)
     s.add_argument("--subset_file", default="", help="score only these proteins (one id per line)")
+    s.add_argument("--out", default="", help="write the score tables here instead of runs/compare_paper "
+                                             "(predictions are still read from runs/compare_paper/preds)")
     a = ap.parse_args()
+    if getattr(a, "out", ""):
+        OUT = Path(a.out)
     {"bioreason-gen": cmd_bioreason_gen, "baselines": cmd_baselines, "collect-bioreason": cmd_collect_bioreason,
      "catalogue": cmd_catalogue, "score": cmd_score, "tables": cmd_tables, "import-tsv": cmd_import_tsv}[a.cmd](a)
 

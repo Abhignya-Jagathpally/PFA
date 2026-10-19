@@ -10,9 +10,11 @@ per-aspect IA-weighted Fmax threshold (runs/test_look/look3_l3c0_twin/cafaeval/b
 by identity bin of the nearest training protein. Descriptive only: frozen prediction files, no selection.
 
   python -m cafa6.novel_terms      -> runs/novel_terms/{summary.tsv, by_bin.tsv, report.md}
+  python -m cafa6.novel_terms --out DIR    same files in DIR
 """
 from __future__ import annotations
 
+import argparse
 import time
 from pathlib import Path
 
@@ -42,6 +44,10 @@ def align(P: sp.csr_matrix, ids, order: np.ndarray, onto) -> sp.csr_matrix:
 
 
 def main():
+    global OUT
+    ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
+    ap.add_argument("--out", default=str(OUT), help="output directory (default runs/novel_terms)")
+    OUT = Path(ap.parse_args().out)
     OUT.mkdir(parents=True, exist_ok=True)
     onto = ks.Ontology()
     sc = ks.Scorer(onto, ks.gt_frame("test"))
