@@ -1,0 +1,31 @@
+# fresh24: registration and look log
+
+Benchmark: `data/fresh24/` (built by `src/cafa6/build_fresh24.py`, statistics in `runs/fresh24_stats.md`). Experimental GO
+annotations added after 2024-02-29, absent from GOA release 219 (2024-02-09), for proteins disjoint from GO-GPT
+train/val/test and TV v2. Every entry below is written before the scores it describes exist.
+
+- 2026-10-19 18:40:00 | REGISTRATION before any score on fresh24 (no look yet).
+  - **Primary set (FR24-P):** no-knowledge proteins (`gt_nk.tsv`) with `hpa_only == False` in `proteins.tsv`
+    (11,231 proteins), all three aspects. The Human Protein Atlas bulk load (11,469 human CCO-only proteins, mostly
+    isoforms or fragments of proteins in the GO-GPT training data) is excluded from the primary set because it would
+    dominate the CCO score with near-duplicates of training proteins.
+  - **Secondary sets:** all no-knowledge proteins (with the HPA load); limited-knowledge proteins (`gt_lk.tsv`);
+    FR24-P without the *T. brucei* HTP localisation load and the SynGO load (sensitivity); FR24-P scored against the
+    current GO release (`gt_nk_go_current.tsv`); every set broken down by identity bin of the nearest GO-GPT train+val
+    protein and by organism group.
+  - **Scoring:** IA-weighted Fmax (headline), Fmax, IA-based S-min, per aspect and mean, with GO
+    `runs/gogpt_cafa5/ref/go-basic_gogpt.obo`, IA `runs/gogpt_cafa5/ref/IA.txt`, cafaeval protocol (prop=max,
+    norm=cafa) via `cafa6.knn_sharp.Scorer`; per-protein F1/F1_w by identity bin as in `eval_suite.py`.
+  - **Methods, all frozen, nothing tuned on fresh24:** Ontologue exactly as served (`cafa6.predict_r2`, GPU bf16,
+    train+val references of 2022-11, saved twin stacker); its parts (step 1a kNN prior alone, step 1b HiGO head
+    alone); BLAST-KNN (training references; train+val references); DIAMONDScore; naive; GO-GPT released checkpoint,
+    ten-sample and beam, with the settings used on the GO-GPT test; SPROF-GO; DeepGOPlus 1.0.10; ProteInfer 5-model
+    ensemble; DeepFRI sequence CNN; DeepGO-SE (MF and BP only; its released CC models are faulty). BioReason-Pro RL
+    if its inputs can be built for these proteins within the time budget. InterLabelGO+ is not scored (its released
+    training labels come from a snapshot after the cutoff).
+  - **Statistics:** paired protein bootstrap (1,000 reps) for every interval; paired permutation tests (10,000 reps)
+    of Ontologue minus each method on {IA-weighted Fmax, Fmax, S-min} x {MF, BP, CC, mean}, Holm-Bonferroni within that
+    family on FR24-P; secondary sets are descriptive.
+  - **Look budget for fresh24:** look #1 is this single scoring of all frozen methods at once (descriptive; it
+    selects nothing). At most three further looks, each registered here beforehand, for new models (for example the
+    forecasting-trained model); model selection never uses fresh24.
