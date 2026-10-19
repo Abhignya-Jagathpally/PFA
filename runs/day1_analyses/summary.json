@@ -1,0 +1,240 @@
+{
+  "inputs": {
+    "knn": "/home/aj0486@students.ad.unt.edu/PFA/cafa6/data/proc_gogpt_tv2/knn_trainval/tv_knn.npz",
+    "ontologue": "/home/aj0486@students.ad.unt.edu/PFA/cafa6/runs/stacker_tv/l3_c0/pred_tv_oof_twin.npz",
+    "higo": "/home/aj0486@students.ad.unt.edu/PFA/cafa6/runs/l3_c0_tv2",
+    "hits": "/home/aj0486@students.ad.unt.edu/PFA/cafa6/data/proc_gogpt_tv2/knn_trainval/diamond_hits_tv_trainval.parquet"
+  },
+  "fmax": {
+    "knn": {
+      "testlike": 0.7258900003790764,
+      "plain": 0.7377933949307183,
+      "tau": {
+        "MF": 0.5,
+        "BP": 0.39,
+        "CC": 0.59
+      }
+    },
+    "ontologue": {
+      "testlike": 0.7341562162817167,
+      "plain": 0.7300249245076443,
+      "tau": {
+        "MF": 0.3,
+        "BP": 0.26,
+        "CC": 0.48000000000000004
+      }
+    }
+  },
+  "A": {
+    "band_n": 1878,
+    "band_testlike_share": 0.3498928908044607,
+    "knn": {
+      "qcov<80|plain": {
+        "protein_share_of_band": 0.16773162939297126,
+        "fp_share_of_band_fp": 0.20214560505432624,
+        "pred_mass_share_of_band": 0.16789555827020913,
+        "tp_share_of_band_tp": 0.13606145659538924,
+        "band_fp_share_of_all_fp": 0.27967533155735835,
+        "low_fp_share_of_all_fp": 0.0565351391164315
+      },
+      "qcov<80|testlike": {
+        "protein_share_of_band": 0.2423067737815395,
+        "fp_share_of_band_fp": 0.19379162979599251,
+        "pred_mass_share_of_band": 0.2027624579115483,
+        "tp_share_of_band_tp": 0.2164992452683885,
+        "band_fp_share_of_all_fp": 0.5240936709292896,
+        "low_fp_share_of_all_fp": 0.10156496665515162
+      },
+      "tcov_est<80|plain": {
+        "protein_share_of_band": 0.1650692225772098,
+        "fp_share_of_band_fp": 0.17244898709459328,
+        "pred_mass_share_of_band": 0.1417346412383574,
+        "tp_share_of_band_tp": 0.1131868376389645,
+        "band_fp_share_of_all_fp": 0.27967533155735835,
+        "low_fp_share_of_all_fp": 0.04822972764241098
+      },
+      "tcov_est<80|testlike": {
+        "protein_share_of_band": 0.2162458102584598,
+        "fp_share_of_band_fp": 0.15052756105788584,
+        "pred_mass_share_of_band": 0.16885469676387155,
+        "tp_share_of_band_tp": 0.19691854580992854,
+        "band_fp_share_of_all_fp": 0.5240936709292896,
+        "low_fp_share_of_all_fp": 0.07889054205086016
+      },
+      "oracle_noFP_qcov<80": {
+        "testlike_gain": 0.01517461592166236,
+        "plain_gain": 0.0075673376854603625,
+        "n": 315
+      },
+      "oracle_noFP_qcov>=80": {
+        "testlike_gain": 0.047438738472419306,
+        "plain_gain": 0.030144594848615314,
+        "n": 1563
+      },
+      "oracle_noFP_tcov_est<80": {
+        "testlike_gain": 0.013239363724466768,
+        "plain_gain": 0.006627246497441619,
+        "n": 310
+      },
+      "oracle_noFP_band_all": {
+        "testlike_gain": 0.06304844188855196,
+        "plain_gain": 0.03761992532094782,
+        "n": 1878
+      }
+    },
+    "ontologue": {
+      "qcov<80|plain": {
+        "protein_share_of_band": 0.16773162939297126,
+        "fp_share_of_band_fp": 0.19919735627482346,
+        "pred_mass_share_of_band": 0.1636473158226842,
+        "tp_share_of_band_tp": 0.135934200286637,
+        "band_fp_share_of_all_fp": 0.2500280792386885,
+        "low_fp_share_of_all_fp": 0.04980493237881883
+      },
+      "qcov<80|testlike": {
+        "protein_share_of_band": 0.2423067737815395,
+        "fp_share_of_band_fp": 0.1870665338339436,
+        "pred_mass_share_of_band": 0.20504236345818921,
+        "tp_share_of_band_tp": 0.2247039782176803,
+        "band_fp_share_of_all_fp": 0.4691786945566215,
+        "low_fp_share_of_all_fp": 0.0877676321394417
+      },
+      "tcov_est<80|plain": {
+        "protein_share_of_band": 0.1650692225772098,
+        "fp_share_of_band_fp": 0.15831867356826704,
+        "pred_mass_share_of_band": 0.12600138502564928,
+        "tp_share_of_band_tp": 0.10080836865203664,
+        "band_fp_share_of_all_fp": 0.2500280792386885,
+        "low_fp_share_of_all_fp": 0.03958411385989073
+      },
+      "tcov_est<80|testlike": {
+        "protein_share_of_band": 0.2162458102584598,
+        "fp_share_of_band_fp": 0.1510486113315918,
+        "pred_mass_share_of_band": 0.1675979343503274,
+        "tp_share_of_band_tp": 0.18569926377580642,
+        "band_fp_share_of_all_fp": 0.4691786945566215,
+        "low_fp_share_of_all_fp": 0.07086879027914675
+      },
+      "oracle_noFP_qcov<80": {
+        "testlike_gain": 0.010720590874976454,
+        "plain_gain": 0.007015640187921446,
+        "n": 315
+      },
+      "oracle_noFP_qcov>=80": {
+        "testlike_gain": 0.03536342352134647,
+        "plain_gain": 0.030695038235347027,
+        "n": 1563
+      },
+      "oracle_noFP_tcov_est<80": {
+        "testlike_gain": 0.008080649574356502,
+        "plain_gain": 0.0059008396359974125,
+        "n": 310
+      },
+      "oracle_noFP_band_all": {
+        "testlike_gain": 0.05149565848533677,
+        "plain_gain": 0.039311185852161534,
+        "n": 1878
+      }
+    }
+  },
+  "B": {
+    "F1_higo_top3": {
+      "testlike": {
+        "diff": 0.0007842884311111131,
+        "lo": 0.0002224647011846048,
+        "hi": 0.0015212647940905293,
+        "reps": 1000
+      },
+      "plain": {
+        "diff": 0.0007562651835698597,
+        "lo": 0.00014606898486831666,
+        "hi": 0.0013502779955159555,
+        "reps": 1000
+      },
+      "promising": false,
+      "at_base_tau": {
+        "MF": {
+          "abstainers_now_predicting": 41,
+          "abstainers_mean_P": 0.7647583048412082,
+          "abstainers_mean_R": 0.31996771256794304,
+          "abstainers_mean_R_before": 0.0
+        },
+        "BP": {
+          "abstainers_now_predicting": 93,
+          "abstainers_mean_P": 0.5396351871565342,
+          "abstainers_mean_R": 0.053897302668005694,
+          "abstainers_mean_R_before": 0.0
+        },
+        "CC": {
+          "abstainers_now_predicting": 7,
+          "abstainers_mean_P": 0.7826013681961154,
+          "abstainers_mean_R": 0.1297437672840741,
+          "abstainers_mean_R_before": 0.0
+        }
+      },
+      "tl_after": 0.7349405047128278,
+      "plain_after": 0.7307811896912142
+    },
+    "F2_top1_floor": {
+      "testlike": {
+        "diff": 0.0009837220153867676,
+        "lo": 0.0003614526936648599,
+        "hi": 0.0014656738866080598,
+        "reps": 1000
+      },
+      "plain": {
+        "diff": 0.0006937038311291,
+        "lo": 6.067071913698208e-05,
+        "hi": 0.0012749288439906775,
+        "reps": 1000
+      },
+      "promising": false,
+      "at_base_tau": {
+        "MF": {
+          "abstainers_now_predicting": 58,
+          "abstainers_mean_P": 0.7413793103448276,
+          "abstainers_mean_R": 0.23484615059594757,
+          "abstainers_mean_R_before": 0.0
+        },
+        "BP": {
+          "abstainers_now_predicting": 139,
+          "abstainers_mean_P": 0.6605185780409499,
+          "abstainers_mean_R": 0.06834363032230037,
+          "abstainers_mean_R_before": 0.0
+        },
+        "CC": {
+          "abstainers_now_predicting": 11,
+          "abstainers_mean_P": 1.0,
+          "abstainers_mean_R": 0.013021442464235866,
+          "abstainers_mean_R_before": 0.0
+        }
+      },
+      "tl_after": 0.7351399382971034,
+      "plain_after": 0.7307186283387734
+    },
+    "base": {
+      "tl": 0.7341562162817167,
+      "plain": 0.7300249245076443,
+      "tau": {
+        "MF": 0.3,
+        "BP": 0.26,
+        "CC": 0.48000000000000004
+      },
+      "f2_pairs_without_term": {
+        "MF": 4,
+        "BP": 10,
+        "CC": 0
+      },
+      "f1_pairs_reaching_tau": {
+        "MF": 41,
+        "BP": 93,
+        "CC": 7
+      },
+      "abstaining_pairs": {
+        "MF": 62,
+        "BP": 149,
+        "CC": 11
+      }
+    }
+  }
+}

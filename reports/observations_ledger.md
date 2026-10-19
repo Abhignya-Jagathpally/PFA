@@ -380,3 +380,10 @@ Look #4 was not used. The look-3 pipeline is final.
 | Hierarchy consistency | 0 violations vs GO-GPT ten-sample 2.87% of pairs | KEEP the max-propagation step |
 | GO term embeddings | direct-neighbour P@1 0.678 (HiGO queries) vs 0.384 untrained ancestor-mean vs 0.154 GO-GPT tokens | the learned queries encode GO structure beyond the ancestor-mean construction |
 | Multiple testing | 51/56 primary comparisons pass Holm; none significant in favour of GO-GPT | the headline holds after correction |
+
+### 5.3 Update 2026-10-19: Day 1 analyses on TV v2 (`runs/day1_analyses/`, exploratory, no test scoring)
+
+| question | evidence | verdict |
+|---|---|---|
+| Are partial-coverage hits a major error source at 50-95% identity (premise of residue-level alignment-conditioned retrieval)? | Low query coverage costs recall more than precision (kNN precision -0.08, recall -0.12 at <50% coverage); those proteins hold 19.4% of the band's false-positive IA mass for 24.2% of its weight; removing all their false positives gains at most +0.011 (Ontologue) | minor; DROP idea 2 as a precision fix; if revisited, test region-wise retrieval for recall with an oracle first |
+| Do abstention fallbacks help? | Abstention 1.6% MF, 3.2% BP, 0.2% CC of protein-aspect pairs; fallbacks +0.0008 and +0.0010 test-like (CIs exclude 0) | below the 0.003 bar; DROP as a work item |
