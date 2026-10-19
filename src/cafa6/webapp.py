@@ -308,8 +308,9 @@ def steps_html() -> str:
 <div class="step input"><div class="stag">Input</div>
 <div class="seqbox"><span class="seqhdr">&gt;example &nbsp;Homo sapiens (taxon 9606)</span>{seq_chips(SEQ_DEMO)}<span
 class="more">&hellip; 166 residues</span></div>
-<p class="legend"><i class="aa h">A</i> hydrophobic &nbsp; <i class="aa c">K</i> charged &nbsp; <i class="aa p">S</i>
-polar or other</p></div>
+<p class="legend">Residues are coloured by side-chain chemistry, as a reading aid only (the model sees the plain
+sequence): <i class="aa h">&nbsp;</i> hydrophobic (A V I L M F W C) &nbsp; <i class="aa c">&nbsp;</i> charged
+(D E K R H) &nbsp; <i class="aa p">&nbsp;</i> polar or other (S T N Q G P Y)</p></div>
 <div class="arrow2"><span></span><span></span></div>
 <div class="pair">
 <div class="step"><div class="art">{DOODLE_RELATIVES}</div><div class="txt"><div class="stag">Step 1a</div>
