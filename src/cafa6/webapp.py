@@ -372,12 +372,6 @@ transfers annotations from similar, already annotated proteins, adds a score fro
 and makes sure the result is consistent with the hierarchy of the ontology.</p>
 <a class="cta" href="#run">Try it with a protein</a><a class="cta ghost" href="#how">How it works</a>
 </header>
-<div class="stats">
-<div><b>0.718</b><span>IA-weighted Fmax on a temporal benchmark of 8,630 proteins</span></div>
-<div><b>133,054</b><span>annotated reference proteins searched for every query</span></div>
-<div><b>0</b><span>hierarchy violations in 2.75 million parent-child term pairs</span></div>
-<div><b>~5 s</b><span>per protein, with the matches it used</span></div>
-</div>
 <section class="block" id="tldr" style="padding-bottom:0"><div class="tldr"><b>TLDR:</b> <em>{BRAND} predicts Gene
 Ontology (GO) terms from a single protein sequence by combining annotation transfer from similar proteins with
 scores from a frozen ESM-2 protein language model, and its output never contradicts the GO hierarchy. On a temporal
