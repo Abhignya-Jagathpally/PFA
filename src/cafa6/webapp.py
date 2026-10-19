@@ -54,6 +54,7 @@ LOCK = threading.Lock()
 TSV_CACHE: "OrderedDict[str, str]" = OrderedDict()
 
 CSS = """
+.tldr{background:#fff;border:1px solid var(--line);border-left:5px solid var(--teal);border-radius:16px;padding:20px 24px;font-size:16.5px;line-height:1.6;color:var(--ink);max-width:1000px}
 :root{--ink:#1f2a2e;--muted:#5f6b70;--bg:#fbfaf7;--teal:#2a7f72;--teal-d:#1f6156;--mint:#e4f2ee;--lav:#ecebf8;
 --peach:#fcefe5;--line:#e7e4dd;--mf:#5b7fd6;--bp:#3aa68a;--cc:#e08a4c;
 --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif}
@@ -178,7 +179,7 @@ def predictor() -> Predictor:
     return STATE["predictor"]
 
 
-NAV = f"""<nav><a class="logo" href="/">{BRAND}<b>.</b></a><div class="links"><a href="/#how">How it works</a>
+NAV = f"""<nav><a class="logo" href="/">{BRAND}<b>.</b></a><div class="links"><a href="/#what">Background</a><a href="/#how">How it works</a>
 <a href="/#scores">Scores</a><a href="/#results">Results</a><a href="/#limits">Reliability</a><a href="/#run">Run it</a></div></nav>"""
 
 FOOTER = ""
@@ -235,7 +236,7 @@ SEQ_DEMO = ("MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAM
 ATTN = json.loads((Path(__file__).parent / "web_assets" / "hras_attention.json").read_text())
 # G1-G5 nucleotide-binding boxes of Ras GTPases, positions in human HRAS (Bourne et al., Nature 1991;
 # Vetter & Wittinghofer, Science 2001). Taken from the literature, not from the model.
-MOTIFS = [("G1 P-loop", 10, 17), ("G2", 30, 38), ("G3 DxxG", 57, 60), ("G4 NKxD", 116, 119), ("G5 SAK", 145, 147)]
+MOTIFS = [("G1", 10, 17), ("G2", 30, 38), ("G3", 57, 60), ("G4", 116, 119), ("G5", 145, 147)]
 
 
 def attention_svg() -> str:
@@ -249,7 +250,7 @@ def attention_svg() -> str:
                     f'rx="3" fill="#2a7f72"/>' for _, s0, e in MOTIFS)
     labels = "".join(f'<text x="{x0 + (s0 - 1) * step + dx:.1f}" y="{y0 + h + 28 + dy}" font-size="11" fill="#1f6156" '
                      f'font-weight="600">{n}</text>'
-                     for (n, s0, e), dx, dy in zip(MOTIFS, (0, 0, 0, -24, 0), (0, 0, 0, 0, 0)))
+                     for (n, s0, e), dx, dy in zip(MOTIFS, (0, 0, 0, 0, 0), (0, 0, 0, 0, 0)))
     ticks = "".join(f'<text x="{x0 + (r - 1) * step:.1f}" y="{y0 + h + 52}" font-size="10" fill="#7d8a8e">{r}</text>'
                     for r in (1, 50, 100, 150))
     head = (f'<text x="{x0}" y="16" font-size="12" fill="#4b47a3" font-weight="700">Measured attention of the '
@@ -314,39 +315,43 @@ def steps_html() -> str:
 <div class="step input"><div class="stag">Input</div>
 <div class="seqbox"><span class="seqhdr">&gt;example &nbsp;OX=9606 (Homo sapiens) &nbsp;human HRAS, residues 1-166</span>
 {SEQ_DEMO}</div>
-<p class="legend">An amino-acid sequence and, optionally, its organism (NCBI taxon id). Nothing else is needed: no
-structure, alignment or annotation.</p></div>
+<p class="legend">All you need is an amino-acid sequence and, if you know it, the organism (an NCBI taxon id). No
+multiple sequence alignment, no structure and no prior annotation are required.</p></div>
 <div class="arrow2"><span></span><span></span></div>
 <div class="pair">
 <div class="step"><div class="art">{DOODLE_RELATIVES}</div><div class="txt"><div class="stag">Step 1a</div>
-<h3>Borrow annotations from similar proteins</h3><p>The sequence is searched with DIAMOND against 133,054 proteins
-with known GO annotations, and up to 50 matches are kept. Each match passes on its GO terms. Votes fall off quickly
-with distance: for every 5 percentage points of identity below the best match, a vote counts about a third as much
-(also scaled by alignment score). Terms can come from anywhere in the ontology.</p>
+<h3>First, we look for similar proteins</h3><p>We search your sequence with DIAMOND (a fast BLAST-like aligner)
+against 133,054 proteins whose GO annotations are already known, and keep up to 50 matches. Each match then votes
+for its own GO terms. Votes fall off quickly with distance: for every 5 percentage points of identity below the best
+match, a vote counts about a third as much (it is also scaled by alignment score). This is why we call it
+<em>sharpened</em>: the closest matches dominate, but a few close ones can still pool their evidence.</p>
 <p class="tech">Identity-sharpened k-nearest-neighbour label transfer, temperature 5, top 50 hits</p></div></div>
 <div class="step"><div class="art wide-art">{attention_svg()}</div><div class="txt"><div class="stag">Step 1b</div>
-<h3>Score functions from the sequence alone</h3><p>A protein language model (ESM2, 35 million parameters, used
-unchanged) turns every residue into a numerical description. For each of 7,901 GO terms, a learned query then weighs
-the residues and produces a score. Above, the measured weights for the example: {m["GO:0003924"]:.0%} of the
-"GTPase activity" query falls on the five G boxes that bind GTP in Ras proteins (G1 to G5, positions from the
-literature), which make up 17% of the sequence. These weights show what the network looks at; they are not proof of
-which residues matter.</p>
+<h3>Then, we read the sequence with ESM-2</h3><p>Protein language models like ESM-2 are transformers, like their
+large language model counterparts, but trained on protein sequences instead of text. Each amino acid is a token, and
+the model learns by predicting masked residues. We use the 35-million-parameter ESM-2 as is (frozen) to describe
+every residue, and on top of it a small head with one learned query per GO term (7,901 of them) that weighs the
+residues and gives the term a score. In the plot, {m["GO:0003924"]:.0%} of the "GTPase activity" query lands on the
+five G boxes that bind GTP in Ras proteins (G1 is the P-loop, G3 the DxxG motif, G4 NKxD and G5 SAK; positions
+from the literature), which make up only 17% of the sequence.
+Keep in mind that these weights show where the head looks; they are not proof that those residues cause the
+function.</p>
 <p class="tech">Frozen ESM2-35M with per-term sparse attention pooling (HiGO head)</p></div></div>
 </div>
 <div class="arrow1"></div>
 <div class="step wide"><div class="art">{DOODLE_FUSION}</div><div class="txt"><div class="stag">Step 2</div>
-<h3>Combine the two scores</h3><p>For every candidate GO term, a small neural network combines the homology score and
-the network score with a few facts about the evidence: how similar the best match is, whether it comes from the same
-organism, and how specific the term is. It was fitted on proteins whose annotations grew after the reference
-snapshot, so it learned how far each kind of evidence holds up for annotations that come later. On the benchmark most
-of the accuracy comes from step 1a; the network score matters most when no close match exists.</p>
+<h3>Next, we combine the two scores</h3><p>For every candidate GO term, a small neural network looks at the homology
+score and the ESM-2 score together with a few facts about the evidence: how similar the best match is, whether it
+comes from the same organism, and how specific the term is. We fitted it on proteins whose annotations grew after
+the reference snapshot, so that it learns how well each kind of evidence holds up for annotations that come later.
+In practice, step 1a does most of the work; the ESM-2 score matters most when there is no close match.</p>
 <p class="tech">Per-term nonlinear fusion, cross-fitted on a temporal validation set</p></div></div>
 <div class="arrow1"></div>
 <div class="step wide"><div class="art">{DOODLE_CLOSURE}</div><div class="txt"><div class="stag">Step 3</div>
-<h3>Make the result consistent with the ontology</h3><p>GO terms are nested: a GTPase activity is a hydrolase
-activity, which is a catalytic activity. Each broader term is given at least the score of its most specific
-predicted descendant, so a broad term never scores below a narrower one inside it. These are the real scores for
-the example.</p>
+<h3>Finally, we make it consistent with the ontology</h3><p>GO terms are nested: GTPase activity is a kind of
+hydrolase activity, which is a kind of catalytic activity. So if a protein is a GTPase, it is also a hydrolase. We
+give every broader term at least the score of its most specific predicted descendant, which means the output never
+contradicts itself. The scores in the drawing are the model's real output for the example.</p>
 <p class="tech">True-path rule: max-propagation along is_a and part_of relations</p></div></div>
 <div class="arrow1"></div>
 <div class="step output"><div class="stag">Output</div><h3>Scored GO terms in all three ontologies</h3>
@@ -362,9 +367,9 @@ def landing_html() -> str:
 <header class="hero">{HERO_ART}
 <div class="kicker">Gene Ontology prediction from sequence</div>
 <h1>Protein function, inferred from <em>homology</em> and sequence.</h1>
-<p class="lede">{BRAND} predicts Gene Ontology terms for a protein from its amino-acid sequence. It transfers
-annotations from similar, already annotated proteins, adds a score from a protein language model, and returns
-results that are consistent with the hierarchy of the ontology.</p>
+<p class="lede">{BRAND} predicts Gene Ontology terms for your protein from its amino-acid sequence alone. It
+transfers annotations from similar, already annotated proteins, adds a score from the protein language model ESM-2,
+and makes sure the result is consistent with the hierarchy of the ontology.</p>
 <a class="cta" href="#run">Try it with a protein</a><a class="cta ghost" href="#how">How it works</a>
 </header>
 <div class="stats">
@@ -373,40 +378,62 @@ results that are consistent with the hierarchy of the ontology.</p>
 <div><b>0</b><span>hierarchy violations in 2.75 million parent-child term pairs</span></div>
 <div><b>~5 s</b><span>per protein, with the matches it used</span></div>
 </div>
-<section class="block" id="get"><div class="eyebrow">What you get</div>
-<h2>A ranked list of GO terms, with the evidence behind it</h2>
+<section class="block" id="tldr" style="padding-bottom:0"><div class="tldr"><b>TLDR:</b> <em>{BRAND} predicts Gene
+Ontology (GO) terms from a single protein sequence by combining annotation transfer from similar proteins with
+scores from a frozen ESM-2 protein language model, and its output never contradicts the GO hierarchy. On a temporal
+benchmark of 8,630 proteins it scores higher than every published method we could run, including GO-GPT and
+BioReason-Pro. However, most of that accuracy comes from the homology step, and for proteins without a close match
+in the reference set the predictions are much weaker, so caution is recommended there. Read on to see how it works
+and what the scores mean, and then try it on your favourite protein!</em></div></section>
+<section class="block" id="what"><div class="eyebrow">Background</div>
+<h2>What is... a GO term?</h2>
+<div class="versus"><div class="sub" style="margin:0"><p style="margin-top:0">The Gene Ontology (GO) is a shared
+vocabulary for describing what proteins do. It has three parts: <b>molecular function</b> (what a protein does at the
+molecular level, for example GTPase activity), <b>biological process</b> (the larger programmes it takes part in,
+for example signal transduction) and <b>cellular component</b> (where in the cell it acts, for example the plasma
+membrane).</p>
+<p>The terms form a hierarchy, from broad ones like "catalytic activity" down to very specific ones. A protein
+usually has many terms at once, so predicting them is a multi-label problem, and specific terms are much more
+informative than broad ones. That is why the benchmark weights each term by its information content (IA).</p></div>
+<div class="limits"><h3>Why predict it at all?</h3><p>Only a small fraction of known protein sequences have
+experimentally supported GO annotations, and lab work cannot keep up with sequencing. Computational predictions help
+prioritise which functions to test.</p><p>They are hypotheses, not measurements, so always check them against the
+evidence that comes with each result.</p></div></div></section>
+<section class="block soft" id="get"><div class="eyebrow">What you get</div>
+<h2>What does {BRAND} give you?</h2>
 <div class="cards">
 <article><div class="n">1</div><h3>Terms in three ontologies</h3><p>Molecular function, biological process and
 cellular component, each as a table of GO terms with names, scores and links to QuickGO. Terms above the cut-off
-come first; lower-scoring ones are folded underneath.</p></article>
-<article><div class="n">2</div><h3>The closest matches</h3><p>The five nearest annotated proteins with identity,
-coverage, alignment score and e-value, linked to UniProt, so you can see where the annotations came from and judge
-them yourself.</p></article>
+come first, and the lower-scoring ones are folded underneath.</p></article>
+<article><div class="n">2</div><h3>The closest matches</h3><p>The five nearest annotated proteins, with identity,
+coverage, alignment score and e-value, linked to UniProt. That way you can see where the annotations came from and
+judge them yourself.</p></article>
 <article><div class="n">3</div><h3>A warning when evidence is thin</h3><p>If no reference reaches 30% identity,
-the result says so. Every score is also downloadable as a TSV, and the same predictions are available from a JSON
-API for batch use.</p></article>
+the result tells you so. You can also download every score as a TSV, or call the JSON API for batches.</p></article>
 </div></section>
-<section class="block soft" id="how"><div class="eyebrow">How it works</div>
-<h2>Two sources of evidence, one consistent annotation</h2>
-<p class="sub">Each prediction goes through the same four steps. The example is the GTP-binding domain of human
-HRAS; every number shown is the model's own output for it.</p>
+<section class="block" id="how"><div class="eyebrow">How it works</div>
+<h2>Let's walk through a prediction</h2>
+<p class="sub">Every sequence goes through the same four steps. As an example we'll use the GTP-binding domain of
+human HRAS, a small GTPase that acts as an on/off switch in growth signalling. Every number shown is the model's own
+output for this sequence.</p>
 {steps_html()}</section>
-<section class="block" id="scores"><div class="eyebrow">Reading the scores</div>
-<h2>What a score means</h2>
-<div class="versus"><div class="sub" style="margin:0"><p style="margin-top:0">A score between 0 and 1 says how
-strongly the combined evidence supports a term. It is a ranking score, not a calibrated probability: 0.6 does not
+<section class="block soft" id="scores"><div class="eyebrow">Reading the scores</div>
+<h2>How should you read a score?</h2>
+<div class="versus"><div class="sub" style="margin:0"><p style="margin-top:0">A score between 0 and 1 tells you how
+strongly the combined evidence supports a term. It is a ranking score, not a calibrated probability, so 0.6 does not
 mean a 60% chance.</p>
-<p>The results page marks terms at or above a cut-off for each ontology. These cut-offs gave the best F-measure on
-the benchmark. Because broader terms always score at least as high as narrower ones, the most informative predictions
-are the most specific terms that clear the cut-off.</p></div>
+<p>The results page marks the terms that clear a cut-off for each ontology. We chose these cut-offs because they gave
+the best F-measure on the benchmark. Since broader terms always score at least as high as narrower ones, the most
+useful predictions are usually the most specific terms that still clear the cut-off.</p></div>
 <table class="vtable"><tr><th>ontology</th><th>cut-off</th></tr>
 <tr><td>Molecular function</td><td class="us">0.28</td></tr>
 <tr><td>Biological process</td><td class="us">0.42</td></tr>
 <tr><td>Cellular component</td><td class="us">0.45</td></tr></table></div></section>
-<section class="block soft" id="results"><div class="eyebrow">Results</div>
-<h2>Tested on annotations that came later</h2>
-<p class="sub">The benchmark contains 8,630 proteins whose GO annotations were added after the reference data was
-collected. The final pipeline was chosen on a separate validation set before it was scored on the benchmark.</p>
+<section class="block" id="results"><div class="eyebrow">Results</div>
+<h2>How well does it work?</h2>
+<p class="sub">We tested {BRAND} on 8,630 proteins whose GO annotations were added after the reference data was
+collected, so the model had to predict functions that had not yet been recorded for those proteins. We picked the
+final pipeline on a separate validation set before scoring it on this benchmark.</p>
 <div class="versus"><div><table class="vtable">
 <tr><th>Temporal benchmark, 8,630 proteins</th><th>IA-weighted Fmax</th><th>S-min (lower is better)</th></tr>
 <tr class="hl"><td class="us">{BRAND}</td><td class="us">0.718</td><td class="us">7.56</td></tr>
@@ -422,28 +449,27 @@ collected. The final pipeline was chosen on a separate validation set before it 
 <td style="color:#7d8a8e">n/a</td></tr>
 <tr><td style="color:#7d8a8e">ProtBoost (published, other scorer)</td><td style="color:#7d8a8e">0.606</td>
 <td style="color:#7d8a8e">n/a</td></tr></table>
-<p class="hint" style="margin-top:10px">All rows except the two in grey were scored here with the same code on the same
-proteins. BioReason-Pro was run with its authors' evaluation script and reproduces their published number. "Same
-references" means the 133,054 proteins {BRAND} searches; "training references" means the smaller set the published
-baselines used.</p></div>
-<div class="limits"><h3>How the comparison was checked</h3>
+<p class="hint" style="margin-top:10px">We scored every row except the two in grey ourselves, with the same code on
+the same proteins. We ran BioReason-Pro with its authors' evaluation script, and it reproduces their published
+number. "Same references" means the 133,054 proteins {BRAND} searches; "training references" means the smaller set
+the published baselines used.</p></div>
+<div class="limits"><h3>A word of caution</h3>
 <p>Differences were tested with paired protein-level resampling and corrected for multiple comparisons
-(Holm-Bonferroni). Every published method run here scores below {BRAND} (all intervals exclude zero). Its own homology step
-alone scores slightly higher on Fmax, and the BLAST best hit with the same references is close (+0.009 for {BRAND},
-95% interval +0.004 to +0.015).</p>
+(Holm-Bonferroni). Every published method we ran scores below {BRAND}, and all the intervals exclude zero.</p>
+<p>However, most of the accuracy comes from step 1a. Homology transfer on its own scores 0.721, slightly above the
+full pipeline on Fmax, while the full pipeline makes fewer missed or wrong specific terms (S-min 7.56 against 8.48).
+A plain BLAST best hit with the same references is also close (+0.009 for {BRAND}, 95% interval +0.004 to +0.015).
+So the margin over GO-GPT comes mainly from how the homology evidence is used, not from the language-model branch.</p>
 <p>IA-weighted Fmax by ontology: <b>molecular function 0.738</b>, <b>biological process 0.658</b>,
-<b>cellular component 0.758</b>.</p>
-<p>Most of the accuracy comes from step 1a. Homology transfer alone scores 0.721 IA-weighted Fmax, level with the
-full pipeline; the full pipeline has the lower S-min (7.56 against 8.48), that is, fewer missed or wrong specific
-terms. The margin over GO-GPT is therefore a result of how the homology evidence is used, not of the language-model
-branch.</p></div></div></section>
-<section class="block" id="limits"><div class="eyebrow">When to trust a prediction</div>
-<h2>Accuracy depends on the closest match</h2>
+<b>cellular component 0.758</b>.</p></div></div></section>
+<section class="block soft" id="limits"><div class="eyebrow">When to trust a prediction</div>
+<h2>When should you trust a prediction?</h2>
 <div class="versus"><div class="sub" style="margin:0"><p style="margin-top:0">Most of the accuracy comes from
-annotated proteins that resemble the query. Each result reports the identity of its closest reference, so check it
-first.</p><p><b>95% identity or more:</b> most predicted terms are correct.<br><b>50 to 95%:</b> useful, but look at
-the matches before relying on specific terms.<br><b>Below 50%, or no match:</b> treat the output as hypotheses;
-without a close match the language-model score carries the prediction and accuracy is much lower.</p></div>
+annotated proteins that resemble yours, so the first thing to check on any result is the identity of its closest
+match.</p><p><b>95% identity or more:</b> most predicted terms are correct.<br><b>50 to 95%:</b> useful, but have a
+look at the matches before relying on specific terms.<br><b>Below 50%, or no match:</b> treat the output as
+hypotheses. Without a close match the ESM-2 score carries the prediction, and accuracy is much lower; here GO-GPT is
+still a little better.</p></div>
 <table class="vtable"><tr><th>identity of closest match</th><th>{BRAND}</th><th>GO-GPT (ten samples)</th></tr>
 <tr><td>95% and above</td><td class="us">0.86 to 0.88</td><td>0.84</td></tr>
 <tr><td>80 to 95%</td><td class="us">0.68</td><td>0.67</td></tr>
@@ -453,22 +479,23 @@ without a close match the language-model score carries the prediction and accura
 <tr><td>no match</td><td>0.34</td><td class="us">0.38</td></tr></table></div>
 <p class="hint" style="margin-top:14px">IA-weighted Fmax on the benchmark by identity of the closest reference
 protein.</p></section>
-<section class="block soft" id="scope"><div class="eyebrow">Scope</div>
-<h2>What the model does not use</h2>
+<section class="block" id="scope"><div class="eyebrow">Scope</div>
+<h2>No MSA or structure required, but some limits</h2>
 <div class="cards">
-<article><div class="n">&ndash;</div><h3>No structure or domains</h3><p>It does not use 3D structures, predicted
-structures, domain databases such as InterPro, or multiple sequence alignments. Only the sequence, the organism and
-the reference proteins.</p></article>
+<article><div class="n">&ndash;</div><h3>Sequence only</h3><p>{BRAND} does not need multiple sequence alignments,
+3D structures, predicted structures or domain databases such as InterPro. That makes it fast and easy to use, but it
+also means it cannot use any of that information when it would help.</p></article>
 <article><div class="n">&ndash;</div><h3>A fixed reference snapshot</h3><p>The 133,054 reference proteins and
-their annotations are a fixed snapshot (annotations up to November 2022). Annotations added since then are not used,
+their annotations are a fixed snapshot (annotations up to November 2022). Anything annotated since then is not used,
 even for well-studied proteins.</p></article>
-<article><div class="n">&ndash;</div><h3>No text or interactions</h3><p>It does not read literature, protein-protein
-interaction networks or expression data, and it does not write explanations. Its evidence is the matches it lists
-and the scores it returns.</p></article>
+<article><div class="n">&ndash;</div><h3>No text or interactions</h3><p>It does not read the literature,
+protein-protein interaction networks or expression data, and it does not write explanations. Its evidence is the
+matches it lists and the scores it returns.</p></article>
 </div></section>
 <section class="block run" id="run"><div class="eyebrow">Run it</div>
-<h2>Try it with your protein</h2>
-<p class="sub">Up to 20 sequences at a time, 5,000 residues each.</p>{form_html()}</section>"""
+<h2>Try it on your favourite protein!</h2>
+<p class="sub">Paste up to 20 sequences at a time, 5,000 residues each. If you know a thing or two about your
+protein, compare the predictions with what you know, and tell us where they go wrong.</p>{form_html()}</section>"""
 
 def landing_page() -> HTMLResponse:
     return HTMLResponse(f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
