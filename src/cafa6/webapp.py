@@ -410,6 +410,7 @@ collected. The final pipeline was chosen on a separate validation set before it 
 <div class="versus"><table class="vtable">
 <tr><th>Temporal benchmark, 8,630 proteins</th><th>IA-weighted Fmax</th><th>S-min (lower is better)</th></tr>
 <tr class="hl"><td class="us">{BRAND}</td><td class="us">0.718</td><td class="us">7.56</td></tr>
+<tr><td>Step 1a alone (homology transfer)</td><td>0.721</td><td>8.48</td></tr>
 <tr><td>GO-GPT, ten samples</td><td>0.698</td><td>8.17</td></tr>
 <tr><td>GO-GPT, released beam</td><td>0.687</td><td>9.20</td></tr></table>
 <div class="limits"><h3>How the comparison was checked</h3>
@@ -417,7 +418,11 @@ collected. The final pipeline was chosen on a separate validation set before it 
 protein-level resampling and corrected for multiple comparisons (Holm-Bonferroni) across Fmax, S-min and AUPR in all
 three ontologies.</p>
 <p>IA-weighted Fmax by ontology: <b>molecular function 0.738</b>, <b>biological process 0.658</b>,
-<b>cellular component 0.758</b>.</p></div></div></section>
+<b>cellular component 0.758</b>.</p>
+<p>Most of the accuracy comes from step 1a. Homology transfer alone scores 0.721 IA-weighted Fmax, level with the
+full pipeline; the full pipeline has the lower S-min (7.56 against 8.48), that is, fewer missed or wrong specific
+terms. The margin over GO-GPT is therefore a result of how the homology evidence is used, not of the language-model
+branch.</p></div></div></section>
 <section class="block" id="limits"><div class="eyebrow">When to trust a prediction</div>
 <h2>Accuracy depends on the closest match</h2>
 <div class="versus"><div class="sub" style="margin:0"><p style="margin-top:0">Most of the accuracy comes from
