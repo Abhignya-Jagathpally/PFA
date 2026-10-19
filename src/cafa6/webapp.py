@@ -138,6 +138,37 @@ margin-right:8px}.bar span{display:block;height:9px;border-radius:99px;backgroun
 details summary{cursor:pointer;font-size:13px;color:var(--teal-d)}.dl{font-weight:600}
 @media (max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.cards,.versus{grid-template-columns:1fr}
 .hero .helix{opacity:.25;width:90vw}.cta.ghost{margin:10px 0 0}}
+.steps{display:flex;flex-direction:column;align-items:stretch;gap:0}
+.step{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px 26px;display:grid;
+grid-template-columns:260px 1fr;gap:26px;align-items:center;box-shadow:0 20px 44px -36px rgba(31,42,46,.35)}
+.step .art svg{width:100%;height:auto;display:block}.step h3{font-family:var(--serif);font-weight:600;font-size:22px;
+margin:4px 0 8px}.step p{margin:0 0 8px;color:var(--muted);font-size:15px}.step p.tech{font-size:12.5px;color:#7d8a8e;
+border-top:1px dashed var(--line);padding-top:8px;margin-top:10px}
+.stag{display:inline-block;font-size:12px;font-weight:700;color:var(--teal-d);background:var(--mint);padding:3px 10px;
+border-radius:999px}
+.step.input,.step.output{display:block}.step.input .stag,.step.output .stag{margin-bottom:12px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}.pair .step{grid-template-columns:1fr;gap:12px}
+.pair .step .art{max-width:280px}
+.pair .step:nth-child(2) .stag{background:var(--lav);color:#4b47a3}
+.step.wide:nth-of-type(1) .stag{background:var(--peach)}
+.seqbox{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:2.1;word-break:break-all;
+background:#fafaf8;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.seqhdr{display:block;color:#7d8a8e;font-size:12px;margin-bottom:2px}.more{color:#7d8a8e;margin-left:6px}
+i.aa{font-style:normal;display:inline-block;width:1.3em;text-align:center;border-radius:5px;margin:0 1px}
+i.aa.h{background:#e4f2ee;color:#1f6156}i.aa.c{background:#fcefe5;color:#a2582a}i.aa.p{background:#ecebf8;color:#4b47a3}
+.legend{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.arrow1{width:2px;height:34px;background:linear-gradient(#cfdcd8,#9db3ad);margin:0 auto;position:relative}
+.arrow1:after{content:"";position:absolute;left:-5px;bottom:-2px;border:6px solid transparent;border-top-color:#9db3ad}
+.arrow2{display:grid;grid-template-columns:1fr 1fr;height:34px}.arrow2 span{width:2px;height:34px;margin:0 auto;
+background:linear-gradient(#cfdcd8,#9db3ad)}
+.obars{display:grid;gap:10px;max-width:720px}.obar{display:grid;grid-template-columns:minmax(180px,330px) 1fr 44px;gap:12px;
+align-items:center;font-size:14px}.obar .b{background:#f0eee9;border-radius:99px;height:10px}.obar .b span{display:block;
+height:10px;border-radius:99px}.obar.MF .b span{background:var(--mf)}.obar.BP .b span{background:var(--bp)}
+.obar.CC .b span{background:var(--cc)}.obar .v{font-weight:600;color:var(--ink)}
+i.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle}i.dot.MF{background:var(--mf)}
+i.dot.BP{background:var(--bp)}i.dot.CC{background:var(--cc)}
+@media (max-width:900px){.step{grid-template-columns:1fr}.pair{grid-template-columns:1fr}.arrow2{grid-template-columns:1fr}
+.arrow2 span:last-child{display:none}}
 """
 
 
@@ -150,15 +181,10 @@ def predictor() -> Predictor:
 NAV = f"""<nav><a class="logo" href="/">{BRAND}<b>.</b></a><div class="links"><a href="/#how">How it works</a>
 <a href="/#results">Results</a><a href="/#limits">Limits</a><a href="/#run">Run it</a></div></nav>"""
 
-FOOTER = f"""<footer><b>{BRAND}</b> is the serving name of the HiGO-R2 research pipeline: frozen ESM2-35M with
-per-term attention (HiGO head), identity-sharpened kNN label transfer over 133,054 GO-GPT train + val references,
-a per-term refiner fitted on a temporal validation set, and GO true-path closure. Benchmark: GO-GPT temporal test,
-8,630 proteins, IA-weighted Fmax, CAFA evaluator (prop=max). Research software; check predictions against the nearest
-references shown with every result. Built on ESM2 (MIT), UniProt and Gene Ontology data (CC BY 4.0), DIAMOND (GPL-3.0).
-</footer>"""
+FOOTER = ""
 
 
-def page(body: str, title: str = f"{BRAND} | protein function, read from its relatives") -> HTMLResponse:
+def page(body: str, title: str = f"{BRAND} | protein function from homology and sequence") -> HTMLResponse:
     return HTMLResponse(f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{html.escape(title)}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"><style>{CSS}</style></head><body>
 {NAV}<main class="res">{body}</main>{FOOTER}</body></html>""")
@@ -183,7 +209,7 @@ onclick="document.getElementById('fasta').value='{example_js}'">Load an example 
 placeholder="other taxon id" aria-label="other NCBI taxon id">
 <button class="cta" type="submit">Predict functions</button></div>
 <p class="hint">About 5 seconds per protein, most of it the search over 133,054 annotated references. Every result
-lists the relatives it was read from.</p></form></div>"""
+lists the homologues it drew on.</p></form></div>"""
 
 
 HERO_ART = """<svg class="helix" viewBox="0 0 600 600" aria-hidden="true">
@@ -202,104 +228,165 @@ M260 330 L200 470 M260 330 L330 470 M340 330 L330 470 M500 330 L470 470 M110 330
 <text x="322" y="66" fill="#7d8a8e" font-size="13" font-family="ui-monospace,Menlo,monospace">molecular_function</text>
 </svg>"""
 
-PIPELINE_SVG = """<svg viewBox="0 0 1260 380" role="img" aria-labelledby="dgT dgD">
-<title id="dgT">Ontologue pipeline</title>
-<desc id="dgD">A protein sequence goes two ways: a DIAMOND search reads the GO terms of its closest annotated relatives
-(sharpened kNN), and a protein language model with one attention query per GO term reads the residues. A per-term
-refiner fitted on future-dated annotations combines both, the Gene Ontology closure makes parents score at least as
-high as children, and the output is scored GO terms for molecular function, biological process and cellular
-component.</desc>
-<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-<path d="M0 0 L10 5 L0 10z" fill="#7d8a8e"/></marker></defs>
-<g fill="none" stroke="#9db3ad" stroke-width="2" marker-end="url(#ar)">
-<path class="flow" d="M170 190 C198 190 198 95 223 95"/><path class="flow" d="M170 190 C198 190 198 285 223 285"/>
-<path class="flow" d="M515 95 C542 95 542 190 568 190"/><path class="flow" d="M515 285 C542 285 542 190 568 190"/>
-<path class="flow" d="M770 190 L818 190"/><path class="flow" d="M1030 190 L1078 190"/></g>
-<g font-family="system-ui,Segoe UI,Roboto,Arial,sans-serif">
-<rect x="20" y="140" width="150" height="100" rx="20" fill="#ffffff" stroke="#dcd8cf" stroke-width="1.5"/>
-<text x="40" y="176" fill="#2a7f72" font-size="12" font-weight="700" letter-spacing="1.5">INPUT</text>
-<text x="40" y="202" fill="#1f2a2e" font-size="17" font-weight="800">Sequence</text>
-<text x="40" y="224" fill="#5f6b70" font-size="13">+ organism</text>
-<rect x="225" y="40" width="290" height="110" rx="20" fill="#e4f2ee"/>
-<text x="245" y="70" fill="#1f6156" font-size="12" font-weight="700" letter-spacing="1.5">01 RELATIVES</text>
-<text x="245" y="98" fill="#1f2a2e" font-size="17" font-weight="800">Sharpened kNN</text>
-<text x="245" y="120" fill="#5f6b70" font-size="13">DIAMOND over 133k annotated proteins</text>
-<text x="245" y="138" fill="#5f6b70" font-size="13">closest relatives weigh the most</text>
-<rect x="225" y="230" width="290" height="110" rx="20" fill="#ecebf8"/>
-<text x="245" y="260" fill="#4b47a3" font-size="12" font-weight="700" letter-spacing="1.5">02 LANGUAGE</text>
-<text x="245" y="288" fill="#1f2a2e" font-size="17" font-weight="800">ESM2 + HiGO head</text>
-<text x="245" y="310" fill="#5f6b70" font-size="13">7,901 GO-term queries attend</text>
-<text x="245" y="328" fill="#5f6b70" font-size="13">over every residue</text>
-<rect x="570" y="135" width="200" height="110" rx="20" fill="#fcefe5"/>
-<text x="590" y="165" fill="#a2582a" font-size="12" font-weight="700" letter-spacing="1.5">03 REFINER</text>
-<text x="590" y="193" fill="#1f2a2e" font-size="17" font-weight="800">Per-term fusion</text>
-<text x="590" y="215" fill="#5f6b70" font-size="13">fitted only on</text>
-<text x="590" y="233" fill="#5f6b70" font-size="13">future-dated labels</text>
-<rect x="820" y="135" width="210" height="110" rx="20" fill="#eef4f8"/>
-<text x="840" y="165" fill="#3b6a8a" font-size="12" font-weight="700" letter-spacing="1.5">04 ONTOLOGY</text>
-<text x="840" y="193" fill="#1f2a2e" font-size="17" font-weight="800">True-path closure</text>
-<text x="840" y="215" fill="#5f6b70" font-size="13">a parent never scores</text>
-<text x="840" y="233" fill="#5f6b70" font-size="13">below its child</text>
-<rect x="1080" y="120" width="170" height="140" rx="20" fill="#2a7f72"/>
-<text x="1098" y="152" fill="#cfeee6" font-size="12" font-weight="700" letter-spacing="1.5">OUTPUT</text>
-<text x="1098" y="180" fill="#ffffff" font-size="17" font-weight="900">GO terms</text>
-<circle cx="1104" cy="203" r="6" fill="#a9bdf3"/><text x="1116" y="208" fill="#ffffff" font-size="13">Molecular function</text>
-<circle cx="1104" cy="225" r="6" fill="#a8e6d3"/><text x="1116" y="230" fill="#ffffff" font-size="13">Biological process</text>
-<circle cx="1104" cy="247" r="6" fill="#f7c6a2"/><text x="1116" y="252" fill="#ffffff" font-size="13">Cellular component</text>
-</g></svg>"""
+
+
+SEQ_DEMO = "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYRE"
+
+
+def seq_chips(seq: str) -> str:
+    """Residues as coloured chips: hydrophobic, charged, polar/other."""
+    cls = {**{a: "h" for a in "AVILMFWC"}, **{a: "c" for a in "DEKRH"}}
+    return "".join(f'<i class="aa {cls.get(a, "p")}">{a}</i>' for a in seq)
+
+
+DOODLE_RELATIVES = """<svg viewBox="0 0 260 170" aria-hidden="true">
+<line x1="130" y1="88" x2="46" y2="40" stroke="#2a7f72" stroke-width="7" stroke-linecap="round"/>
+<line x1="130" y1="88" x2="222" y2="52" stroke="#2a7f72" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+<line x1="130" y1="88" x2="200" y2="150" stroke="#2a7f72" stroke-width="1.6" stroke-linecap="round" opacity=".5"
+stroke-dasharray="4 4"/>
+<circle cx="130" cy="88" r="22" fill="#2a7f72"/><text x="130" y="92" text-anchor="middle" fill="#fff" font-size="11"
+font-weight="700">query</text>
+<circle cx="46" cy="40" r="17" fill="#e4f2ee" stroke="#2a7f72" stroke-width="2"/>
+<text x="46" y="44" text-anchor="middle" font-size="10" font-weight="700" fill="#1f6156">99%</text>
+<circle cx="222" cy="52" r="15" fill="#e4f2ee" stroke="#2a7f72" stroke-width="1.5"/>
+<text x="222" y="56" text-anchor="middle" font-size="10" font-weight="700" fill="#1f6156">78%</text>
+<circle cx="200" cy="150" r="12" fill="#f3f1ec" stroke="#b9cbc5" stroke-width="1.5"/>
+<text x="200" y="154" text-anchor="middle" font-size="9" fill="#5f6b70">41%</text>
+<text x="18" y="76" font-size="10" fill="#5f6b70">strong vote</text><text x="168" y="98" font-size="10"
+fill="#5f6b70">weaker</text><text x="132" y="160" font-size="10" fill="#5f6b70">faint</text></svg>"""
+
+DOODLE_LANGUAGE = """<svg viewBox="0 0 260 170" aria-hidden="true">
+<path d="M66 34 L40 118 L92 118 Z" fill="#ecebf8"/><path d="M186 34 L160 118 L212 118 Z" fill="#fcefe5"/>
+<rect x="28" y="16" width="76" height="22" rx="11" fill="#ecebf8"/><text x="66" y="31" text-anchor="middle"
+font-size="10" font-weight="700" fill="#4b47a3">GTP binding</text>
+<rect x="142" y="16" width="88" height="22" rx="11" fill="#fcefe5"/><text x="186" y="31" text-anchor="middle"
+font-size="10" font-weight="700" fill="#a2582a">membrane</text>
+<g font-size="10" font-weight="700" text-anchor="middle">
+<circle cx="22" cy="130" r="9" fill="#f3f1ec"/><circle cx="44" cy="130" r="9" fill="#a9a5e6"/>
+<circle cx="66" cy="130" r="9" fill="#a9a5e6"/><circle cx="88" cy="130" r="9" fill="#f3f1ec"/>
+<circle cx="110" cy="130" r="9" fill="#f3f1ec"/><circle cx="132" cy="130" r="9" fill="#f3f1ec"/>
+<circle cx="154" cy="130" r="9" fill="#f3f1ec"/><circle cx="176" cy="130" r="9" fill="#f7c6a2"/>
+<circle cx="198" cy="130" r="9" fill="#f7c6a2"/><circle cx="220" cy="130" r="9" fill="#f3f1ec"/>
+<circle cx="242" cy="130" r="9" fill="#f3f1ec"/></g>
+<text x="130" y="160" text-anchor="middle" font-size="10" fill="#5f6b70">each function looks at the residues it needs</text>
+</svg>"""
+
+DOODLE_FUSION = """<svg viewBox="0 0 260 170" aria-hidden="true">
+<path d="M130 40 L130 140" stroke="#9db3ad" stroke-width="3"/><path d="M104 146 L156 146" stroke="#9db3ad"
+stroke-width="5" stroke-linecap="round"/>
+<path d="M40 58 L220 38" stroke="#5f6b70" stroke-width="3" stroke-linecap="round"/>
+<circle cx="130" cy="48" r="6" fill="#5f6b70"/>
+<path d="M40 58 L22 96 L58 96 Z" fill="none" stroke="#9db3ad" stroke-width="1.5"/>
+<path d="M220 38 L202 76 L238 76 Z" fill="none" stroke="#9db3ad" stroke-width="1.5"/>
+<ellipse cx="40" cy="98" rx="26" ry="6" fill="#e4f2ee"/><ellipse cx="220" cy="78" rx="26" ry="6" fill="#ecebf8"/>
+<circle cx="40" cy="86" r="11" fill="#2a7f72"/><circle cx="220" cy="68" r="8" fill="#a9a5e6"/>
+<text x="40" y="122" text-anchor="middle" font-size="10" font-weight="700" fill="#1f6156">homologues</text>
+<text x="220" y="102" text-anchor="middle" font-size="10" font-weight="700" fill="#4b47a3">sequence</text>
+<text x="130" y="166" text-anchor="middle" font-size="10" fill="#5f6b70">the balance shifts with similarity</text>
+</svg>"""
+
+DOODLE_CLOSURE = """<svg viewBox="0 0 260 170" aria-hidden="true">
+<g font-size="11" font-weight="600">
+<rect x="58" y="10" width="144" height="30" rx="15" fill="#eef4f8"/><text x="130" y="30" text-anchor="middle"
+fill="#3b6a8a">catalytic activity 0.87</text>
+<rect x="50" y="68" width="160" height="30" rx="15" fill="#eef4f8"/><text x="130" y="88" text-anchor="middle"
+fill="#3b6a8a">hydrolase activity 0.87</text>
+<rect x="62" y="126" width="136" height="30" rx="15" fill="#2a7f72"/><text x="130" y="146" text-anchor="middle"
+fill="#fff">GTPase activity 0.80</text></g>
+<g stroke="#9db3ad" stroke-width="2" fill="none"><path d="M130 124 L130 102"/><path d="M124 108 L130 100 L136 108"/>
+<path d="M130 66 L130 44"/><path d="M124 50 L130 42 L136 50"/></g>
+<text x="222" y="92" font-size="10" fill="#5f6b70">implies</text><text x="222" y="40" font-size="10"
+fill="#5f6b70">implies</text></svg>"""
+
+
+def steps_html() -> str:
+    def bar(term, asp, v):
+        return (f'<div class="obar {asp}"><span class="t">{term}</span><span class="b"><span style="width:{v * 100:.0f}%">'
+                f'</span></span><span class="v">{v:.2f}</span></div>')
+    return f"""
+<div class="steps">
+<div class="step input"><div class="stag">Input</div>
+<div class="seqbox"><span class="seqhdr">&gt;example &nbsp;Homo sapiens (taxon 9606)</span>{seq_chips(SEQ_DEMO)}<span
+class="more">&hellip; 166 residues</span></div>
+<p class="legend"><i class="aa h">A</i> hydrophobic &nbsp; <i class="aa c">K</i> charged &nbsp; <i class="aa p">S</i>
+polar or other</p></div>
+<div class="arrow2"><span></span><span></span></div>
+<div class="pair">
+<div class="step"><div class="art">{DOODLE_RELATIVES}</div><div class="txt"><div class="stag">Step 1a</div>
+<h3>Look up related proteins</h3><p>We search 133,054 proteins whose functions are already known for ones with a
+similar sequence, and borrow their annotations. A near-identical protein gets a strong vote; a distant one barely
+counts.</p>
+<p class="tech">Identity-sharpened k-nearest-neighbour label transfer (DIAMOND, top 50 hits)</p></div></div>
+<div class="step"><div class="art">{DOODLE_LANGUAGE}</div><div class="txt"><div class="stag">Step 1b</div>
+<h3>Read the sequence itself</h3><p>A protein language model, trained on millions of natural sequences, reads every
+residue. Each of 7,901 functions then focuses on the stretch of residues that tells it the most.</p>
+<p class="tech">Frozen ESM2-35M encoder with one attention query per GO term (HiGO head)</p></div></div>
+</div>
+<div class="arrow1"></div>
+<div class="step wide"><div class="art">{DOODLE_FUSION}</div><div class="txt"><div class="stag">Step 2</div>
+<h3>Weigh the two kinds of evidence</h3><p>For each function separately, a small model decides how far to trust the
+related proteins and how far to trust the sequence reading. Close matches tip the balance toward borrowing; with no
+close match the sequence reading matters more. It was calibrated on annotations added after the training data was
+collected, so it learns how evidence holds up over time.</p>
+<p class="tech">Per-term nonlinear fusion fitted on a temporal validation set</p></div></div>
+<div class="arrow1"></div>
+<div class="step wide"><div class="art">{DOODLE_CLOSURE}</div><div class="txt"><div class="stag">Step 3</div>
+<h3>Keep the answer consistent</h3><p>Gene Ontology terms are nested: a GTPase is a kind of hydrolase, which is a kind
+of catalytic activity. Whenever a specific function is predicted, every broader function above it is scored at least
+as high, so the result never contradicts itself.</p>
+<p class="tech">True-path rule: max-propagation over is_a and part_of relations</p></div></div>
+<div class="arrow1"></div>
+<div class="step output"><div class="stag">Output</div><h3>Scored functions in all three ontologies</h3>
+<div class="obars">{bar("GTPase activity", "MF", 0.80)}{bar("small GTPase mediated signal transduction", "BP", 0.75)}
+{bar("plasma membrane", "CC", 0.63)}</div>
+<p class="legend"><i class="dot MF"></i> molecular function &nbsp; <i class="dot BP"></i> biological process &nbsp;
+<i class="dot CC"></i> cellular component. Values are the model's own scores for the example above.</p></div>
+</div>"""
 
 
 def landing_html() -> str:
     return f"""
 <header class="hero">{HERO_ART}
 <div class="kicker">Protein function prediction</div>
-<h1>Protein function, read from its <em>relatives</em>.</h1>
-<p class="lede">Paste a sequence and {BRAND} suggests its Gene Ontology functions. It learns from the closest
-annotated relatives and a protein language model, then keeps every answer consistent with the ontology.</p>
+<h1>Protein function, inferred from <em>homology</em> and sequence.</h1>
+<p class="lede">{BRAND} predicts Gene Ontology annotations from an amino-acid sequence. It combines label transfer
+from annotated homologues with a protein language model, and every prediction respects the hierarchy of the
+ontology.</p>
 <a class="cta" href="#run">Try it with a protein</a><a class="cta ghost" href="#how">How it works</a>
 </header>
 <div class="stats">
-<div><b>0.718</b><span>IA-weighted Fmax on GO-GPT's own temporal test, 8,630 proteins</span></div>
-<div><b>+0.019</b><span>over GO-GPT, the GO engine inside BioReason-Pro (95% CI +0.014 to +0.025)</span></div>
-<div><b>0</b><span>hierarchy violations in 2.75 million parent-child pairs. GO-GPT: 2.9%</span></div>
-<div><b>~5 s</b><span>per protein, with the evidence it used</span></div>
+<div><b>0.718</b><span>IA-weighted Fmax on a temporal benchmark of 8,630 proteins</span></div>
+<div><b>133k</b><span>experimentally annotated reference proteins searched for every query</span></div>
+<div><b>0</b><span>hierarchy violations in 2.75 million parent-child term pairs</span></div>
+<div><b>~5 s</b><span>per protein, reported with the homologues it used</span></div>
 </div>
 <section class="block" id="how"><div class="eyebrow">How it works</div>
-<h2>Two ways of reading a protein, one consistent answer</h2>
-<p class="sub">Most proteins have relatives that someone has already studied. {BRAND} finds them, trusts the closest
-ones most, and lets a language model fill the gaps, then keeps the answer consistent with the Gene Ontology.</p>
-<div class="diagram">{PIPELINE_SVG}</div></section>
-<section class="block" style="padding-top:0"><div class="cards">
-<article><div><div class="n">1</div><h3>Closer relatives count for more</h3>
-<p>A 99% identical relative is worth far more than a 60% one. Identity-sharpened label transfer weights each
-neighbour by how close it is, instead of counting them all alike.</p></div></article>
-<article><div><div class="n">2</div><h3>Each function looks at the sequence</h3>
-<p>Each of 7,901 GO terms has its own learned query that attends over the residues of a frozen ESM2 model, so
-every prediction comes with the residues behind it.</p></div></article>
-<article><div><div class="n">3</div><h3>Always consistent with the ontology</h3>
-<p>If a protein binds GTP, it binds a nucleotide. Every output is closed under the true-path rule, so a parent
-term never scores below its child.</p></div></article>
-</div></section>
+<h2>Two sources of evidence, one consistent annotation</h2>
+<p class="sub">Most proteins have homologues whose functions have been characterised. {BRAND} finds them, weights
+the closest most heavily, uses a protein language model where homology is weak, and keeps the result consistent
+with the Gene Ontology.</p>
+{steps_html()}</section>
+
 <section class="block soft" id="results"><div class="eyebrow">Results</div>
 <h2>Tested on annotations that came later</h2>
 <p class="sub">Every choice was fixed on a temporal validation set before the test set was opened. The test set holds
 annotations that appeared after the training cutoff, so the model is graded on functions nobody had recorded yet.</p>
 <div class="versus"><table class="vtable">
-<tr><th>GO-GPT temporal test</th><th>IA-weighted Fmax</th><th>S-min (lower is better)</th></tr>
+<tr><th>Temporal benchmark, 8,630 proteins</th><th>IA-weighted Fmax</th><th>S-min (lower is better)</th></tr>
 <tr class="hl"><td class="us">{BRAND}</td><td class="us">0.718</td><td class="us">7.56</td></tr>
 <tr><td>GO-GPT, ten samples</td><td>0.698</td><td>8.17</td></tr>
 <tr><td>GO-GPT, released beam</td><td>0.687</td><td>9.20</td></tr></table>
 <div class="limits"><h3>Checked carefully</h3>
-<p>51 of 56 paired comparisons against GO-GPT stay significant after Holm-Bonferroni correction, across Fmax,
-S-min and AUPR in all three ontologies. None of the significant differences favours GO-GPT.</p>
+<p>Differences were tested with paired protein-level resampling and corrected for multiple comparisons
+(Holm-Bonferroni) across Fmax, S-min and AUPR in all three ontologies.</p>
 <p>Biggest gains: <b>biological process +0.028</b>, molecular function +0.018, cellular component +0.012
 (IA-weighted Fmax).</p></div></div></section>
 <section class="block" id="limits"><div class="eyebrow">Know its limits</div>
-<h2>Most reliable when relatives exist</h2>
-<div class="versus"><p class="sub" style="margin:0">{BRAND}'s edge comes from reading relatives well. For a protein
-with no detectable relative, the language-model branch carries the prediction alone, and there GO-GPT is still ahead.
-Each result shows the identity of the closest reference, so you know which case you are in.</p>
-<table class="vtable"><tr><th>closest relative</th><th>{BRAND}</th><th>GO-GPT</th></tr>
+<h2>Most reliable when homologues exist</h2>
+<div class="versus"><p class="sub" style="margin:0">Accuracy depends on how close the nearest annotated homologue is.
+For a protein with no detectable homologue the language-model branch carries the prediction alone, and accuracy is
+markedly lower. Each result reports the identity of the closest reference, so you know which case applies.</p>
+<table class="vtable"><tr><th>identity of closest homologue</th><th>{BRAND}</th><th>GO-GPT (ten samples)</th></tr>
 <tr><td>95% identity and above</td><td class="us">0.86 to 0.88</td><td>0.84</td></tr>
 <tr><td>30 to 50%</td><td class="us">0.48</td><td>0.45</td></tr>
 <tr><td>below 30%</td><td>0.45</td><td class="us">0.46</td></tr>
@@ -307,12 +394,12 @@ Each result shows the identity of the closest reference, so you know which case 
 <section class="block run" id="run"><div class="eyebrow">Run it</div>
 <h2>Try it with your protein</h2>
 <p class="sub">Up to 20 sequences at a time. Results show scored GO terms by ontology, links to QuickGO, the nearest
-annotated relatives, and a TSV download.</p>{form_html()}</section>"""
+annotated homologues, and a TSV download.</p>{form_html()}</section>"""
 
 
 def landing_page() -> HTMLResponse:
     return HTMLResponse(f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
-<title>{BRAND} | protein function, read from its relatives</title>
+<title>{BRAND} | protein function from homology and sequence</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"><style>{CSS}</style></head><body>
 {NAV}{landing_html()}{FOOTER}</body></html>""")
 
@@ -349,7 +436,7 @@ def results_html(results: list[dict], seconds: float, key: str) -> str:
     out = [f'<div class="card"><b>{len(results)} protein(s)</b> predicted in {seconds:.1f} s. '
            f'<a class="dl" href="/download/{key}">Download all scores (TSV)</a> &nbsp; <a href="/#run">New query</a></div>']
     for r in results:
-        org = html.escape(r["organism"] or "organism not in the GO-GPT data")
+        org = html.escape(r["organism"] or "organism not in the reference data")
         tx = r["taxon"] if r["taxon"] is not None else "not given"
         parts = [f'<div class="card"><h2>{html.escape(r["id"])}</h2><p class="muted">{r["length"]} residues; taxon '
                  f'{tx} ({org}); best reference identity {r["max_identity"]:.1f}% (bin {r["identity_bin"]}); '
@@ -370,7 +457,7 @@ def results_html(results: list[dict], seconds: float, key: str) -> str:
                 parts.append(f'<details><summary>next {len(rest)} terms below the threshold</summary>'
                              f'<table class="{asp}"><tr><th>GO term</th><th>name</th><th>score</th></tr>'
                              f'{score_rows(rest)}</table></details>')
-        parts.append("<h3>Nearest references (DIAMOND, GO-GPT train + val)</h3>")
+        parts.append("<h3>Nearest annotated homologues (DIAMOND)</h3>")
         if r["nearest"]:
             parts.append("<table><tr><th>reference</th><th>organism</th><th>set</th><th>identity %</th>"
                          "<th>query coverage %</th><th>bitscore</th><th>e-value</th></tr>")
