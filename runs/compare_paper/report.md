@@ -25,12 +25,18 @@ is in `report_tables.md`.
   identity is identical to the best DIAMOND hit against GO-GPT training proteins.
 - **Statistics.** Paired protein bootstrap with 1,000 reps and seed 0. The same resamples are used for every
   method, and each difference is HiGO-R2's weighted Fmax mean minus the method's.
-  - p-values are two-sided bootstrap p-values, Holm-corrected over the eight methods that make up the
-    family.
-  - Three rows are variants outside the family: BioReason-Pro final-answer extraction, BioReason-Pro with
-    the label-independent prompt, and BLAST-KNN with train+val references. They get raw p-values.
-  - With 1,000 reps the smallest attainable Holm p is 0.008, so "p_Holm 0.008" means no resample reversed
-    the sign.
+  - p-values are two-sided bootstrap p-values, Holm-corrected over the thirteen methods that make up the
+    family. These are the eight original methods plus the five external predictors added on 2026-10-19
+    (`extra_models.md`).
+  - Five rows are outside the family and get raw p-values:
+    - BioReason-Pro final-answer extraction.
+    - BioReason-Pro with the label-independent prompt.
+    - BLAST-KNN with train+val references.
+    - Single-model ProteInfer.
+    - InterLabelGO+, whose released training labels contain the test annotations.
+  - With 1,000 reps the smallest attainable Holm p is 0.013, so "p_Holm 0.013" means no resample reversed
+    the sign. Before the external rows were added, the family had eight members and this minimum was 0.008.
+    All other values of the earlier rows are unchanged.
 
 ## Comparison table
 
@@ -40,17 +46,24 @@ HiGO-R2 minus the method in Fw mean, with 95% CIs.
 | method | source of predictions | S3 Fw MF | S3 Fw BP | S3 Fw CC | S3 Fw mean | S6 Fw mean | S3 S-min | HiGO-R2 − method, S3 | HiGO-R2 − method, S6 |
 |---|---|---|---|---|---|---|---|---|---|
 | HiGO-R2 (ours) | frozen look-3 file | 0.738 | 0.658 | 0.758 | **0.718** | **0.735** | 7.56 | — | — |
-| GO-GPT ten-sample frequency | released checkpoint, our 10 samples (T 0.7, top-k 20) | 0.720 | 0.630 | 0.745 | 0.698 | 0.714 | 8.17 | +0.019 [+0.014, +0.025], p_Holm 0.008 | +0.021 [+0.015, +0.027] |
-| BLAST-KNN (paper §4.4.2 rule) | our DIAMOND hits to training proteins | 0.728 | 0.647 | 0.710 | 0.695 | 0.715 | 8.72 | +0.023 [+0.017, +0.029], p_Holm 0.008 | +0.020 [+0.015, +0.027] |
-| GO-GPT beam 5 | released checkpoint, our run | 0.714 | 0.617 | 0.728 | 0.687 | 0.702 | 9.20 | +0.031 [+0.025, +0.037], p_Holm 0.008 | +0.033 [+0.027, +0.040] |
-| GO-GPT greedy | released checkpoint, our run | 0.716 | 0.616 | 0.728 | 0.686 | 0.702 | 9.46 | +0.031 [+0.026, +0.038], p_Holm 0.008 | +0.033 [+0.027, +0.040] |
-| GO-GPT (authors' predictions) | `go_pred` column of the HF test set (the file behind the paper) | 0.689 | 0.542 | 0.717 | 0.649 | 0.664 | 10.98 | +0.068 [+0.062, +0.075], p_Holm 0.008 | +0.072 [+0.065, +0.079] |
-| BioReason-Pro RL (greedy) | released RL checkpoint, authors' `eval.py`, our run | 0.692 | 0.536 | 0.719 | 0.649 | 0.663 | 10.62 | +0.069 [+0.062, +0.076], p_Holm 0.008 | +0.072 [+0.065, +0.079] |
-| DIAMONDScore (DeepGOPlus) | our DIAMOND hits to training proteins | 0.679 | 0.423 | 0.637 | 0.580 | 0.590 | 12.50 | +0.138 [+0.132, +0.144], p_Holm 0.008 | +0.145 [+0.140, +0.152] |
-| Naive | training label frequencies | 0.184 | 0.209 | 0.337 | 0.243 | 0.244 | 16.98 | +0.474 [+0.466, +0.483], p_Holm 0.008 | +0.491 [+0.483, +0.499] |
+| GO-GPT ten-sample frequency | released checkpoint, our 10 samples (T 0.7, top-k 20) | 0.720 | 0.630 | 0.745 | 0.698 | 0.714 | 8.17 | +0.019 [+0.014, +0.025], p_Holm 0.013 | +0.021 [+0.015, +0.027] |
+| BLAST-KNN (paper §4.4.2 rule) | our DIAMOND hits to training proteins | 0.728 | 0.647 | 0.710 | 0.695 | 0.715 | 8.72 | +0.023 [+0.017, +0.029], p_Holm 0.013 | +0.020 [+0.015, +0.027] |
+| GO-GPT beam 5 | released checkpoint, our run | 0.714 | 0.617 | 0.728 | 0.687 | 0.702 | 9.20 | +0.031 [+0.025, +0.037], p_Holm 0.013 | +0.033 [+0.027, +0.040] |
+| GO-GPT greedy | released checkpoint, our run | 0.716 | 0.616 | 0.728 | 0.686 | 0.702 | 9.46 | +0.031 [+0.026, +0.038], p_Holm 0.013 | +0.033 [+0.027, +0.040] |
+| GO-GPT (authors' predictions) | `go_pred` column of the HF test set (the file behind the paper) | 0.689 | 0.542 | 0.717 | 0.649 | 0.664 | 10.98 | +0.068 [+0.062, +0.075], p_Holm 0.013 | +0.072 [+0.065, +0.079] |
+| BioReason-Pro RL (greedy) | released RL checkpoint, authors' `eval.py`, our run | 0.692 | 0.536 | 0.719 | 0.649 | 0.663 | 10.62 | +0.069 [+0.062, +0.076], p_Holm 0.013 | +0.072 [+0.065, +0.079] |
+| DIAMONDScore (DeepGOPlus) | our DIAMOND hits to training proteins | 0.679 | 0.423 | 0.637 | 0.580 | 0.590 | 12.50 | +0.138 [+0.132, +0.144], p_Holm 0.013 | +0.145 [+0.140, +0.152] |
+| SPROF-GO (2023) | official models + ProtT5-XL, our run (GO data of 2020-01) | 0.615 | 0.400 | 0.609 | 0.541 | 0.545 | 13.06 | +0.177 [+0.169, +0.185], p_Holm 0.013 | +0.190 [+0.183, +0.198] |
+| DeepGOPlus (release 1.0.10) | official package, our run (Swiss-Prot 2022_04) | 0.539 | 0.264 | 0.481 | 0.428 | 0.431 | 15.80 | +0.290 [+0.283, +0.298], p_Holm 0.013 | +0.305 [+0.296, +0.313] |
+| ProteInfer GO, 5-model ensemble | official models, our run (Swiss-Prot 2019_01) | 0.514 | 0.253 | 0.484 | 0.417 | 0.418 | 17.20 | +0.301 [+0.292, +0.308], p_Holm 0.013 | +0.317 [+0.309, +0.325] |
+| DeepGO-SE | official package, our run (Swiss-Prot 2021_04); **CC checkpoints faulty as released** | 0.522 | 0.253 | 0.131 | 0.302 | 0.304 | 16.39 | +0.416 [+0.408, +0.424], p_Holm 0.013 | +0.432 [+0.424, +0.439] |
+| DeepFRI, sequence-only CNN | official models, our run (SIFTS 2019-06) | 0.282 | 0.179 | 0.360 | 0.274 | 0.276 | 17.52 | +0.444 [+0.436, +0.453], p_Holm 0.013 | +0.460 [+0.451, +0.469] |
+| Naive | training label frequencies | 0.184 | 0.209 | 0.337 | 0.243 | 0.244 | 16.98 | +0.474 [+0.466, +0.483], p_Holm 0.013 | +0.491 [+0.483, +0.499] |
 | *variant:* BioReason-Pro RL, final-answer extraction | same run, GO ids after `</think>` | 0.690 | 0.535 | 0.718 | 0.648 | 0.662 | 10.68 | +0.070 [+0.064, +0.077] | +0.073 [+0.067, +0.080] |
 | *variant:* BioReason-Pro RL, label-independent prompt | `ask_all_go_aspects=force_uniprot_summary=True` | 0.688 | 0.537 | 0.717 | 0.647 | 0.661 | 10.91 | +0.071 [+0.064, +0.078] | +0.074 [+0.067, +0.081] |
 | *variant:* BLAST-KNN, train+val references | same rule, GO-GPT train + validation proteins | 0.733 | 0.669 | 0.724 | 0.709 | 0.729 | 8.42 | +0.009 [+0.004, +0.015], p 0.001 | +0.006 [+0.001, +0.012], p 0.015 |
+| *variant:* ProteInfer GO, one model | CLI default (one ensemble element) | 0.499 | 0.234 | 0.457 | 0.397 | 0.397 | 20.10 | +0.321 [+0.313, +0.329], p 0.001 | +0.339 [+0.330, +0.347] |
+| InterLabelGO+, released package (**test labels in its training data**) | Zenodo 15508797, our run of `predict.py --seqid` | 0.750 | 0.685 | 0.748 | 0.728 | 0.742 | 7.80 | −0.010 [−0.016, −0.005], p 0.001; not comparable | −0.007 [−0.012, −0.001] |
 | InterLabelGO+ | **paper-reported, different scorer** (Table S3) | 0.692 | 0.525 | 0.696 | 0.638 | — | — | no predictions, no paired test | — |
 | ProtBoost | **paper-reported, different scorer** (Table S3) | 0.658 | 0.490 | 0.669 | 0.606 | — | — | no predictions, no paired test | — |
 | BioReason-Pro SFT pass@1 | **paper-reported, different scorer** (Table S6, S6 only) | — | — | — | — | 0.641 | — | no predictions, no paired test | — |
@@ -130,23 +143,54 @@ means differ by at most 0.002.
    - BioReason-Pro RL scores 0.439 (HiGO-R2 − RL +0.030 [+0.018, +0.047]) and BLAST-KNN 0.357.
    - The catalogue's prompt settings are not documented, so the SFT row is only indicative. Table at the
      end of `report_tables.md`.
+8. **External sequence-based predictors with official weights** (added 2026-10-19; details, training
+   snapshots and leakage checks in `extra_models.md`).
+   - All five rows in the Holm family are below HiGO-R2 with p_Holm 0.013:
+     - SPROF-GO 0.541.
+     - DeepGOPlus 0.428.
+     - ProteInfer ensemble 0.417.
+     - DeepGO-SE 0.302.
+     - DeepFRI's sequence-only CNN 0.274.
+   - All of them were trained on 2019–2022 snapshots, so they predate the test window. Their training sets
+     are also smaller than GO-GPT's training set, and their vocabularies are older (GO 2019–2022). The gap
+     therefore mixes method, training data and vocabulary.
+   - SPROF-GO is the strongest of them. Below 80% identity to GO-GPT training it is above HiGO-R2:
+     - no hit: 0.403 vs 0.342.
+     - <30%: 0.529 vs 0.451.
+     - 30–50%: 0.514 vs 0.480.
+     - 50–80%: 0.512 vs 0.506.
+     - It falls behind at 80% identity and above, for example 0.582 vs 0.858 at 95–99.9%.
+   - DeepGO-SE's released CC checkpoints fail a check on the authors' own CC test split, so its CC value
+     and mean reflect a faulty release, not the method. Its MF value (0.522) behaves normally.
+   - The released InterLabelGO+ package scores 0.728, 0.010 above HiGO-R2. Its training labels contain
+     8,629 of the 8,630 test proteins and 96.1% of the test (protein, term) pairs. The row is therefore an
+     upper bound with test-label leakage, not a comparison.
 
 ## What could not be run, and why
 
-- **InterLabelGO+.**
-  - The authors' repo and HF datasets ship no InterLabelGO+ predictions on this test set. Notebook
-    `data/021-Benchmarking.ipynb` only shows their retraining commands and validation scores.
-  - The official pretrained package is hosted only at seq2fun.dcmb.med.umich.edu. That host did not respond
-    (two attempts, 20 s and 80 s timeouts).
-  - There is no GitHub release or HF mirror; the only HF hit is an unofficial MF-only model.
-  - Even if reachable, it would need the 5.7 GB fair-esm ESM2-3B checkpoint, and its training data are the
-    CAFA-5 Kaggle set, not the paper's retraining.
-  - Reported here as paper numbers only.
-- **ProtBoost.**
-  - No predictions are shipped. The 2nd-place CAFA-5 repo provides a training pipeline that needs 300 GB of
-    disk and a V100-days budget.
-  - Its trained artifacts were in cloud storage "for 6 months only" from January 2024.
-  - Reported here as paper numbers only.
+- **InterLabelGO+.** It was run, but it is not comparable.
+  - The seq2fun.dcmb.med.umich.edu host still timed out on 2026-10-18 (three more 40 s attempts).
+  - The same package is on Zenodo (record 15508797, 7.45 GB, uploaded 2025-05-24). Its md5 matches the
+    record, and it was run with `predict.py --seqid`.
+  - Its `Data/cafa5_raw_data/train_terms.tsv` is not the CAFA-5 Kaggle set. It has 142,478 proteins, files
+    dated 2024-09-26 and a GOA snapshot later than the test window, which matches the repo's
+    `update_data.py`.
+  - The paper-reported row is kept for reference.
+- **ProtBoost.** Only paper numbers are reported.
+  - No predictions or trained models are available anywhere.
+  - The GitHub repo btbpanda/CAFA5-protein-function-prediction-2nd-place has no releases. Every artifact
+    URL in its `Download.ipynb`, including the final submission and the base-model and GCN checkpoints,
+    returns 404 because the bucket storage.yandexcloud.net/cafa5embeds no longer exists.
+  - The authors' Kaggle datasets contain only input data: `cafa5-go-annotations` and `cafa-terms-diff`.
+  - Zenodo and Hugging Face have nothing.
+  - The neural-network prototype notebook needs a Kaggle token (403 without one). It would be a single
+    base model, not ProtBoost.
+  - The only route left is full retraining, which needs about 300 GB and V100-days.
+- **Prot2Text-V2** (NeurIPS 2025). This is not a GO predictor.
+  - The official code (ColinFX/Prot2Text-V2) and weights (xiao-fei/Prot2Text-V2-11B-Instruct-hf) generate
+    free text.
+  - The paper and the repo's `benchmark.py` evaluate only exact match, BLEU, ROUGE, BERTScore, an LLM
+    judge and human review. There is no GO output and no text-to-GO protocol, so it was not scored.
 - **BioReason-Pro SFT on the full test set.** The SFT checkpoint (11.3 GB) was not run; the task asked for
   the RL model. It appears only through the paper's number and the authors' 1,213-protein catalogue.
 - **pass@10 / best-of-10 rows** (GO-GPT and BioReason-Pro). These are oracles that choose a sample with the
@@ -201,6 +245,10 @@ means differ by at most 0.002.
   - Score files: `naive`, `blast_knn`, `blast_knn_trainval`, `diamondscore`, `bioreason_rl[_final]`,
     `bioreason_rl_askall[_final]`, `bioreason_sft_catalogue`.
   - The raw BioReason-Pro responses, as `*_responses.jsonl.gz`.
+  - External predictors (2026-10-19): `sprof_go`, `deepgoplus`, `proteinfer_e5`, `proteinfer`, `deepgose`,
+    `deepfri_cnn` and `interlabelgo_plus`. They are written by `compare_paper import-tsv`.
+- `extra_models.md` documents the external predictors: sources, training data, leakage checks and how
+  each was run. `extra_models/` holds the wrappers and converters used for them.
 - `bioreason_rl/evals`, `bioreason_rl_askall/evals`: per-protein JSON from `eval.py` (about 105 MB each).
 - `bioreason_rl_timing/`: the 20-protein timing test.
 - `*_gen_stats.tsv` and `logs/`.

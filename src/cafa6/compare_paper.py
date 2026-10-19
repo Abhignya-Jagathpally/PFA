@@ -22,7 +22,10 @@ Methods and sources of predictions
                           blastp)
   DIAMONDScore            DeepGOPlus: sum of bitscores of hits carrying the term / sum of all hit bitscores
   Naive                   per-aspect term frequency among training proteins annotated in that aspect
-  InterLabelGO+, ProtBoost, BioReason-Pro SFT   paper-reported only (see runs/compare_paper/report.md)
+  SPROF-GO, DeepGOPlus, ProteInfer, DeepGO-SE, DeepFRI (sequence CNN), InterLabelGO+ (released package,
+                          test labels in its training data)   official weights, our runs, imported with
+                          import-tsv (runs/compare_paper/extra_models.md)
+  ProtBoost, BioReason-Pro SFT   paper-reported only (see runs/compare_paper/report.md)
 
 Subsets: S3_all (8,630) and S6_noknowledge (without the 471 limited-knowledge proteins of
 data/common_proteins.txt); identity bins from data/proc_gogpt_tv2/knn/test_knn.npz max_pident.
@@ -34,6 +37,8 @@ Usage (PYTHONPATH=src, from cafa6/):
          [--num_chunks 2 --chunk_id 0] [--max_samples 20] [--batch_size 64]
   python -m cafa6.compare_paper baselines      writes runs/compare_paper/preds/{naive,blast_knn,diamondscore}.npz
   python -m cafa6.compare_paper collect-bioreason --evals_path ...   -> preds/bioreason_rl*.npz
+  python -m cafa6.compare_paper import-tsv --tsv preds.tsv --name NAME [--header] [--meta JSON]
+                                               external (protein, GO id, score) rows -> preds/NAME.npz
   python -m cafa6.compare_paper score          summary.tsv, per_bin.tsv, report tables
 """
 from __future__ import annotations
@@ -312,6 +317,32 @@ def cmd_collect_bioreason(a):
     log(f"wrote preds/{a.tag}_responses.jsonl.gz")
 
 
+def cmd_import_tsv(a):
+    """External predictor output (protein, GO id, score; tab-separated, no header unless --header) ->
+    preds/{name}.npz. Scores are kept as the tool wrote them; terms outside our ontology are dropped and
+    alternative ids are mapped by Ontology.canon; duplicate (protein, term) pairs keep the maximum."""
+    np, pd, sp = _np()
+    onto = ontology()
+    d = pd.read_csv(a.tsv, sep="\t", header=0 if a.header else None, usecols=list(a.cols), dtype=str,
+                    comment=None)
+    d.columns = ["id", "term", "score"]
+    d["score"] = d.score.astype(np.float32)
+    ids = np.array(sorted(d.id.unique()))
+    pos = {p: i for i, p in enumerate(ids)}
+    canon = {t: onto.canon(t) for t in d.term.unique()}
+    miss = sum(1 for t, c in canon.items() if not c)
+    r, c, v = [], [], []
+    for p, t, s in zip(d.id, d.term, d.score):
+        for j in canon[t]:
+            r.append(pos[p]); c.append(j); v.append(s)
+    D = pd.DataFrame({"r": r, "c": c, "v": v}).groupby(["r", "c"]).v.max().reset_index()
+    M = sp.csr_matrix((D.v.values.astype(np.float32), (D.r.values, D.c.values)), shape=(len(ids), len(onto.terms)))
+    log(f"{a.tsv}: {len(d)} rows, {len(ids)} proteins, {len(canon)} distinct terms, {miss} not in our ontology")
+    meta = json.loads(a.meta) if a.meta else {}
+    meta.update({"source_file": str(a.tsv), "terms_not_in_ontology": miss})
+    save_pred(a.name, M, ids, onto, meta)
+
+
 def cmd_catalogue(a):
     """BioReason-Pro SFT generations released by the authors (wanglab/protein_catalogue, staged in
     /dev/shm/cmp_paper_catalogue) for the test proteins they cover -> preds/bioreason_sft_catalogue.npz and
@@ -456,6 +487,19 @@ METHODS = [
     ("blast_knn_trainval", "BLAST-KNN (train+val references)",
      "same rule, GO-GPT training + validation proteins as references (sensitivity row)"),
     ("naive", "Naive", "GO-GPT training label frequencies"),
+    # external predictors, official weights, our runs (runs/compare_paper/extra_models.md)
+    ("deepgoplus", "DeepGOPlus (release 1.0.10)",
+     "official data-1.0.10 package (SwissProt 2022_04, GO 2022-10-07), deepgoplus/main.py, our run"),
+    ("proteinfer", "ProteInfer GO (one model)",
+     "official GO random-split CNN 13703706 (SwissProt 2019_01), our run"),
+    ("proteinfer_e5", "ProteInfer GO (5-model ensemble)",
+     "official GO random-split CNNs 13703706/3742/3997/4131/5631 averaged (proteinfer.py maximum), our run"),
+    ("deepgose", "DeepGO-SE", "official deepgo2 data package (SwissProt 2021_04, GO 2021-11-16), predict.py, our run"),
+    ("deepfri_cnn", "DeepFRI sequence-only CNN",
+     "official trained_models (PDB + SWISS-MODEL, SIFTS 2019-06-18), predict.py --fasta_fn, our run"),
+    ("sprof_go", "SPROF-GO", "official repo models + ProtT5-XL-U50 (GO data of 2020-01), predict.py, our run"),
+    ("interlabelgo_plus", "InterLabelGO+ (released package; test labels in its training data)",
+     "Zenodo 15508797 package (training labels contain 96% of test GT pairs), predict.py --seqid, our run"),
 ]
 
 
@@ -557,9 +601,11 @@ def cmd_score(a):
             pv[key] = min(1.0, 2 * min((d <= 0).mean(), (d >= 0).mean()) + 1.0 / a.reps)
             stat[key] = (float(np.percentile(d, 2.5)), float(np.percentile(d, 97.5)))
         # Holm family: one row per method; the extraction / prompt variants of the BioReason-Pro run are
-        # reported with their raw bootstrap p only
+        # reported with their raw bootstrap p only, as are the single-model ProteInfer variant and
+        # InterLabelGO+, whose released training labels contain the test annotations
         ph = holm({k: v for k, v in pv.items()
-                   if k not in ("bioreason_rl_final", "bioreason_rl_askall", "blast_knn_trainval")})
+                   if k not in ("bioreason_rl_final", "bioreason_rl_askall", "blast_knn_trainval",
+                                "interlabelgo_plus", "proteinfer")})
         for r in rows:
             if r["subset"] == sname and r["method"] in stat:
                 hr = [x for x in rows if x["subset"] == sname and x["method"] == ref][0]
@@ -746,6 +792,12 @@ def main():
     sub.add_parser("baselines")
     sub.add_parser("catalogue")
     sub.add_parser("tables")
+    t = sub.add_parser("import-tsv")
+    t.add_argument("--tsv", required=True)
+    t.add_argument("--name", required=True)
+    t.add_argument("--cols", type=int, nargs=3, default=[0, 1, 2], help="columns of protein, GO id, score")
+    t.add_argument("--header", action="store_true")
+    t.add_argument("--meta", default="", help="JSON dict stored in the npz")
     c = sub.add_parser("collect-bioreason")
     c.add_argument("--evals_path", default=str(OUT / "bioreason_rl" / "evals"))
     c.add_argument("--tag", default="bioreason_rl")
@@ -754,7 +806,7 @@ def main():
     s.add_argument("--subset_file", default="", help="score only these proteins (one id per line)")
     a = ap.parse_args()
     {"bioreason-gen": cmd_bioreason_gen, "baselines": cmd_baselines, "collect-bioreason": cmd_collect_bioreason,
-     "catalogue": cmd_catalogue, "score": cmd_score, "tables": cmd_tables}[a.cmd](a)
+     "catalogue": cmd_catalogue, "score": cmd_score, "tables": cmd_tables, "import-tsv": cmd_import_tsv}[a.cmd](a)
 
 
 if __name__ == "__main__":

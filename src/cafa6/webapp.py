@@ -376,8 +376,8 @@ and makes sure the result is consistent with the hierarchy of the ontology.</p>
 <section class="block" id="tldr" style="padding-bottom:0"><div class="tldr"><b>TLDR:</b> <em>{BRAND} predicts Gene
 Ontology (GO) terms from a single protein sequence by combining annotation transfer from similar proteins with
 scores from a frozen ESM-2 protein language model, and its output never contradicts the GO hierarchy. On a temporal
-benchmark of 8,630 proteins it scores higher than every published method we could run, including GO-GPT and
-BioReason-Pro. However, most of that accuracy comes from the homology step, and for proteins without a close match
+benchmark of 8,630 proteins it scores higher than every published method we could compare fairly, including
+GO-GPT, BioReason-Pro, SPROF-GO and DeepGOPlus. However, most of that accuracy comes from the homology step, and for proteins without a close match
 in the reference set the predictions are much weaker, so caution is recommended there. Read on to see how it works
 and what the scores mean, and then try it on your favourite protein!</em></div></section>
 <section class="block" id="what"><div class="eyebrow">Background</div>
@@ -439,18 +439,31 @@ final pipeline on a separate validation set before scoring it on this benchmark.
 <tr><td>GO-GPT, released beam</td><td>0.687</td><td>9.20</td></tr>
 <tr><td>BioReason-Pro (RL, released)</td><td>0.649</td><td>10.62</td></tr>
 <tr><td>DIAMONDScore</td><td>0.580</td><td>12.50</td></tr>
+<tr><td>SPROF-GO (2023)</td><td>0.541</td><td>13.06</td></tr>
+<tr><td>DeepGOPlus (2019)</td><td>0.428</td><td>15.80</td></tr>
+<tr><td>ProteInfer, 5-model ensemble (2023)</td><td>0.417</td><td>17.20</td></tr>
+<tr><td>DeepGO-SE (2024)<sup>&dagger;</sup></td><td>0.302</td><td>16.39</td></tr>
+<tr><td>DeepFRI, sequence model (2021)</td><td>0.274</td><td>17.52</td></tr>
 <tr><td>Naive (term frequency)</td><td>0.243</td><td>16.98</td></tr>
-<tr><td style="color:#7d8a8e">InterLabelGO+ (published, other scorer)</td><td style="color:#7d8a8e">0.638</td>
-<td style="color:#7d8a8e">n/a</td></tr>
-<tr><td style="color:#7d8a8e">ProtBoost (published, other scorer)</td><td style="color:#7d8a8e">0.606</td>
+<tr><td style="color:#a2582a">InterLabelGO+ (2024)<sup>&Dagger;</sup></td><td style="color:#a2582a">0.728</td>
+<td style="color:#a2582a">7.80</td></tr>
+<tr><td style="color:#7d8a8e">ProtBoost (2024, published, other scorer)</td><td style="color:#7d8a8e">0.606</td>
 <td style="color:#7d8a8e">n/a</td></tr></table>
-<p class="hint" style="margin-top:10px">We scored every row except the two in grey ourselves, with the same code on
-the same proteins. We ran BioReason-Pro with its authors' evaluation script, and it reproduces their published
-number. "Same references" means the 133,054 proteins {BRAND} searches; "training references" means the smaller set
-the published baselines used.</p></div>
+<p class="hint" style="margin-top:10px">We ran every row ourselves on the same proteins with the same scoring
+code, from the authors' released code and weights, except ProtBoost (grey), whose models and predictions are no longer
+available anywhere, so only its published number from a different scorer is shown. BioReason-Pro reproduces its
+authors' published number. "Same references" means the 133,054 proteins {BRAND} searches; "training references"
+means the smaller set the published baselines used.<br><sup>&dagger;</sup> DeepGO-SE's released cellular-component
+models are faulty (they also fail on the authors' own test split), so its CC score, and therefore its mean, is not
+meaningful; its MF 0.522 and BP 0.253 are.<br><sup>&Dagger;</sup> InterLabelGO+ is not a valid comparison here: the
+training labels shipped with it come from a later GO snapshot and contain 96% of this benchmark's answers.<br>
+Prot2Text-v2 (2025) is not listed because it writes free-text descriptions rather than GO terms and defines no GO
+evaluation.</p></div>
 <div class="limits"><h3>A word of caution</h3>
 <p>Differences were tested with paired protein-level resampling and corrected for multiple comparisons
-(Holm-Bonferroni). Every published method we ran scores below {BRAND}, and all the intervals exclude zero.</p>
+(Holm-Bonferroni). Every published method that can be compared fairly scores below {BRAND}, and all the
+intervals exclude zero. The one method that scores higher, InterLabelGO+, was shipped with training labels that
+already contain 96% of this benchmark's answers, so its number is not a comparison.</p>
 <p>However, most of the accuracy comes from step 1a. Homology transfer on its own scores 0.721, slightly above the
 full pipeline on Fmax, while the full pipeline makes fewer missed or wrong specific terms (S-min 7.56 against 8.48).
 A plain BLAST best hit with the same references is also close (+0.009 for {BRAND}, 95% interval +0.004 to +0.015).
@@ -463,15 +476,16 @@ So the margin over GO-GPT comes mainly from how the homology evidence is used, n
 annotated proteins that resemble yours, so the first thing to check on any result is the identity of its closest
 match.</p><p><b>95% identity or more:</b> most predicted terms are correct.<br><b>50 to 95%:</b> useful, but have a
 look at the matches before relying on specific terms.<br><b>Below 50%, or no match:</b> treat the output as
-hypotheses. Without a close match the ESM-2 score carries the prediction, and accuracy is much lower; here GO-GPT is
-still a little better.</p></div>
-<table class="vtable"><tr><th>identity of closest match</th><th>{BRAND}</th><th>GO-GPT (ten samples)</th></tr>
-<tr><td>95% and above</td><td class="us">0.86 to 0.88</td><td>0.84</td></tr>
-<tr><td>80 to 95%</td><td class="us">0.68</td><td>0.67</td></tr>
-<tr><td>50 to 80%</td><td class="us">0.51</td><td>0.49</td></tr>
-<tr><td>30 to 50%</td><td class="us">0.48</td><td>0.45</td></tr>
-<tr><td>below 30%</td><td>0.45</td><td class="us">0.46</td></tr>
-<tr><td>no match</td><td>0.34</td><td class="us">0.38</td></tr></table></div>
+hypotheses. Without a close match the ESM-2 score carries the prediction, and accuracy is much lower. Here
+sequence-based models do better: SPROF-GO is ahead below 50% identity (0.40 against 0.34 with no match) and
+level at 50 to 80%, and GO-GPT is ahead below 30%.</p></div>
+<table class="vtable"><tr><th>identity of closest match</th><th>{BRAND}</th><th>GO-GPT (ten samples)</th><th>SPROF-GO</th></tr>
+<tr><td>95% and above</td><td class="us">0.86 to 0.88</td><td>0.84</td><td>0.55 to 0.58</td></tr>
+<tr><td>80 to 95%</td><td class="us">0.68</td><td>0.67</td><td>0.57</td></tr>
+<tr><td>50 to 80%</td><td class="us">0.51</td><td>0.49</td><td>0.51</td></tr>
+<tr><td>30 to 50%</td><td>0.48</td><td>0.45</td><td class="us">0.51</td></tr>
+<tr><td>below 30%</td><td>0.45</td><td>0.46</td><td class="us">0.53</td></tr>
+<tr><td>no match</td><td>0.34</td><td>0.38</td><td class="us">0.40</td></tr></table></div>
 <p class="hint" style="margin-top:14px">IA-weighted Fmax on the benchmark by identity of the closest reference
 protein.</p></section>
 <section class="block" id="scope"><div class="eyebrow">Scope</div>

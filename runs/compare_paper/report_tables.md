@@ -2,18 +2,25 @@
 
 | method | predictions | S3 Fw MF | S3 Fw BP | S3 Fw CC | S3 Fw mean | S6 Fw mean | S3 S-min mean | HiGO-R2 minus method, S3 [95% CI] | HiGO-R2 minus method, S6 [95% CI] |
 |---|---|---|---|---|---|---|---|---|---|
+| InterLabelGO+ (released package; test labels in its training data) | Zenodo 15508797 package (training labels contain 96% of test GT pairs), predict.py --seqid, our run | 0.750 | 0.685 | 0.748 | 0.728 | 0.742 | 7.802 | -0.0099 [-0.0158, -0.0048], p_boot 0.001 (variant, not in Holm family) | -0.0070 [-0.0122, -0.0013], p_boot 0.023 (variant, not in Holm family) |
 | HiGO-R2 (ours) | frozen look-3 file runs/stacker_tv/l3_c0/pred_test_twin.npz | 0.738 | 0.658 | 0.758 | 0.718 | 0.735 | 7.562 | — | — |
 | BLAST-KNN (train+val references) | same rule, GO-GPT training + validation proteins as references (sensitivity row) | 0.733 | 0.669 | 0.724 | 0.709 | 0.729 | 8.421 | +0.0093 [+0.0043, +0.0150], p_boot 0.001 (variant, not in Holm family) | +0.0064 [+0.0014, +0.0124], p_boot 0.015 (variant, not in Holm family) |
-| GO-GPT ten-sample frequency | released checkpoint, our generation (T 0.7, top-k 20) | 0.720 | 0.630 | 0.745 | 0.698 | 0.714 | 8.168 | +0.0193 [+0.0138, +0.0250], p_Holm 0.008 | +0.0211 [+0.0154, +0.0271], p_Holm 0.008 |
-| BLAST-KNN | our DIAMOND hits to GO-GPT training proteins (paper 4.4.2 rule) | 0.728 | 0.647 | 0.710 | 0.695 | 0.715 | 8.723 | +0.0227 [+0.0171, +0.0285], p_Holm 0.008 | +0.0204 [+0.0152, +0.0266], p_Holm 0.008 |
-| GO-GPT beam 5 | released checkpoint, our generation (predictor default) | 0.714 | 0.617 | 0.728 | 0.687 | 0.702 | 9.200 | +0.0312 [+0.0254, +0.0374], p_Holm 0.008 | +0.0332 [+0.0272, +0.0397], p_Holm 0.008 |
-| GO-GPT greedy | released checkpoint, our generation | 0.716 | 0.616 | 0.728 | 0.686 | 0.702 | 9.462 | +0.0314 [+0.0257, +0.0376], p_Holm 0.008 | +0.0333 [+0.0274, +0.0399], p_Holm 0.008 |
-| GO-GPT (authors' predictions) | go_pred column of wanglab/bioreason-pro-test-data | 0.689 | 0.542 | 0.717 | 0.649 | 0.664 | 10.984 | +0.0684 [+0.0624, +0.0750], p_Holm 0.008 | +0.0716 [+0.0650, +0.0785], p_Holm 0.008 |
-| BioReason-Pro RL (greedy) | released wanglab/bioreason-pro-rl, authors' eval.py, our run | 0.692 | 0.536 | 0.719 | 0.649 | 0.663 | 10.621 | +0.0687 [+0.0623, +0.0756], p_Holm 0.008 | +0.0718 [+0.0653, +0.0789], p_Holm 0.008 |
+| GO-GPT ten-sample frequency | released checkpoint, our generation (T 0.7, top-k 20) | 0.720 | 0.630 | 0.745 | 0.698 | 0.714 | 8.168 | +0.0193 [+0.0138, +0.0250], p_Holm 0.013 | +0.0211 [+0.0154, +0.0271], p_Holm 0.013 |
+| BLAST-KNN | our DIAMOND hits to GO-GPT training proteins (paper 4.4.2 rule) | 0.728 | 0.647 | 0.710 | 0.695 | 0.715 | 8.723 | +0.0227 [+0.0171, +0.0285], p_Holm 0.013 | +0.0204 [+0.0152, +0.0266], p_Holm 0.013 |
+| GO-GPT beam 5 | released checkpoint, our generation (predictor default) | 0.714 | 0.617 | 0.728 | 0.687 | 0.702 | 9.200 | +0.0312 [+0.0254, +0.0374], p_Holm 0.013 | +0.0332 [+0.0272, +0.0397], p_Holm 0.013 |
+| GO-GPT greedy | released checkpoint, our generation | 0.716 | 0.616 | 0.728 | 0.686 | 0.702 | 9.462 | +0.0314 [+0.0257, +0.0376], p_Holm 0.013 | +0.0333 [+0.0274, +0.0399], p_Holm 0.013 |
+| GO-GPT (authors' predictions) | go_pred column of wanglab/bioreason-pro-test-data | 0.689 | 0.542 | 0.717 | 0.649 | 0.664 | 10.984 | +0.0684 [+0.0624, +0.0750], p_Holm 0.013 | +0.0716 [+0.0650, +0.0785], p_Holm 0.013 |
+| BioReason-Pro RL (greedy) | released wanglab/bioreason-pro-rl, authors' eval.py, our run | 0.692 | 0.536 | 0.719 | 0.649 | 0.663 | 10.621 | +0.0687 [+0.0623, +0.0756], p_Holm 0.013 | +0.0718 [+0.0653, +0.0789], p_Holm 0.013 |
 | BioReason-Pro RL (greedy, final answer only) | same run, GO ids after </think> | 0.690 | 0.535 | 0.718 | 0.648 | 0.662 | 10.683 | +0.0700 [+0.0638, +0.0770], p_boot 0.001 (variant, not in Holm family) | +0.0732 [+0.0667, +0.0803], p_boot 0.001 (variant, not in Holm family) |
 | BioReason-Pro RL (greedy, label-independent prompt) | same checkpoint, eval.py with ask_all_go_aspects=force_uniprot_summary=True (repo default, predict.py) | 0.688 | 0.537 | 0.717 | 0.647 | 0.661 | 10.909 | +0.0707 [+0.0643, +0.0775], p_boot 0.001 (variant, not in Holm family) | +0.0737 [+0.0671, +0.0810], p_boot 0.001 (variant, not in Holm family) |
-| DIAMONDScore | our DIAMOND hits to GO-GPT training proteins | 0.679 | 0.423 | 0.637 | 0.580 | 0.590 | 12.502 | +0.1379 [+0.1320, +0.1442], p_Holm 0.008 | +0.1453 [+0.1397, +0.1522], p_Holm 0.008 |
-| Naive | GO-GPT training label frequencies | 0.184 | 0.209 | 0.337 | 0.243 | 0.244 | 16.976 | +0.4743 [+0.4662, +0.4826], p_Holm 0.008 | +0.4910 [+0.4831, +0.4991], p_Holm 0.008 |
+| DIAMONDScore | our DIAMOND hits to GO-GPT training proteins | 0.679 | 0.423 | 0.637 | 0.580 | 0.590 | 12.502 | +0.1379 [+0.1320, +0.1442], p_Holm 0.013 | +0.1453 [+0.1397, +0.1522], p_Holm 0.013 |
+| SPROF-GO | official repo models + ProtT5-XL-U50 (GO data of 2020-01), predict.py, our run | 0.615 | 0.400 | 0.609 | 0.541 | 0.545 | 13.059 | +0.1765 [+0.1692, +0.1846], p_Holm 0.013 | +0.1901 [+0.1828, +0.1977], p_Holm 0.013 |
+| DeepGOPlus (release 1.0.10) | official data-1.0.10 package (SwissProt 2022_04, GO 2022-10-07), deepgoplus/main.py, our run | 0.539 | 0.264 | 0.481 | 0.428 | 0.431 | 15.799 | +0.2898 [+0.2826, +0.2981], p_Holm 0.013 | +0.3045 [+0.2961, +0.3129], p_Holm 0.013 |
+| ProteInfer GO (5-model ensemble) | official GO random-split CNNs 13703706/3742/3997/4131/5631 averaged (proteinfer.py maximum), our run | 0.514 | 0.253 | 0.484 | 0.417 | 0.418 | 17.195 | +0.3006 [+0.2918, +0.3084], p_Holm 0.013 | +0.3174 [+0.3090, +0.3253], p_Holm 0.013 |
+| ProteInfer GO (one model) | official GO random-split CNN 13703706 (SwissProt 2019_01), our run | 0.499 | 0.234 | 0.457 | 0.397 | 0.397 | 20.098 | +0.3210 [+0.3128, +0.3294], p_boot 0.001 (variant, not in Holm family) | +0.3387 [+0.3301, +0.3470], p_boot 0.001 (variant, not in Holm family) |
+| DeepGO-SE | official deepgo2 data package (SwissProt 2021_04, GO 2021-11-16), predict.py, our run | 0.522 | 0.253 | 0.131 | 0.302 | 0.304 | 16.390 | +0.4157 [+0.4083, +0.4236], p_Holm 0.013 | +0.4315 [+0.4236, +0.4394], p_Holm 0.013 |
+| DeepFRI sequence-only CNN | official trained_models (PDB + SWISS-MODEL, SIFTS 2019-06-18), predict.py --fasta_fn, our run | 0.282 | 0.179 | 0.360 | 0.274 | 0.276 | 17.517 | +0.4443 [+0.4355, +0.4534], p_Holm 0.013 | +0.4597 [+0.4505, +0.4691], p_Holm 0.013 |
+| Naive | GO-GPT training label frequencies | 0.184 | 0.209 | 0.337 | 0.243 | 0.244 | 16.976 | +0.4743 [+0.4662, +0.4826], p_Holm 0.013 | +0.4910 [+0.4831, +0.4991], p_Holm 0.013 |
 | BioReason-Pro SFT pass@1 (paper-reported, different scorer) | Table S6 | — | — | — | — | 0.641 | — | not computable (no predictions) | — |
 | InterLabelGO+ (paper-reported, different scorer) | Tables S3-S5 | 0.692 | 0.525 | 0.696 | 0.638 | — | — | not computable (no predictions) | — |
 | ProtBoost (paper-reported, different scorer) | Tables S3-S5 | 0.658 | 0.490 | 0.669 | 0.606 | — | — | not computable (no predictions) | — |
@@ -22,6 +29,7 @@
 
 | method | S3 F MF | S3 F BP | S3 F CC | S3 F mean | S6 Fw MF | S6 Fw BP | S6 Fw CC | S6 F mean | S3 S-min MF | S3 S-min BP | S3 S-min CC |
 |---|---|---|---|---|---|---|---|---|---|---|---|
+| InterLabelGO+ (released package; test labels in its training data) | 0.785 | 0.718 | 0.825 | 0.776 | 0.776 | 0.696 | 0.754 | 0.789 | 5.141 | 13.514 | 4.751 |
 | HiGO-R2 (ours) | 0.778 | 0.691 | 0.827 | 0.765 | 0.771 | 0.668 | 0.767 | 0.780 | 5.093 | 13.206 | 4.387 |
 | BLAST-KNN (train+val references) | 0.763 | 0.678 | 0.782 | 0.741 | 0.769 | 0.682 | 0.735 | 0.761 | 5.672 | 13.378 | 6.215 |
 | GO-GPT ten-sample frequency | 0.780 | 0.678 | 0.826 | 0.761 | 0.750 | 0.639 | 0.753 | 0.775 | 5.466 | 14.121 | 4.917 |
@@ -33,6 +41,12 @@
 | BioReason-Pro RL (greedy, final answer only) | 0.756 | 0.579 | 0.805 | 0.714 | 0.718 | 0.542 | 0.726 | 0.726 | 6.095 | 20.311 | 5.642 |
 | BioReason-Pro RL (greedy, label-independent prompt) | 0.756 | 0.581 | 0.803 | 0.714 | 0.716 | 0.544 | 0.724 | 0.726 | 6.054 | 20.141 | 6.533 |
 | DIAMONDScore | 0.721 | 0.468 | 0.740 | 0.643 | 0.703 | 0.425 | 0.642 | 0.653 | 6.616 | 24.247 | 6.643 |
+| SPROF-GO | 0.695 | 0.453 | 0.736 | 0.628 | 0.624 | 0.402 | 0.610 | 0.633 | 8.103 | 24.493 | 6.580 |
+| DeepGOPlus (release 1.0.10) | 0.629 | 0.332 | 0.653 | 0.538 | 0.552 | 0.260 | 0.480 | 0.541 | 9.712 | 29.045 | 8.639 |
+| ProteInfer GO (5-model ensemble) | 0.599 | 0.321 | 0.650 | 0.523 | 0.521 | 0.249 | 0.483 | 0.525 | 12.150 | 30.606 | 8.830 |
+| ProteInfer GO (one model) | 0.583 | 0.305 | 0.630 | 0.506 | 0.504 | 0.230 | 0.455 | 0.507 | 13.815 | 37.156 | 9.324 |
+| DeepGO-SE | 0.631 | 0.322 | 0.367 | 0.440 | 0.528 | 0.251 | 0.132 | 0.443 | 9.763 | 28.839 | 10.570 |
+| DeepFRI sequence-only CNN | 0.372 | 0.237 | 0.545 | 0.385 | 0.288 | 0.177 | 0.361 | 0.387 | 13.115 | 29.953 | 9.482 |
 | Naive | 0.375 | 0.279 | 0.593 | 0.416 | 0.186 | 0.209 | 0.338 | 0.419 | 13.407 | 28.212 | 9.308 |
 
 ### Our scorer vs the paper's numbers
@@ -50,6 +64,7 @@
 
 | method | no_hit (n=250) | <30 (n=79) | 30-50 (n=694) | 50-80 (n=1627) | 80-95 (n=1360) | 95-99.9 (n=2430) | 100 (n=2190) | all (n=8630) |
 |---|---|---|---|---|---|---|---|---|
+| InterLabelGO+ (released package; test labels in its training data) | 0.436 | 0.574 | 0.571 | 0.628 | 0.714 | 0.821 | 0.816 | 0.728 |
 | HiGO-R2 (ours) | 0.342 | 0.451 | 0.480 | 0.506 | 0.675 | 0.858 | 0.878 | 0.718 |
 | BLAST-KNN (train+val references) | 0.055 | 0.357 | 0.372 | 0.427 | 0.649 | 0.847 | 0.894 | 0.709 |
 | GO-GPT ten-sample frequency | 0.382 | 0.461 | 0.450 | 0.493 | 0.667 | 0.836 | 0.842 | 0.698 |
@@ -61,12 +76,19 @@
 | BioReason-Pro RL (greedy, final answer only) | 0.319 | 0.465 | 0.424 | 0.444 | 0.622 | 0.757 | 0.807 | 0.648 |
 | BioReason-Pro RL (greedy, label-independent prompt) | 0.312 | 0.459 | 0.423 | 0.441 | 0.618 | 0.757 | 0.808 | 0.647 |
 | DIAMONDScore | 0.000 | 0.459 | 0.460 | 0.452 | 0.564 | 0.651 | 0.691 | 0.580 |
+| SPROF-GO | 0.403 | 0.529 | 0.514 | 0.512 | 0.572 | 0.582 | 0.549 | 0.541 |
+| DeepGOPlus (release 1.0.10) | 0.242 | 0.462 | 0.440 | 0.422 | 0.456 | 0.451 | 0.423 | 0.428 |
+| ProteInfer GO (5-model ensemble) | 0.308 | 0.435 | 0.408 | 0.397 | 0.433 | 0.426 | 0.450 | 0.417 |
+| ProteInfer GO (one model) | 0.279 | 0.416 | 0.394 | 0.374 | 0.406 | 0.412 | 0.423 | 0.397 |
+| DeepGO-SE | 0.268 | 0.333 | 0.306 | 0.291 | 0.321 | 0.329 | 0.295 | 0.302 |
+| DeepFRI sequence-only CNN | 0.204 | 0.253 | 0.274 | 0.262 | 0.304 | 0.283 | 0.284 | 0.274 |
 | Naive | 0.203 | 0.248 | 0.251 | 0.245 | 0.257 | 0.248 | 0.252 | 0.243 |
 
 ### Mean per-protein weighted F1 at the global Fmax threshold per bin (paper eq. 4.29, Fig. 3F) and its Spearman correlation with best-hit identity (paper Table S12)
 
 | method | no_hit | <30 | 30-50 | 50-80 | 80-95 | 95-99.9 | 100 | all | Spearman rho vs identity |
 |---|---|---|---|---|---|---|---|---|---|
+| InterLabelGO+ (released package; test labels in its training data) | 0.356 | 0.464 | 0.487 | 0.548 | 0.636 | 0.776 | 0.753 | 0.667 | 0.288 |
 | HiGO-R2 (ours) | 0.127 | 0.345 | 0.316 | 0.332 | 0.575 | 0.821 | 0.828 | 0.627 | 0.562 |
 | BLAST-KNN (train+val references) | 0.025 | 0.106 | 0.150 | 0.162 | 0.521 | 0.799 | 0.818 | 0.559 | 0.619 |
 | GO-GPT ten-sample frequency | 0.284 | 0.341 | 0.333 | 0.337 | 0.568 | 0.780 | 0.777 | 0.608 | 0.473 |
@@ -78,6 +100,12 @@
 | BioReason-Pro RL (greedy, final answer only) | 0.269 | 0.388 | 0.322 | 0.312 | 0.531 | 0.687 | 0.746 | 0.562 | 0.437 |
 | BioReason-Pro RL (greedy, label-independent prompt) | 0.264 | 0.382 | 0.321 | 0.310 | 0.525 | 0.686 | 0.745 | 0.560 | 0.440 |
 | DIAMONDScore | 0.000 | 0.343 | 0.327 | 0.270 | 0.411 | 0.517 | 0.594 | 0.442 | 0.424 |
+| SPROF-GO | 0.329 | 0.449 | 0.409 | 0.369 | 0.465 | 0.480 | 0.490 | 0.449 | 0.153 |
+| DeepGOPlus (release 1.0.10) | 0.054 | 0.325 | 0.298 | 0.260 | 0.316 | 0.302 | 0.336 | 0.298 | 0.158 |
+| ProteInfer GO (5-model ensemble) | 0.181 | 0.307 | 0.247 | 0.204 | 0.268 | 0.261 | 0.303 | 0.259 | 0.137 |
+| ProteInfer GO (one model) | 0.169 | 0.295 | 0.240 | 0.189 | 0.250 | 0.255 | 0.288 | 0.247 | 0.144 |
+| DeepGO-SE | 0.192 | 0.277 | 0.255 | 0.206 | 0.211 | 0.204 | 0.183 | 0.205 | -0.090 |
+| DeepFRI sequence-only CNN | 0.128 | 0.192 | 0.173 | 0.139 | 0.192 | 0.191 | 0.230 | 0.188 | 0.144 |
 | Naive | 0.169 | 0.216 | 0.194 | 0.195 | 0.236 | 0.228 | 0.246 | 0.223 | 0.109 |
 
 ### Supplementary: the 1,213 test proteins in the authors' SFT catalogue
