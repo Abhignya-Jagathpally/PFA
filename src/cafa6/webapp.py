@@ -407,16 +407,30 @@ are the most specific terms that clear the cut-off.</p></div>
 <h2>Tested on annotations that came later</h2>
 <p class="sub">The benchmark contains 8,630 proteins whose GO annotations were added after the reference data was
 collected. The final pipeline was chosen on a separate validation set before it was scored on the benchmark.</p>
-<div class="versus"><table class="vtable">
+<div class="versus"><div><table class="vtable">
 <tr><th>Temporal benchmark, 8,630 proteins</th><th>IA-weighted Fmax</th><th>S-min (lower is better)</th></tr>
 <tr class="hl"><td class="us">{BRAND}</td><td class="us">0.718</td><td class="us">7.56</td></tr>
 <tr><td>Step 1a alone (homology transfer)</td><td>0.721</td><td>8.48</td></tr>
+<tr><td>BLAST best hit, same references</td><td>0.709</td><td>8.42</td></tr>
 <tr><td>GO-GPT, ten samples</td><td>0.698</td><td>8.17</td></tr>
-<tr><td>GO-GPT, released beam</td><td>0.687</td><td>9.20</td></tr></table>
+<tr><td>BLAST best hit, training references</td><td>0.695</td><td>8.72</td></tr>
+<tr><td>GO-GPT, released beam</td><td>0.687</td><td>9.20</td></tr>
+<tr><td>BioReason-Pro (RL, released)</td><td>0.649</td><td>10.62</td></tr>
+<tr><td>DIAMONDScore</td><td>0.580</td><td>12.50</td></tr>
+<tr><td>Naive (term frequency)</td><td>0.243</td><td>16.98</td></tr>
+<tr><td style="color:#7d8a8e">InterLabelGO+ (published, other scorer)</td><td style="color:#7d8a8e">0.638</td>
+<td style="color:#7d8a8e">n/a</td></tr>
+<tr><td style="color:#7d8a8e">ProtBoost (published, other scorer)</td><td style="color:#7d8a8e">0.606</td>
+<td style="color:#7d8a8e">n/a</td></tr></table>
+<p class="hint" style="margin-top:10px">All rows except the two in grey were scored here with the same code on the same
+proteins. BioReason-Pro was run with its authors' evaluation script and reproduces their published number. "Same
+references" means the 133,054 proteins {BRAND} searches; "training references" means the smaller set the published
+baselines used.</p></div>
 <div class="limits"><h3>How the comparison was checked</h3>
-<p>All methods were scored on the same proteins with the same evaluation code. Differences were tested with paired
-protein-level resampling and corrected for multiple comparisons (Holm-Bonferroni) across Fmax, S-min and AUPR in all
-three ontologies.</p>
+<p>Differences were tested with paired protein-level resampling and corrected for multiple comparisons
+(Holm-Bonferroni). Every published method run here scores below {BRAND} (all intervals exclude zero). Its own homology step
+alone scores slightly higher on Fmax, and the BLAST best hit with the same references is close (+0.009 for {BRAND},
+95% interval +0.004 to +0.015).</p>
 <p>IA-weighted Fmax by ontology: <b>molecular function 0.738</b>, <b>biological process 0.658</b>,
 <b>cellular component 0.758</b>.</p>
 <p>Most of the accuracy comes from step 1a. Homology transfer alone scores 0.721 IA-weighted Fmax, level with the

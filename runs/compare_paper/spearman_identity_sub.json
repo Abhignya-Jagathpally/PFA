@@ -1,0 +1,15 @@
+{
+  "higo_r2": 0.5617878729782703,
+  "bioreason_rl": 0.4391053502822645,
+  "bioreason_rl_final": 0.43705044430213075,
+  "bioreason_rl_askall": 0.439948902389041,
+  "gogpt_sample10": 0.47290097660007385,
+  "gogpt_greedy": 0.4698925904811407,
+  "gogpt_beam": 0.4692913620771427,
+  "gogpt_authors": 0.4414780112795391,
+  "diamondscore": 0.42361159335481,
+  "blast_knn": 0.6540750081698907,
+  "blast_knn_trainval": 0.6193637569432471,
+  "naive": 0.10863061373187986,
+  "bioreason_sft_catalogue": -0.3211713191605912
+}
