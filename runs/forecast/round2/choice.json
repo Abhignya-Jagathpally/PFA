@@ -1,0 +1,30 @@
+{
+  "registration": "runs/test_looks.md 2026-10-25 01:15:00",
+  "families_trained": [
+    "a",
+    "b"
+  ],
+  "dropped": {},
+  "best_criterion": 0.2983476084965461,
+  "best_candidate": "b",
+  "margin": 0.003,
+  "eligible": [
+    "b"
+  ],
+  "chosen": {
+    "candidate": "b",
+    "family": "b",
+    "plm": "facebook/esm2_t33_650M_UR50D",
+    "theta": null,
+    "criterion": 0.2983476084965461,
+    "A_all": 0.2643181478524456,
+    "B_all": 0.33237706914064663,
+    "secondary_nk": 0.5047869901522587
+  },
+  "kNN_reference": {
+    "A_all": 0.19819275609180134,
+    "B_all": 0.2950922399231019,
+    "criterion": 0.24664249800745164
+  },
+  "rule": "simplest candidate within 0.003 of the best criterion; order (a) < (a)+routing < (b) < (b)+routing; theta does not order candidates inside a group; ties by higher criterion"
+}

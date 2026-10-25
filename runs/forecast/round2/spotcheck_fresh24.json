@@ -1,0 +1,43 @@
+{
+  "proteins": [
+    "Q5JSZ5",
+    "Q0WPU1",
+    "Q9DGG9",
+    "Q8IKM8",
+    "M0R0C6",
+    "Q98SP7",
+    "A0A0R4IB28",
+    "Q9PTX2",
+    "Q9UER7",
+    "Q9ATN4",
+    "A8JNW3",
+    "Q9VWI2",
+    "Q48B14",
+    "Q5BJV8",
+    "P09810",
+    "Q14626",
+    "Q38BN0",
+    "Q6FSR7",
+    "A0A8I6AFF7",
+    "Q60994"
+  ],
+  "tol": 0.001,
+  "result": {
+    "F1_650M_s0": {
+      "max_abs_diff": 1.52587890625e-05,
+      "mean_abs_diff": 3.8436356875060085e-10,
+      "pairs_over_tol": 0
+    },
+    "F1_650M_s1": {
+      "max_abs_diff": 0.00048828125,
+      "mean_abs_diff": 4.479967063986123e-09,
+      "pairs_over_tol": 0
+    },
+    "F1_650M_s2": {
+      "max_abs_diff": 9.5367431640625e-06,
+      "mean_abs_diff": 3.138277693270908e-10,
+      "pairs_over_tol": 0
+    }
+  },
+  "pass": true
+}

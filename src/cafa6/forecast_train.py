@@ -36,10 +36,27 @@ which changes nothing on rows with an empty input aspect. Row sets: nk = aspect 
 lk; the registered selection set on A valid), nk_only = no input term in any aspect, known = input terms in the
 aspect, all = every row; per identity bin; B valid also on its TV v2 proteins (in_tv2).
 
+fresh24 predictions (look #2, runs/fresh24_looks.md 2026-10-24 22:45; writes predictions only, scores nothing):
+- Queries: data/fresh24/fresh24.fasta (24,141 proteins), NCBI taxon from data/fresh24/proteins.tsv. No input terms.
+- Prior: the training-time definition. DIAMOND as build_forecast.cmd_diamond (--more-sensitive -e 1e-3 -k 60,
+  --dbsize = GO-GPT train letters) against the served references data/serve/refs.dmnd (GO-GPT train + val, 133,054),
+  best HSP per pair, then build_forecast.make_knn + knn_sharp.KNN.prior T5_k50_g0_na (aspect-normalised) over the
+  served label matrix data/serve/labels.npz, which is checked to equal the S0 labels used for period A. The look-1
+  prior (runs/fresh24/preds/ontologue_knn.npz) used -k 51; `predict` recomputes it from the look-1 hits as a check
+  of the code path and reports how far the -k 60 prior is from it.
+- Taxon: the training rule (most common GO-GPT organism code among example proteins with the same NCBI taxon),
+  then data/serve/taxa.tsv (NCBI -> GO-GPT organism, as the served predictor resolves it), else 'other'.
+- Scores: per seed, MCM probabilities over the vocabulary; F1_ens = logit mean of seeds 0, 1, 2; kNN prior terms
+  outside the vocabulary pass through with their prior score; max-propagated over the GO graph, scores >= 0.01, in
+  the compare_paper npz layout (ids, data, indices, indptr, shape, terms, meta).
+- Spot-check first: 20 period-A valid proteins through the same path must reproduce runs/forecast/F1_s*/pred_A_valid.npy
+  within 1e-3; otherwise nothing is written.
+
 Usage:
   python -m cafa6.forecast_train verify
   python -m cafa6.forecast_train train --arm F1 --seed 0 [--device cuda] [--smoke 500] [--epochs N]
   python -m cafa6.forecast_train report [--smoke]
+  python -m cafa6.forecast_train predict [--device cuda:0] [--threads 16]
 """
 from __future__ import annotations
 
@@ -354,8 +371,15 @@ def setup(smoke: int = 0):
     return vocab, A, B, tA, tB
 
 
-def run_dir(arm, seed, smoke):
-    return (ROOT / "runs" / "forecast_smoke" if smoke else OUT) / f"{arm}_s{seed}"
+PLM_TAG = {"facebook/esm2_t33_650M_UR50D": "650M"}
+
+
+def run_name(arm, seed, plm=None):
+    return f"{arm}_{PLM_TAG[plm]}_s{seed}" if plm else f"{arm}_s{seed}"
+
+
+def run_dir(arm, seed, smoke, plm=None):
+    return (ROOT / "runs" / "forecast_smoke" if smoke else OUT) / run_name(arm, seed, plm)
 
 
 def save_ckpt(path, model, opt, sched, epoch, wrng, elapsed):
@@ -368,18 +392,23 @@ def save_ckpt(path, model, opt, sched, epoch, wrng, elapsed):
     os.replace(tmp, path)
 
 
-def train(arm: str, seed: int, device: str, smoke: int = 0, epochs: int | None = None):
+def train(arm: str, seed: int, device: str, smoke: int = 0, epochs: int | None = None, plm: str | None = None):
+    """plm (round 2): another frozen encoder, run in bf16; the head is then freshly initialised (term_bias at the
+    logit of the arm's training term frequency, as term_bias_init: prior in the recipe) instead of loaded from
+    runs/l3_c0_tv2, whose head only fits the 35M hidden size. Everything else is unchanged."""
     assert arm in ("F1", "F0")
     t_start = time.time()
     torch.manual_seed(seed); random.seed(seed); np.random.seed(seed)
     cfg = yaml.safe_load(open(CFG))
     on_gpu = device.startswith("cuda")
     cfg.update(fast_entmax=on_gpu, seed=seed)
+    if plm:
+        cfg.update(plm=plm, plm_bf16=on_gpu)
     if epochs is not None:
         cfg["epochs"] = epochs
-    run = run_dir(arm, seed, smoke)
+    run = run_dir(arm, seed, smoke, plm)
     run.mkdir(parents=True, exist_ok=True)
-    tag = f"{arm} s{seed}{' smoke' if smoke else ''}"
+    tag = f"{run.name}{' smoke' if smoke else ''}"
     vocab, A, B, tA, tB = setup(smoke)
     aspect = vocab.aspect.values
     Y = (A.Y_in + A.Y_gain) if arm == "F1" else A.Y_in.copy()
@@ -406,7 +435,11 @@ def train(arm: str, seed: int, device: str, smoke: int = 0, epochs: int | None =
     batcher = Batcher(A.seqs, tok, cfg["max_len"], cfg["tokens_per_batch"], cfg["max_batch"], knn=priorA, seed=seed)
     anc = np.load(GOGPT / "go_ancestors.npy")
     higo = build_higo(cfg, vocab, anc, len(json.load(open(INIT / "taxa.json"))) + 1)
-    load_trainable(higo, torch.load(INIT / "trainable_weights.pt", map_location="cpu"))
+    if plm:
+        f = np.clip(freq, 1e-4, 1 - 1e-4)
+        higo.term_bias.data.copy_(torch.as_tensor(np.log(f / (1 - f)), dtype=torch.float32))
+    else:
+        load_trainable(higo, torch.load(INIT / "trainable_weights.pt", map_location="cpu"))
     model = ForecastHiGO(higo, aspect).to(device)
     groups = param_groups(higo, cfg) + [{"params": [model.a], "lr": cfg["head_lr"], "weight_decay": 0.0}]
     all_params = [p for g in groups for p in g["params"]]
@@ -434,7 +467,7 @@ def train(arm: str, seed: int, device: str, smoke: int = 0, epochs: int | None =
     make = lambda b: batcher.train_tensors(b, Y, tA, pin=on_gpu)
     for ep in range(start_ep, cfg["epochs"]):
         model.train()
-        ep_t0 = time.time()
+        ep_t0 = last_plog = time.time()
         tot, nb, n_with = 0.0, 0, 0
         batches = batcher.batches(tr, True)
         for bi, (b, ids, att, res, y, tx, n_tok) in iter_train_batches(batches, 0, make, on_gpu):
@@ -452,7 +485,11 @@ def train(arm: str, seed: int, device: str, smoke: int = 0, epochs: int | None =
             tot += float(loss.detach()); nb += 1
             if bi % 200 == 0:
                 print(f"ep{ep} step{bi}/{len(batches)} loss {tot / nb:.5f} lr {sched.get_last_lr()[0]:.2e} "
-                      f"a {[round(float(x), 3) for x in model.a]} {time.time() - t0:.0f}s", flush=True)
+                      f"a {[round(float(x), 3) for x in model.a.detach()]} {time.time() - t0:.0f}s", flush=True)
+            if time.time() - last_plog > 600:
+                last_plog = time.time()
+                plog(f"TRAIN {tag} epoch {ep + 1} step {bi}/{len(batches)} loss {tot / nb:.5f} "
+                     f"({fmt_dur(time.time() - ep_t0)} into the epoch)")
         train_s = time.time() - ep_t0
         pv = predict(model, batcher, A.seqs, tA, va, device, bf16=on_gpu).astype(np.float32)
         cur = rsA.curves(rsA.full(pv))
@@ -571,6 +608,150 @@ def report(smoke: bool = False, seeds=(0, 1, 2), reps: int = 1000):
     return res
 
 
+# ----------------------------------------------------------------------------- round 2 selection
+R2_FAMILIES = {"a": (None, "F1-35M ensemble"), "b": ("facebook/esm2_t33_650M_UR50D", "F1-650M ensemble")}
+R2_THETAS = (80, 90, 95, 98)
+R2_MARGIN = 0.003
+
+
+def round2_candidates(families_ok):
+    """(name, family, theta, simplicity group) in the registered order (a) < (a)+routing < (b) < (b)+routing."""
+    out = []
+    for g, fam in enumerate(("a", "b")):
+        if fam not in families_ok:
+            continue
+        out.append((fam, fam, None, 2 * g))
+        out += [(f"{fam}+route{t}", fam, t, 2 * g + 1) for t in R2_THETAS]
+    return out
+
+
+def round2(seeds=(0, 1, 2), base: Path | None = None):
+    """Registered criterion (runs/test_looks.md 2026-10-25 01:15:00): mean of IA-weighted Fmax over all rows of A valid
+    and all rows of B valid, seed ensembles; routing = kNN prior (p_full) for proteins with best input-time hit
+    identity >= theta. Choice: simplest within 0.003 of the best; theta does not order candidates inside a group."""
+    t0 = time.time()
+    base = base or OUT / "round2"
+    base.mkdir(parents=True, exist_ok=True)
+    plog(f"ROUND2 selection START -> {base.relative_to(ROOT)}")
+    vocab, A, B, _, _ = setup(0)
+    onto = Ontology()
+    rs = {"A": RowScorer(onto, A, "valid", vocab), "B": RowScorer(onto, B, "valid", vocab)}
+    pers = {"A": A, "B": B}
+    ens, ok, dropped, per_seed = {}, [], {}, []
+    for fam, (plm, _) in R2_FAMILIES.items():
+        dirs = [OUT / run_name("F1", s, plm) for s in seeds]
+        miss = [str(d.name) for d in dirs for per in ("A", "B") if not (d / f"pred_{per}_valid.npy").exists()]
+        if miss:
+            dropped[fam] = f"missing predictions: {sorted(set(miss))}"
+            continue
+        ok.append(fam)
+        for per in ("A", "B"):
+            ps = []
+            for d in dirs:
+                ids = np.loadtxt(d / f"ids_{per}_valid.txt", dtype=str, ndmin=1)
+                assert (ids == rs[per].prot).all(), f"{d}: id order differs"
+                ps.append(np.load(d / f"pred_{per}_valid.npy"))
+                cur = rs[per].curves(rs[per].full(ps[-1]))
+                per_seed.append({"family": fam, "run": d.name, "period": per,
+                                 "all": rs[per].fmax(cur, "all")["mean"], "nk": rs[per].fmax(cur, "nk")["mean"]})
+            ens[(fam, per)] = rs[per].full(logit_mean(ps)).tocsr()
+    knn = {per: rs[per].full(None).tocsr() for per in ("A", "B")}
+    rows = []
+
+    def score(per, M):
+        cur = rs[per].curves(M)
+        return {st: rs[per].fmax(cur, st) for st in ("all", "nk")}
+
+    for per in ("A", "B"):
+        f = score(per, knn[per])
+        rows.append({"candidate": "kNN prior alone (reference, not a candidate)", "period": per, **{
+            f"{st}_{k}": f[st][k] for st in f for k in ("MF", "BP", "CC", "mean")}, "routed_share": 1.0})
+    for name, fam, theta, grp in round2_candidates(ok):
+        for per in ("A", "B"):
+            M = ens[(fam, per)]
+            route = np.zeros(len(rs[per].prot), bool)
+            if theta is not None:
+                route = pers[per].max_pident[rs[per].prow] >= theta
+                M = (sp.diags((~route).astype(float)) @ M + sp.diags(route.astype(float)) @ knn[per]).tocsr()
+            f = score(per, M)
+            rows.append({"candidate": name, "family": fam, "theta": theta, "group": grp, "period": per,
+                         **{f"{st}_{k}": f[st][k] for st in f for k in ("MF", "BP", "CC", "mean")},
+                         "routed_share": float(route.mean())})
+        plog(f"ROUND2 scored {name} ({time.time() - t0:.0f}s)")
+    R = pd.DataFrame(rows)
+    by = {per: R[R.period == per].set_index("candidate") for per in ("A", "B")}
+    tab = pd.DataFrame([{"candidate": n, "family": fam, "theta": np.nan if t is None else float(t), "group": grp,
+                         **{f"{v}_{per}": by[per].loc[n, v] for per in ("A", "B")
+                            for v in ("all_mean", "nk_mean", "routed_share")}}
+                        for n, fam, t, grp in round2_candidates(ok)])
+    tab["criterion"] = (tab.all_mean_A + tab.all_mean_B) / 2
+    tab["secondary_nk"] = (tab.nk_mean_A + tab.nk_mean_B) / 2
+    best = float(tab.criterion.max())
+    tab["within_margin"] = tab.criterion >= best - R2_MARGIN - 1e-12
+    elig = tab[tab.within_margin]
+    g = int(elig.group.min())
+    pick = elig[elig.group == g].sort_values("criterion", ascending=False).iloc[0]
+    kref = R[R.candidate.str.startswith("kNN")].set_index("period")
+    tab.to_csv(base / "selection.tsv", sep="\t", index=False, float_format="%.4f")
+    R.to_csv(base / "selection_detail.tsv", sep="\t", index=False, float_format="%.4f")
+    pd.DataFrame(per_seed).to_csv(base / "per_seed.tsv", sep="\t", index=False, float_format="%.4f")
+    theta = None if pd.isna(pick.theta) else float(pick.theta)
+    choice = {"registration": "runs/test_looks.md 2026-10-25 01:15:00", "families_trained": ok, "dropped": dropped,
+              "best_criterion": best, "best_candidate": str(tab.loc[tab.criterion.idxmax(), "candidate"]),
+              "margin": R2_MARGIN, "eligible": elig.candidate.tolist(),
+              "chosen": {"candidate": str(pick.candidate), "family": str(pick.family),
+                         "plm": R2_FAMILIES[pick.family][0] or "facebook/esm2_t12_35M_UR50D", "theta": theta,
+                         "criterion": float(pick.criterion), "A_all": float(pick.all_mean_A),
+                         "B_all": float(pick.all_mean_B), "secondary_nk": float(pick.secondary_nk)},
+              "kNN_reference": {"A_all": float(kref.loc["A", "all_mean"]), "B_all": float(kref.loc["B", "all_mean"]),
+                                "criterion": float((kref.loc["A", "all_mean"] + kref.loc["B", "all_mean"]) / 2)},
+              "rule": "simplest candidate within 0.003 of the best criterion; order (a) < (a)+routing < (b) < "
+                      "(b)+routing; theta does not order candidates inside a group; ties by higher criterion"}
+    (base / "choice.json").write_text(json.dumps(choice, indent=2))
+    write_round2_md(base, tab, R, pd.DataFrame(per_seed), choice)
+    plog(f"ROUND2 selection END: best {choice['best_candidate']} {best:.4f}; eligible {choice['eligible']}; CHOSEN "
+         f"{pick.candidate} (criterion {pick.criterion:.4f}) in {fmt_dur(time.time() - t0)}")
+    return choice
+
+
+def write_round2_md(base, tab, R, PS, choice):
+    def f(v):
+        return "" if pd.isna(v) else (f"{v:.4f}" if isinstance(v, (float, np.floating)) else str(v))
+
+    c = choice["chosen"]
+    L = ["# Forecasting model, round 2: encoder size and routing", "",
+         "Registration: runs/test_looks.md, entry 2026-10-25 01:15:00. Code: `src/cafa6/forecast_train.py` (`train --plm`, "
+         "`round2`, `predict --round2`). Log: `logs/forecast_train.log`.", "",
+         "Criterion = mean of the IA-weighted Fmax (mean over MF/BP/CC) on all rows of A valid and all rows of B valid "
+         "(gained terms; input terms removed from predictions after propagation), seed ensembles (logit mean of seeds "
+         "0, 1, 2). Routing sends every aspect of a protein whose best input-time hit identity is >= theta to the "
+         "input-time kNN prior. No-knowledge rows (empty aspect at input) are secondary.", "",
+         f"- families trained: {choice['families_trained']}; dropped: {choice['dropped'] or 'none'}",
+         f"- best criterion: {choice['best_candidate']} {choice['best_criterion']:.4f}; eligible within "
+         f"{choice['margin']}: {', '.join(choice['eligible'])}",
+         f"- **chosen: {c['candidate']}** (encoder {c['plm']}, theta {c['theta']}), criterion {c['criterion']:.4f} "
+         f"(A all {c['A_all']:.4f}, B all {c['B_all']:.4f}; secondary nk {c['secondary_nk']:.4f})",
+         f"- kNN prior alone (reference): criterion {choice['kNN_reference']['criterion']:.4f} "
+         f"(A all {choice['kNN_reference']['A_all']:.4f}, B all {choice['kNN_reference']['B_all']:.4f})", "",
+         "## Selection table", "",
+         "| candidate | group | criterion | A all | B all | A nk | B nk | secondary nk | routed A | routed B | within 0.003 |",
+         "|---|---|---|---|---|---|---|---|---|---|---|"]
+    for r in tab.to_dict("records"):
+        L.append(f"| {r['candidate']} | {int(r['group'])} | {f(r['criterion'])} | {f(r['all_mean_A'])} | "
+                 f"{f(r['all_mean_B'])} | {f(r['nk_mean_A'])} | {f(r['nk_mean_B'])} | {f(r['secondary_nk'])} | "
+                 f"{f(r['routed_share_A'])} | {f(r['routed_share_B'])} | {'yes' if r['within_margin'] else ''} |")
+    L += ["", "## Per aspect (all rows and nk rows)", "",
+          "| candidate | period | all MF | all BP | all CC | all mean | nk MF | nk BP | nk CC | nk mean |",
+          "|---|---|---|---|---|---|---|---|---|---|"]
+    for r in R.to_dict("records"):
+        L.append(f"| {r['candidate']} | {r['period']} | " + " | ".join(
+            f(r[f"{st}_{k}"]) for st in ("all", "nk") for k in ("MF", "BP", "CC", "mean")) + " |")
+    L += ["", "## Single seeds (no routing; descriptive)", "", "| run | period | all mean | nk mean |", "|---|---|---|---|"]
+    for r in PS.to_dict("records"):
+        L.append(f"| {r['run']} | {r['period']} | {f(r['all'])} | {f(r['nk'])} |")
+    (base / "report.md").write_text("\n".join(L) + "\n")
+
+
 def write_md(base, S, Bn, T, res, smoke):
     def cell(v, c):
         if c == "seed" or c.startswith("n"):
@@ -636,20 +817,352 @@ def verify():
     return self_hits == 0
 
 
+# ----------------------------------------------------------------------------- fresh24 predictions (look #2)
+F24 = ROOT / "data" / "fresh24"
+F24_PREDS = ROOT / "runs" / "fresh24" / "preds"
+F24_WORK = OUT / "fresh24_work"
+SERVE = ROOT / "data" / "serve"
+LOOK1_HITS = Path("/dev/shm/fresh24_work/hits_trainval.tsv")
+SPOT_TOL = 1e-3
+
+
+def read_fasta(path: Path):
+    ids, seqs, cur = [], [], []
+    for line in open(path):
+        if line.startswith(">"):
+            if ids:
+                seqs.append("".join(cur))
+            ids.append(line[1:].split()[0]); cur = []
+        else:
+            cur.append(line.strip())
+    if ids:
+        seqs.append("".join(cur))
+    return np.array(ids), seqs
+
+
+def served_labels(onto: Ontology):
+    z = np.load(SERVE / "labels.npz", allow_pickle=False)
+    assert list(z["terms"]) == list(onto.terms), "data/serve/labels.npz columns differ from the ontology"
+    L = sp.csr_matrix((z["data"], z["indices"], z["indptr"]), shape=tuple(z["shape"]))
+    return z["ids"].astype(str), L
+
+
+def check_served_labels(onto: Ontology, ids, L) -> dict:
+    """The served label matrix vs S0 as build_forecast.cmd_prior builds it for period A (same references)."""
+    from cafa6.build_forecast import ROOTS
+    from cafa6.temporal_val import GO, SRC, full_labels
+    go = GO()
+    src = pd.read_parquet(SRC / "train.parquet", columns=["id", "split"])
+    db_ids = np.array(sorted(set(src.id[src.split.isin(["train", "val"])])))
+    S0 = {**full_labels(go, "train"), **full_labels(go, "val")}
+    ref = np.array([p for p in db_ids if S0.get(p, set()) - ROOTS])
+    L0 = onto.label_matrix([S0[p] for p in ref]).tocsr()
+    pos = {p: i for i, p in enumerate(ids)}
+    same_set = set(ref) == set(ids)
+    Ls = L[[pos[p] for p in ref]] if same_set else None
+    diff = int(abs(Ls - L0).sum()) if same_set else -1
+    return {"served_refs": int(len(ids)), "S0_refs_with_nonroot_label": int(len(ref)), "same_reference_set": same_set,
+            "label_pairs_S0": int(L0.nnz), "label_pairs_served": int(L.nnz), "differing_label_pairs": diff}
+
+
+def diamond_k60(q_fa: Path, out: Path, threads: int):
+    import subprocess
+    dbsize = json.loads((SERVE / "meta.json").read_text())["dbsize"]
+    subprocess.run([str(ROOT / "tools" / "diamond"), "blastp", "-d", str(SERVE / "refs"), "-q", str(q_fa),
+                    "-o", str(out), "--more-sensitive", "-e", "1e-3", "-k", "60", "-p", str(threads), "--quiet",
+                    "--tmpdir", str(out.parent), "--dbsize", str(dbsize),
+                    "--outfmt", "6", "qseqid", "sseqid", "pident", "bitscore", "evalue", "qcovhsp"], check=True)
+    return dbsize
+
+
+def read_hits(path: Path) -> pd.DataFrame:
+    h = pd.read_csv(path, sep="\t", header=None, names=["q", "s", "pident", "bits", "evalue", "qcov"],
+                    dtype={"q": str, "s": str})
+    return h[h.q != h.s].sort_values(["q", "bits"], ascending=[True, False]).drop_duplicates(["q", "s"])
+
+
+def knn_prior(onto, qids, hits, ref_ids, L):
+    """build_forecast.cmd_prior's prior (make_knn + KNN.prior T5_k50_g0_na) over arbitrary queries."""
+    from cafa6.build_forecast import KNN, make_knn
+    kn = make_knn(onto, qids, hits, ref_ids, L)
+    P, nh = kn.prior(KNN["T"], KNN["k"], KNN["gamma"], KNN["norm"])
+    return P.tocsr(), kn.maxpid, kn.has_hit, nh
+
+
+def full_scores(onto, vcols, Pf, f_terms, pv) -> sp.csr_matrix:
+    """RowScorer.full for arbitrary proteins: vocab scores pv plus the out-of-vocabulary prior terms of Pf."""
+    fcols = np.array([onto.idx.get(t, -1) for t in f_terms])
+    oov = (fcols >= 0) & ~np.isin(fcols, vcols)
+    f_sel, f_cols = np.where(oov)[0], fcols[oov]
+    o = Pf[:, f_sel].tocoo()
+    pv = np.asarray(pv, np.float32)
+    rr, cc = np.nonzero(pv >= 0.005)
+    M = sp.csr_matrix((np.concatenate([o.data, pv[rr, cc]]).astype(np.float64),
+                       (np.concatenate([o.row, rr]), np.concatenate([f_cols[o.col], vcols[cc]]))),
+                      shape=(Pf.shape[0], len(onto.terms)))
+    M.sum_duplicates()
+    return M
+
+
+def write_cp_npz(path: Path, P: sp.csr_matrix, ids, onto, meta: dict):
+    """compare_paper.save_pred layout, max-propagated, scores >= 0.01."""
+    P = onto.propagate_max(P.tocsr()).tocsr().astype(np.float32)
+    P.data[P.data < 0.01] = 0
+    P.eliminate_zeros()
+    used = np.unique(P.indices)
+    Q = P[:, used].tocsr()
+    np.savez_compressed(path, ids=np.asarray(ids, dtype=str), data=Q.data, indices=Q.indices, indptr=Q.indptr,
+                        shape=np.array(Q.shape), terms=np.array(onto.terms)[used].astype(str), meta=json.dumps(meta))
+    return Q.nnz
+
+
+def load_forecast_model(arm: str, seed: int, vocab, device: str, plm: str | None = None):
+    cfg = yaml.safe_load(open(CFG))
+    cfg.update(fast_entmax=device.startswith("cuda"), seed=seed)
+    if plm:
+        cfg.update(plm=plm, plm_bf16=device.startswith("cuda"))
+    anc = np.load(GOGPT / "go_ancestors.npy")
+    higo = build_higo(cfg, vocab, anc, len(json.load(open(INIT / "taxa.json"))) + 1)
+    model = ForecastHiGO(higo, vocab.aspect.values)
+    w = torch.load(OUT / run_name(arm, seed, plm) / "trainable_weights.pt", map_location="cpu")
+    trainable = {n for n, p in model.named_parameters() if p.requires_grad}
+    assert set(w) == trainable, f"weights/model mismatch: {sorted(set(w) ^ trainable)[:5]}"
+    model.load_state_dict({**model.state_dict(), **w})
+    return model.to(device).eval(), cfg
+
+
+def predict_seed(model, cfg, tok, seqs, taxa, P_vocab, has_hit, freq, aspect, device) -> np.ndarray:
+    prior = PriorLogits(P_vocab, has_hit, aspect, freq)
+    b = Batcher(seqs, tok, cfg["max_len"], cfg["tokens_per_batch"], cfg["max_batch"], knn=prior, seed=0)
+    return predict(model, b, seqs, taxa, np.arange(len(seqs)), device, bf16=device.startswith("cuda"))
+
+
+def fresh24_taxa(ids, periods):
+    """Training rule of taxon_indices for proteins outside GO-GPT, then the served NCBI -> organism map."""
+    gg = pd.read_parquet(GOGPT / "train.parquet", columns=["id", "taxon"])
+    code = dict(zip(gg.id, gg.taxon))
+    tmap = {int(k): v for k, v in json.load(open(INIT / "taxa.json")).items()}
+    pairs = pd.DataFrame([(t, code[p]) for per in periods for p, t in zip(per.ids, per.ncbi) if p in code],
+                         columns=["ncbi", "code"])
+    ncbi2code = pairs.groupby("ncbi").code.agg(lambda s: s.value_counts().index[0]).to_dict()
+    st = pd.read_csv(SERVE / "taxa.tsv", sep="\t").dropna(subset=["ncbi", "gogpt_taxon"])
+    serve = dict(zip(st.ncbi.astype(int), st.gogpt_taxon.astype(int)))
+    pt = pd.read_csv(F24 / "proteins.tsv", sep="\t").set_index("accession").taxon
+    ncbi = pt.reindex(ids).values
+    out, src = [], {"training_rule": 0, "served_map": 0, "other": 0}
+    disagree = 0
+    for t in ncbi:
+        t = int(t)
+        c1, c2 = ncbi2code.get(t), serve.get(t)
+        if c1 is not None and c2 is not None and tmap.get(int(c1), 0) != tmap.get(int(c2), 0):
+            disagree += 1
+        if c1 is not None:
+            src["training_rule"] += 1; c = c1
+        elif c2 is not None:
+            src["served_map"] += 1; c = c2
+        else:
+            src["other"] += 1; c = -1
+        out.append(tmap.get(int(c), 0))
+    out = np.array(out, np.int64)
+    src.update(known_taxon_index=int((out > 0).sum()), rule_vs_served_disagree=disagree)
+    return out, src
+
+
+def predict_fresh24(device: str, threads: int, plm: str | None = None, theta: float | None = None,
+                    out_name: str | None = None, cand: dict | None = None):
+    """Default: look #2 files (forecast_F1_s{0,1,2}.npz, forecast_F1_ens.npz). With out_name (round 2): only the
+    seed ensemble of the chosen family (plm), proteins with best hit identity >= theta routed to the kNN prior,
+    written to out_name.npz + out_name.json; the spot-check goes to runs/forecast/round2."""
+    t_all = time.time()
+    F24_WORK.mkdir(parents=True, exist_ok=True)
+    fam = run_name("F1", "{s}", plm).replace("_s{s}", "")
+    plog(f"PREDICT fresh24 {fam}_ens{f' routed at identity >= {theta}' if theta else ''} START on {device} "
+         f"({'round 2 -> ' + out_name if out_name else 'look #2'}; predictions only, no scoring)")
+    if device.startswith("cuda"):
+        torch.cuda.set_per_process_memory_fraction(min(1.0, 20 * 2**30 / torch.cuda.get_device_properties(device).total_memory), device)
+    vocab = pd.read_csv(GOGPT / "vocab.tsv", sep="\t")
+    aspect = vocab.aspect.values
+    onto = Ontology()
+    vcols = np.array([onto.idx[t] for t in vocab.term])
+    tok = AutoTokenizer.from_pretrained(plm or yaml.safe_load(open(CFG))["plm"])
+
+    # 1. period A: F1 term frequencies (term-prior logit) and the spot-check inputs, exactly as in train()
+    t = time.time()
+    A, B = Period("A", vocab), Period("B", vocab)
+    tA, _ = taxon_indices([A, B])
+    Y = (A.Y_in + A.Y_gain).tocsr(); Y.data[:] = 1
+    tr = np.where(A.split == "train")[0]
+    freq = np.asarray(Y[tr].mean(0)).ravel()
+    va = np.where(A.split == "valid")[0]
+    rng = np.random.default_rng(0)
+    long_ = va[np.array([len(A.seqs[j]) > 1022 for j in va])]
+    pick = np.r_[rng.choice(long_, min(3, len(long_)), replace=False),
+                 rng.choice(np.setdiff1d(va, long_), 20 - min(3, len(long_)), replace=False)]
+    plog(f"PREDICT period A loaded ({len(tr):,} train proteins for the F1 term prior; spot-check on 20 A valid "
+         f"proteins, {min(3, len(long_))} longer than 1,022) in {time.time() - t:.0f}s")
+
+    # 2. spot-check: the predict path on 20 A valid proteins vs the saved training-time predictions
+    t = time.time()
+    models, spot = {}, {}
+    va_ids = list(np.loadtxt(OUT / run_name("F1", 0, plm) / "ids_A_valid.txt", dtype=str))
+    vpos = {p: i for i, p in enumerate(va_ids)}
+    for s in (0, 1, 2):
+        models[s] = load_forecast_model("F1", s, vocab, device, plm)
+        ref = np.load(OUT / run_name("F1", s, plm) / "pred_A_valid.npy", mmap_mode="r")
+        pr = predict_seed(*models[s], tok, [A.seqs[j] for j in pick], tA[pick], A.P[pick], A.has_hit[pick], freq,
+                          aspect, device)
+        r = np.asarray(ref[[vpos[A.ids[j]] for j in pick]], np.float32)
+        d = np.abs(pr.astype(np.float32) - r)
+        spot[run_name("F1", s, plm)] = {"max_abs_diff": float(d.max()), "mean_abs_diff": float(d.mean()),
+                            "pairs_over_tol": int((d > SPOT_TOL).sum())}
+    ok = all(v["max_abs_diff"] <= SPOT_TOL for v in spot.values())
+    spot_path = OUT / "round2" / "spotcheck_fresh24.json" if out_name else F24_WORK / "spotcheck.json"
+    spot_path.write_text(json.dumps({"proteins": [str(A.ids[j]) for j in pick], "tol": SPOT_TOL,
+                                                         "result": spot, "pass": ok}, indent=2))
+    plog(f"PREDICT spot-check (20 A valid proteins x 7,901 terms, tol {SPOT_TOL}): "
+         + "; ".join(f"{k} max |diff| {v['max_abs_diff']:.2e}" for k, v in spot.items())
+         + f" -> {'PASS' if ok else 'FAIL'} ({time.time() - t:.0f}s)")
+    if not ok:
+        raise SystemExit("spot-check failed; nothing written")
+
+    # 3. fresh24 prior at the training-time definition, checked against the look-1 prior
+    t = time.time()
+    ids, seqs = read_fasta(F24 / "fresh24.fasta")
+    q_fa = F24_WORK / "fresh24.fa"
+    with open(q_fa, "w") as f:
+        for p, s in zip(ids, seqs):
+            f.write(f">{p}\n{s}\n")
+    ref_ids, L = served_labels(onto)
+    lab_check = check_served_labels(onto, ref_ids, L)
+    plog(f"PREDICT served labels vs period-A S0 labels: {json.dumps(lab_check)} ({time.time() - t:.0f}s)")
+    assert lab_check["same_reference_set"] and lab_check["differing_label_pairs"] == 0, "served labels differ from S0"
+    hits_path = F24_WORK / "hits_k60.tsv"
+    t = time.time()
+    if not hits_path.exists():
+        dbsize = diamond_k60(q_fa, hits_path, threads)
+        plog(f"PREDICT DIAMOND fresh24 ({len(ids):,}) vs served references, --more-sensitive -e 1e-3 -k 60 "
+             f"--dbsize {dbsize:,}, {threads} threads: {time.time() - t:.0f}s")
+    else:
+        plog(f"PREDICT reusing the -k 60 DIAMOND hits of look #2 ({hits_path.relative_to(ROOT)})")
+    h60 = read_hits(hits_path)
+    P60, maxpid, has_hit, nh = knn_prior(onto, ids, h60, ref_ids, L)
+    chk = {"queries": int(len(ids)), "with_hit_k60": int(has_hit.sum()), "hits_k60_rows": int(len(h60))}
+    z = np.load(F24_PREDS / "ontologue_knn.npz", allow_pickle=False)
+    assert (z["ids"].astype(str) == ids).all(), "ontologue_knn.npz id order differs from fresh24.fasta"
+    Q = sp.csr_matrix((z["data"], z["indices"], z["indptr"]), shape=tuple(z["shape"])).tocoo()
+    qc = np.array([onto.idx[t] for t in z["terms"]])
+    P1 = sp.csr_matrix((Q.data, (Q.row, qc[Q.col])), shape=P60.shape)
+    if LOOK1_HITS.exists():
+        P51, *_ = knn_prior(onto, ids, read_hits(LOOK1_HITS), ref_ids, L)
+        d = abs(P51 - P1)
+        chk["look1_hits_recomputed_vs_ontologue_knn_max_abs_diff"] = float(d.max()) if d.nnz else 0.0
+    d = abs(P60 - P1).tocsr()
+    rows_diff = np.unique(d.tocoo().row[d.tocoo().data > 1e-6])
+    chk.update(k60_vs_ontologue_knn_max_abs_diff=float(d.max()) if d.nnz else 0.0,
+               k60_vs_ontologue_knn_proteins_differing=int(len(rows_diff)),
+               k60_vs_ontologue_knn_pairs_differing_gt_0_01=int((d.data > 0.01).sum()),
+               k60_nnz=int(P60.nnz), ontologue_knn_nnz=int(P1.nnz))
+    if not out_name:
+        (F24_WORK / "prior_check.json").write_text(json.dumps(chk, indent=2))
+    plog(f"PREDICT fresh24 prior T5_k50_g0_na (training-time -k 60) vs look-1 ontologue_knn.npz (-k 51): "
+         f"{json.dumps(chk)} ({time.time() - t:.0f}s)")
+    used = np.unique(P60.indices)
+    Pf, f_terms = P60[:, used].tocsr().astype(np.float32), np.array(onto.terms)[used]
+    Pv = P60[:, vcols].tocsr().astype(np.float32)
+    prior_path = F24_WORK / ("fresh24_knn_prior.npz" if not out_name else "fresh24_knn_prior_round2.npz")
+    np.savez_compressed(prior_path, ids=ids, p_data=Pv.data, p_indices=Pv.indices,
+                        p_indptr=Pv.indptr, p_shape=np.array(Pv.shape), pf_data=Pf.data, pf_indices=Pf.indices,
+                        pf_indptr=Pf.indptr, pf_shape=np.array(Pf.shape), terms_full=f_terms.astype(str),
+                        max_pident=maxpid.astype(np.float32), has_hit=has_hit, n_hits=np.asarray(nh, np.int32),
+                        settings=json.dumps({"T": 5.0, "k": 50, "gamma": 0, "norm": "aspect",
+                                             "setting": "T5_k50_g0_na", "diamond": "--more-sensitive -e 1e-3 -k 60",
+                                             "references": "data/serve (GO-GPT train+val, S0 labels)"}))
+
+    # 4. per-seed predictions and the logit-mean ensemble
+    taxa, tsrc = fresh24_taxa(ids, [A, B])
+    plog(f"PREDICT fresh24 taxon indices: {json.dumps(tsrc)}")
+    meta0 = {"look": "fresh24 look #2 (runs/fresh24_looks.md 2026-10-24 22:45)",
+             "prior": "T5_k50_g0_na aspect-normalised, DIAMOND --more-sensitive -e 1e-3 -k 60 vs data/serve train+val "
+                      "references (S0 labels); runs/forecast/fresh24_work/fresh24_knn_prior.npz",
+             "inputs": "sequence, taxon, prior; no input terms", "device": device,
+             "scores": "MCM probabilities over the 7,901-term vocabulary + out-of-vocabulary kNN prior terms, "
+                       "max-propagated, >= 0.01", "created": time.strftime("%Y-%m-%d %H:%M:%S")}
+    if out_name:
+        z2 = np.load(F24_WORK / "fresh24_knn_prior.npz")
+        P2 = sp.csr_matrix((z2["pf_data"], z2["pf_indices"], z2["pf_indptr"]), shape=tuple(z2["pf_shape"]))
+        same = list(z2["terms_full"]) == list(f_terms) and abs(P2 - Pf).sum() == 0 \
+            and np.array_equal(z2["max_pident"], maxpid.astype(np.float32))
+        plog(f"PREDICT round-2 prior identical to the look-2 prior file (fresh24_knn_prior.npz): {same}")
+        ps, timing = [], {}
+        for s in (0, 1, 2):
+            t = time.time()
+            ps.append(predict_seed(*models[s], tok, seqs, taxa, Pv, has_hit, freq, aspect, device))
+            timing[run_name("F1", s, plm)] = time.time() - t
+            plog(f"PREDICT {run_name('F1', s, plm)}: {len(ids):,} proteins in {timing[run_name('F1', s, plm)]:.0f}s; "
+                 f"peak GPU {torch.cuda.max_memory_allocated(device) / 2**30 if device.startswith('cuda') else 0:.1f} GiB")
+        t = time.time()
+        M = full_scores(onto, vcols, Pf, f_terms, logit_mean(ps)).tocsr()
+        route = (maxpid >= theta) if theta is not None else np.zeros(len(ids), bool)
+        if route.any():
+            keep = sp.diags((~route).astype(np.float64))
+            M = (keep @ M + sp.diags(route.astype(np.float64)) @ P60.astype(np.float64)).tocsr()
+        desc = {**meta0, "look": "fresh24 look #3 candidate (runs/test_looks.md 2026-10-25 01:15:00, round 2)",
+                "method": f"forecast model {fam}_ens (logit mean of seeds 0, 1, 2)"
+                          + (f", proteins with best hit identity >= {theta} routed to the kNN prior" if theta else ""),
+                "weights": f"runs/forecast/{fam}_s{{0,1,2}}", "theta": theta, "routed_proteins": int(route.sum()),
+                "routing_identity": "max pident over the -k 60 DIAMOND hits vs data/serve train+val references",
+                "candidate": cand or {}, "taxon": tsrc, "timing_s": timing}
+        nnz = write_cp_npz(F24_PREDS / f"{out_name}.npz", M, ids, onto, desc)
+        (F24_PREDS / f"{out_name}.json").write_text(json.dumps({**desc, "file": f"runs/fresh24/preds/{out_name}.npz",
+                                                                "scores": nnz}, indent=2))
+        plog(f"PREDICT round 2: wrote runs/fresh24/preds/{out_name}.npz ({nnz:,} scores, {nnz / len(ids):.0f} per "
+             f"protein; {int(route.sum()):,} proteins routed to kNN) and {out_name}.json in {time.time() - t:.0f}s; "
+             f"total wall {fmt_dur(time.time() - t_all)}")
+        return
+    ps, timing = [], {}
+    for s in (0, 1, 2):
+        t = time.time()
+        p = predict_seed(*models[s], tok, seqs, taxa, Pv, has_hit, freq, aspect, device)
+        timing[f"F1_s{s}"] = time.time() - t
+        ps.append(p)
+        nnz = write_cp_npz(F24_PREDS / f"forecast_F1_s{s}.npz", full_scores(onto, vcols, Pf, f_terms, p), ids, onto,
+                           {**meta0, "method": f"forecast model F1 seed {s}", "weights": f"runs/forecast/F1_s{s}"})
+        plog(f"PREDICT F1_s{s}: {len(ids):,} proteins in {timing[f'F1_s{s}']:.0f}s; wrote "
+             f"runs/fresh24/preds/forecast_F1_s{s}.npz ({nnz:,} scores, {nnz / len(ids):.0f} per protein); "
+             f"peak GPU {torch.cuda.max_memory_allocated(device) / 2**30 if device.startswith('cuda') else 0:.1f} GiB")
+    t = time.time()
+    ens = logit_mean(ps)
+    nnz = write_cp_npz(F24_PREDS / "forecast_F1_ens.npz", full_scores(onto, vcols, Pf, f_terms, ens), ids, onto,
+                       {**meta0, "method": "forecast model F1_ens (logit mean of seeds 0, 1, 2)",
+                        "weights": "runs/forecast/F1_s{0,1,2}"})
+    plog(f"PREDICT F1_ens: wrote runs/fresh24/preds/forecast_F1_ens.npz ({nnz:,} scores, {nnz / len(ids):.0f} per "
+         f"protein) in {time.time() - t:.0f}s; total wall {fmt_dur(time.time() - t_all)}")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["train", "report", "verify"])
+    ap.add_argument("cmd", choices=["train", "report", "verify", "predict", "round2"])
+    ap.add_argument("--round2", action="store_true", help="predict: the candidate in runs/forecast/round2/choice.json")
+    ap.add_argument("--threads", type=int, default=16)
     ap.add_argument("--arm", default="F1")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--smoke", type=int, default=0)
     ap.add_argument("--epochs", type=int)
     ap.add_argument("--reps", type=int, default=1000)
+    ap.add_argument("--plm", default=None, help="round 2: other frozen encoder, e.g. facebook/esm2_t33_650M_UR50D")
     a = ap.parse_args()
     if a.cmd == "train":
-        train(a.arm, a.seed, a.device, a.smoke, a.epochs)
+        train(a.arm, a.seed, a.device, a.smoke, a.epochs, a.plm)
     elif a.cmd == "report":
         report(bool(a.smoke), reps=a.reps)
+    elif a.cmd == "predict" and a.round2:
+        c = json.loads((OUT / "round2" / "choice.json").read_text())["chosen"]
+        predict_fresh24(a.device, a.threads, R2_FAMILIES[c["family"]][0], c["theta"], "forecast_round2", c)
+    elif a.cmd == "predict":
+        predict_fresh24(a.device, a.threads)
+    elif a.cmd == "round2":
+        round2()
     else:
         verify()
 

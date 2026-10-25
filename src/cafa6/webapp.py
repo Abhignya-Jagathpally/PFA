@@ -481,7 +481,8 @@ none at all. Every method below was run once, frozen, with the scoring fixed bef
 <div class="versus"><div><table class="vtable">
 <tr><th>Fresh benchmark, 11,231 proteins</th><th>IA-weighted Fmax</th><th>S-min</th></tr>
 <tr><td class="us">SPROF-GO (2023)</td><td class="us">0.515</td><td class="us">11.95</td></tr>
-<tr><td style="color:#7d8a8e">Forecasting model (research, not served)<sup>&sect;</sup></td><td style="color:#7d8a8e">0.487</td><td style="color:#7d8a8e">12.64</td></tr>
+<tr><td style="color:#7d8a8e">Forecasting model, ESM2-650M (research, not served)<sup>&sect;</sup></td><td style="color:#7d8a8e">0.514</td><td style="color:#7d8a8e">12.34</td></tr>
+<tr><td style="color:#7d8a8e">Forecasting model, ESM2-35M (research)<sup>&sect;</sup></td><td style="color:#7d8a8e">0.487</td><td style="color:#7d8a8e">12.64</td></tr>
 <tr class="hl"><td class="us">{BRAND}</td><td>0.479</td><td>12.65</td></tr>
 <tr><td>GO-GPT, ten samples</td><td>0.468</td><td>12.53</td></tr>
 <tr><td>DeepGOPlus (2019)</td><td>0.466</td><td>12.95</td></tr>
@@ -492,9 +493,10 @@ none at all. Every method below was run once, frozen, with the scoring fixed bef
 <tr><td>BLAST best hit, same references</td><td>0.375</td><td>13.58</td></tr>
 <tr><td>DeepFRI, sequence model (2021)</td><td>0.270</td><td>15.16</td></tr>
 <tr><td>Naive (term frequency)</td><td>0.230</td><td>14.65</td></tr></table>
-<p class="hint" style="margin-top:10px"><sup>&sect;</sup> A version of {BRAND} trained to forecast which annotations a
-protein will gain next, rather than to reproduce its current ones. It is better than {BRAND} for proteins below 95%
-identity and worse above it. It is not yet the model behind this website.</p></div>
+<p class="hint" style="margin-top:10px"><sup>&sect;</sup> Versions of {BRAND} trained to forecast which annotations a
+protein will gain next, rather than to reproduce its current ones. With the larger ESM2-650M encoder it ties SPROF-GO
+(0.514 against 0.515, difference not significant) and beats {BRAND} by 0.034 and GO-GPT by 0.046; it is ahead of
+SPROF-GO from 50% identity upward and behind it below. It is not yet the model behind this website.</p></div>
 <div class="limits"><h3>What this tells you</h3>
 <p>{BRAND} still beats GO-GPT on fresh data (+0.012, 95% interval +0.007 to +0.017), but every method built on GO-GPT's
 training data drops sharply (from about 0.70 to about 0.47), because much of the first benchmark rewarded copying

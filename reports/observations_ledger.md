@@ -397,3 +397,12 @@ Look #4 was not used. The look-3 pipeline is final.
 | Ontologue still above GO-GPT | +0.012 [+0.007, +0.017] over ten-sample, +0.020 over beam (Holm p 0.015) | the comparison with GO-GPT holds on fresh data, with a smaller margin |
 | Forecasting training helps where retrieval is weak | F1_ens 0.487 vs Ontologue 0.479 (+0.008 [+0.004, +0.012], p_Holm 0.008); gains at no hit +0.022, <30 +0.024, 30-50 +0.013, 50-80 +0.017; losses at 95-99.9 -0.024, 100 -0.066 | KEEP idea 1 as the research direction; a model that uses F1 below ~95% identity and Ontologue above is the obvious next candidate, but it must be selected on forecast-valid / TV data, not on fresh24 |
 | Forecasting model still below SPROF-GO | -0.027 [-0.032, -0.022] | the language-model branch (35M) is the bottleneck for distant proteins; SPROF-GO uses ProtT5-XL; a larger encoder is the next lever |
+
+### 5.5 Update 2026-10-25: forecasting round 2 and fresh24 look #3 (`runs/forecast/round2/`, `runs/fresh24_look3/`)
+
+| observation | evidence | consequence |
+|---|---|---|
+| Larger frozen encoder helps the forecasting model | round-2 selection (A+B valid, all rows): F1-650M 0.2983 vs F1-35M 0.2947; FR24-P: 0.514 vs 0.487 (+0.026 [+0.023, +0.030]) | KEEP the 650M encoder; ESM2-3B is the next step |
+| Routing to the kNN prior at high identity does not help | every routed variant below its unrouted model on A+B valid (e.g. b+route98 0.2896 vs b 0.2983) | DROP identity routing; the forecasting model already handles close homologues |
+| Forecasting model ties SPROF-GO on fresh data | FR24-P IA-weighted Fmax 0.514 vs 0.515 (-0.001 [-0.006, +0.005], ns); SPROF-GO better on Fmax (0.015) and S-min (0.39); F1-650M ahead at >= 50% identity, behind below 50%; on all no-knowledge proteins 0.529 vs 0.524 | the learned model now adds what retrieval misses; the remaining gap is distant proteins and calibration (S-min) |
+| Forecasting model beats Ontologue and GO-GPT on fresh data | +0.034 over Ontologue, +0.046 over GO-GPT ten-sample (Holm p 0.005) | candidate to replace the served model once the last fresh24 look is spent on a final confirmation |

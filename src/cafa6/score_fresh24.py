@@ -84,7 +84,11 @@ METHODS = [
     ("deepgose", "DeepGO-SE (MF, BP only)", ("MF", "BP")),
     ("bioreason_rl", "BioReason-Pro RL", ASPECTS),
     ("forecast_F1_ens", "Forecasting model F1 (3-seed ensemble)", ASPECTS),
+    ("forecast_round2", "Forecasting model, round 2 (F1-650M ensemble)", ASPECTS),
 ]
+# look #3 (runs/fresh24_looks.md, 2026-10-25 01:16): reference and comparison set
+LOOK3_REF = "forecast_round2"
+LOOK3_COMPARE = ("ontologue", "forecast_F1_ens", "sprof_go", "gogpt_sample10")
 # look #2 (runs/fresh24_looks.md, 2026-10-24 22:45): reference and comparison set
 LOOK2_REF = "forecast_F1_ens"
 LOOK2_COMPARE = ("ontologue", "ontologue_knn", "gogpt_sample10", "sprof_go")
@@ -270,10 +274,13 @@ def main():
     ap.add_argument("--sets", default=",".join(SETS))
     ap.add_argument("--out", default=str(OUT))
     ap.add_argument("--look2", action="store_true", help="registered look #2: forecasting model vs 4 methods")
+    ap.add_argument("--look3", action="store_true", help="registered look #3: round-2 forecasting model vs 4 methods")
     a = ap.parse_args()
     global REF
     if a.look2:
         REF = LOOK2_REF
+    if a.look3:
+        REF = LOOK3_REF
     out = __import__("pathlib").Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     onto = {"gogpt": ks.Ontology()}
@@ -283,8 +290,10 @@ def main():
     avail = [k for k, _, _ in METHODS if (PREDS / f"{k}.npz").exists()]
     if a.look2:
         avail = [k for k in (LOOK2_REF,) + LOOK2_COMPARE if k in avail]
+    elif a.look3:
+        avail = [k for k in (LOOK3_REF,) + LOOK3_COMPARE if k in avail]
     else:
-        avail = [k for k in avail if k != LOOK2_REF]
+        avail = [k for k in avail if k not in (LOOK2_REF, LOOK3_REF)]
     log(f"methods with predictions: {avail}")
     raw = {}
     srows, brows, orows, prows = [], [], [], []
