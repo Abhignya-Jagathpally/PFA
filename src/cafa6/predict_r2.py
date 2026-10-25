@@ -189,7 +189,7 @@ def knn_prior(hits: pd.DataFrame, qids: list, didx: dict, L: sp.csr_matrix, root
     q = h._q.values.astype(np.int64)
     s = h._s.values.astype(np.int64)
     rank = h.groupby("q", sort=False).cumcount().values
-    bits, pid = h.bits.values, h.pident.values
+    bits, pid = h.bits.values.astype(np.float64), h.pident.values.astype(np.float64)   # object dtype when no hits
     n = len(qids)
     maxpid = np.zeros(n, np.float32)
     np.maximum.at(maxpid, q, pid.astype(np.float32))
