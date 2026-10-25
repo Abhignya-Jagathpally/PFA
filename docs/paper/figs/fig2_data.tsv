@@ -1,0 +1,78 @@
+benchmark	method	bin	Fmax_w_mean
+GO-GPT temporal test (bins: train refs)	HiGO-R2 / Ontologue	no_hit	0.3421
+GO-GPT temporal test (bins: train refs)	HiGO-R2 / Ontologue	<30	0.4509
+GO-GPT temporal test (bins: train refs)	HiGO-R2 / Ontologue	30-50	0.4799
+GO-GPT temporal test (bins: train refs)	HiGO-R2 / Ontologue	50-80	0.5058
+GO-GPT temporal test (bins: train refs)	HiGO-R2 / Ontologue	80-95	0.6752
+GO-GPT temporal test (bins: train refs)	HiGO-R2 / Ontologue	95-99.9	0.8575
+GO-GPT temporal test (bins: train refs)	HiGO-R2 / Ontologue	100	0.8785
+GO-GPT temporal test (bins: train refs)	GO-GPT ten-sample	no_hit	0.3821
+GO-GPT temporal test (bins: train refs)	GO-GPT ten-sample	<30	0.4614
+GO-GPT temporal test (bins: train refs)	GO-GPT ten-sample	30-50	0.4495
+GO-GPT temporal test (bins: train refs)	GO-GPT ten-sample	50-80	0.4927
+GO-GPT temporal test (bins: train refs)	GO-GPT ten-sample	80-95	0.6672
+GO-GPT temporal test (bins: train refs)	GO-GPT ten-sample	95-99.9	0.8355
+GO-GPT temporal test (bins: train refs)	GO-GPT ten-sample	100	0.8422
+GO-GPT temporal test (bins: train refs)	BioReason-Pro RL	no_hit	0.3196
+GO-GPT temporal test (bins: train refs)	BioReason-Pro RL	<30	0.4648
+GO-GPT temporal test (bins: train refs)	BioReason-Pro RL	30-50	0.4237
+GO-GPT temporal test (bins: train refs)	BioReason-Pro RL	50-80	0.4439
+GO-GPT temporal test (bins: train refs)	BioReason-Pro RL	80-95	0.6222
+GO-GPT temporal test (bins: train refs)	BioReason-Pro RL	95-99.9	0.7593
+GO-GPT temporal test (bins: train refs)	BioReason-Pro RL	100	0.8091
+GO-GPT temporal test (bins: train refs)	BLAST-KNN (train refs)	no_hit	0.0
+GO-GPT temporal test (bins: train refs)	BLAST-KNN (train refs)	<30	0.3557
+GO-GPT temporal test (bins: train refs)	BLAST-KNN (train refs)	30-50	0.3568
+GO-GPT temporal test (bins: train refs)	BLAST-KNN (train refs)	50-80	0.3926
+GO-GPT temporal test (bins: train refs)	BLAST-KNN (train refs)	80-95	0.6176
+GO-GPT temporal test (bins: train refs)	BLAST-KNN (train refs)	95-99.9	0.8379
+GO-GPT temporal test (bins: train refs)	BLAST-KNN (train refs)	100	0.8943
+GO-GPT temporal test (bins: train refs)	SPROF-GO	no_hit	0.4032
+GO-GPT temporal test (bins: train refs)	SPROF-GO	<30	0.5293
+GO-GPT temporal test (bins: train refs)	SPROF-GO	30-50	0.5136
+GO-GPT temporal test (bins: train refs)	SPROF-GO	50-80	0.5121
+GO-GPT temporal test (bins: train refs)	SPROF-GO	80-95	0.5715
+GO-GPT temporal test (bins: train refs)	SPROF-GO	95-99.9	0.5815
+GO-GPT temporal test (bins: train refs)	SPROF-GO	100	0.5491
+fresh24 FR24-P (bins: train+val refs)	HiGO-R2 / Ontologue	no_hit	0.3336
+fresh24 FR24-P (bins: train+val refs)	HiGO-R2 / Ontologue	<30	0.4202
+fresh24 FR24-P (bins: train+val refs)	HiGO-R2 / Ontologue	30-50	0.4795
+fresh24 FR24-P (bins: train+val refs)	HiGO-R2 / Ontologue	50-80	0.5271
+fresh24 FR24-P (bins: train+val refs)	HiGO-R2 / Ontologue	80-95	0.5135
+fresh24 FR24-P (bins: train+val refs)	HiGO-R2 / Ontologue	95-99.9	0.5175
+fresh24 FR24-P (bins: train+val refs)	HiGO-R2 / Ontologue	100	0.5732
+fresh24 FR24-P (bins: train+val refs)	GO-GPT ten-sample	no_hit	0.3846
+fresh24 FR24-P (bins: train+val refs)	GO-GPT ten-sample	<30	0.4249
+fresh24 FR24-P (bins: train+val refs)	GO-GPT ten-sample	30-50	0.4857
+fresh24 FR24-P (bins: train+val refs)	GO-GPT ten-sample	50-80	0.5082
+fresh24 FR24-P (bins: train+val refs)	GO-GPT ten-sample	80-95	0.4718
+fresh24 FR24-P (bins: train+val refs)	GO-GPT ten-sample	95-99.9	0.4577
+fresh24 FR24-P (bins: train+val refs)	GO-GPT ten-sample	100	0.3834
+fresh24 FR24-P (bins: train+val refs)	BLAST-KNN (train refs)	no_hit	0.0
+fresh24 FR24-P (bins: train+val refs)	BLAST-KNN (train refs)	<30	0.3153
+fresh24 FR24-P (bins: train+val refs)	BLAST-KNN (train refs)	30-50	0.3637
+fresh24 FR24-P (bins: train+val refs)	BLAST-KNN (train refs)	50-80	0.4304
+fresh24 FR24-P (bins: train+val refs)	BLAST-KNN (train refs)	80-95	0.4525
+fresh24 FR24-P (bins: train+val refs)	BLAST-KNN (train refs)	95-99.9	0.4583
+fresh24 FR24-P (bins: train+val refs)	BLAST-KNN (train refs)	100	0.516
+fresh24 FR24-P (bins: train+val refs)	SPROF-GO	no_hit	0.4536
+fresh24 FR24-P (bins: train+val refs)	SPROF-GO	<30	0.4878
+fresh24 FR24-P (bins: train+val refs)	SPROF-GO	30-50	0.5317
+fresh24 FR24-P (bins: train+val refs)	SPROF-GO	50-80	0.558
+fresh24 FR24-P (bins: train+val refs)	SPROF-GO	80-95	0.5309
+fresh24 FR24-P (bins: train+val refs)	SPROF-GO	95-99.9	0.4686
+fresh24 FR24-P (bins: train+val refs)	SPROF-GO	100	0.4364
+fresh24 FR24-P (bins: train+val refs)	sharpened kNN prior (train+val)	no_hit	0.0
+fresh24 FR24-P (bins: train+val refs)	sharpened kNN prior (train+val)	<30	0.406
+fresh24 FR24-P (bins: train+val refs)	sharpened kNN prior (train+val)	30-50	0.4965
+fresh24 FR24-P (bins: train+val refs)	sharpened kNN prior (train+val)	50-80	0.5304
+fresh24 FR24-P (bins: train+val refs)	sharpened kNN prior (train+val)	80-95	0.5108
+fresh24 FR24-P (bins: train+val refs)	sharpened kNN prior (train+val)	95-99.9	0.5125
+fresh24 FR24-P (bins: train+val refs)	sharpened kNN prior (train+val)	100	0.5751
+fresh24 FR24-P (bins: train+val refs)	forecasting model F1	no_hit	0.3561
+fresh24 FR24-P (bins: train+val refs)	forecasting model F1	<30	0.4439
+fresh24 FR24-P (bins: train+val refs)	forecasting model F1	30-50	0.4928
+fresh24 FR24-P (bins: train+val refs)	forecasting model F1	50-80	0.544
+fresh24 FR24-P (bins: train+val refs)	forecasting model F1	80-95	0.5204
+fresh24 FR24-P (bins: train+val refs)	forecasting model F1	95-99.9	0.4938
+fresh24 FR24-P (bins: train+val refs)	forecasting model F1	100	0.5074
