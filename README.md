@@ -115,6 +115,32 @@ within each bin (`runs/compare_paper/per_bin.tsv`):
 - **BioReason-Pro RL reproduces the paper.** Its S6 scores are within 0.002 of Table S8 in every aspect, and it
   scores the same as its own input, the authors' GO-GPT predictions.
 
+### Fresh benchmark (fresh24): annotations added after 2024-02
+
+`data/fresh24/` (built by `src/cafa6/build_fresh24.py`; registration and look log in `runs/fresh24_looks.md`):
+experimental annotations added after 2024-02-29 and absent from GOA release 219, for proteins disjoint from every
+GO-GPT split and TV v2. Primary set FR24-P: 11,231 no-knowledge proteins (the Human Protein Atlas bulk load excluded);
+only 12% have a train+val relative at >= 95% identity and 20% have no hit.
+
+| FR24-P | IA-weighted Fmax mean | S-min mean |
+|---|---|---|
+| SPROF-GO | 0.515 | 11.95 |
+| forecasting model F1 (research, look #2) | 0.487 | 12.64 |
+| HiGO-R2 / Ontologue | 0.479 | 12.65 |
+| GO-GPT ten-sample | 0.468 | 12.53 |
+| DeepGOPlus 1.0.10 | 0.466 | 12.95 |
+| GO-GPT beam | 0.459 | 14.46 |
+| kNN prior alone | 0.458 | 12.55 |
+| DIAMONDScore | 0.456 | 12.45 |
+| ProteInfer (5 models) | 0.453 | 13.64 |
+
+- Ontologue minus GO-GPT ten-sample: +0.012 [+0.007, +0.017]; minus SPROF-GO: -0.035 [-0.040, -0.030] (Holm p 0.015).
+  SPROF-GO is ahead in every identity bin below 95%; Ontologue leads at 95% and above.
+- Every method built on GO-GPT's training data drops by 0.12-0.33 from the GO-GPT test; the external tools barely
+  change. The GO-GPT test rewards close-homologue transfer much more than fresh data does.
+- The forecasting model (training on "labels gained after T", `src/cafa6/forecast_train.py`, data `data/forecast/`)
+  is +0.008 [+0.004, +0.012] over Ontologue, with gains below 95% identity and losses above (`runs/fresh24_look2/`).
+
 ## Repository map
 
 Run everything from `cafa6/` with `PYTHONPATH=src` and the project interpreter `../bin/python`.
