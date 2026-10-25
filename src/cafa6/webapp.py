@@ -181,7 +181,7 @@ def predictor() -> Predictor:
 
 
 NAV = f"""<nav><a class="logo" href="/">{BRAND}<b>.</b></a><div class="links"><a href="/#what">Background</a><a href="/#how">How it works</a>
-<a href="/#scores">Scores</a><a href="/#results">Results</a><a href="/evaluation">Full evaluation</a><a href="/#limits">Reliability</a><a href="/#run">Run it</a></div></nav>"""
+<a href="/#scores">Scores</a><a href="/#results">Results</a><a href="/#fresh">Fresh data</a><a href="/evaluation">Full evaluation</a><a href="/#limits">Reliability</a><a href="/#run">Run it</a></div></nav>"""
 
 FOOTER = ""
 
@@ -376,8 +376,9 @@ and makes sure the result is consistent with the hierarchy of the ontology.</p>
 <section class="block" id="tldr" style="padding-bottom:0"><div class="tldr"><b>TLDR:</b> <em>{BRAND} predicts Gene
 Ontology (GO) terms from a single protein sequence by combining annotation transfer from similar proteins with
 scores from a frozen ESM-2 protein language model, and its output never contradicts the GO hierarchy. On a temporal
-benchmark of 8,630 proteins it scores higher than every published method we could compare fairly, including
-GO-GPT, BioReason-Pro, SPROF-GO and DeepGOPlus. However, most of that accuracy comes from the homology step, and for proteins without a close match
+benchmark of 8,630 proteins (GO-GPT's own test) it scores higher than every published method we could compare
+fairly, including GO-GPT and BioReason-Pro. On a fresher benchmark of 11,231 proteins annotated after 2024, which
+has far fewer close relatives, it still beats GO-GPT but SPROF-GO scores higher. However, most of that accuracy comes from the homology step, and for proteins without a close match
 in the reference set the predictions are much weaker, so caution is recommended there. Read on to see how it works
 and what the scores mean, and then try it on your favourite protein!</em></div></section>
 <section class="block" id="what"><div class="eyebrow">Background</div>
@@ -470,6 +471,36 @@ A plain BLAST best hit with the same references is also close (+0.009 for {BRAND
 So the margin over GO-GPT comes mainly from how the homology evidence is used, not from the language-model branch.</p>
 <p>IA-weighted Fmax by ontology: <b>molecular function 0.738</b>, <b>biological process 0.658</b>,
 <b>cellular component 0.758</b>.</p><p><a class="cta ghost" style="margin-left:0" href="/evaluation">See the full evaluation</a></p></div></div></section>
+<section class="block soft" id="fresh"><div class="eyebrow">Results on fresh data</div>
+<h2>What happens on proteins annotated after 2024?</h2>
+<p class="sub">The benchmark above is dominated by proteins with a near-identical annotated relative. To check how
+the ranking holds up, we built a second benchmark nobody had tuned on: 11,231 proteins that received their first
+experimental annotations in an ontology after February 2024 (checked against the archived 2024 annotation release),
+none of them in any training or validation set. Only 12% have a relative at 95% identity or more, and 20% have
+none at all. Every method below was run once, frozen, with the scoring fixed before any result existed.</p>
+<div class="versus"><div><table class="vtable">
+<tr><th>Fresh benchmark, 11,231 proteins</th><th>IA-weighted Fmax</th><th>S-min</th></tr>
+<tr><td class="us">SPROF-GO (2023)</td><td class="us">0.515</td><td class="us">11.95</td></tr>
+<tr><td style="color:#7d8a8e">Forecasting model (research, not served)<sup>&sect;</sup></td><td style="color:#7d8a8e">0.487</td><td style="color:#7d8a8e">12.64</td></tr>
+<tr class="hl"><td class="us">{BRAND}</td><td>0.479</td><td>12.65</td></tr>
+<tr><td>GO-GPT, ten samples</td><td>0.468</td><td>12.53</td></tr>
+<tr><td>DeepGOPlus (2019)</td><td>0.466</td><td>12.95</td></tr>
+<tr><td>GO-GPT, released beam</td><td>0.459</td><td>14.46</td></tr>
+<tr><td>Step 1a alone (homology transfer)</td><td>0.458</td><td>12.55</td></tr>
+<tr><td>DIAMONDScore</td><td>0.456</td><td>12.45</td></tr>
+<tr><td>ProteInfer, 5-model ensemble (2023)</td><td>0.453</td><td>13.64</td></tr>
+<tr><td>BLAST best hit, same references</td><td>0.375</td><td>13.58</td></tr>
+<tr><td>DeepFRI, sequence model (2021)</td><td>0.270</td><td>15.16</td></tr>
+<tr><td>Naive (term frequency)</td><td>0.230</td><td>14.65</td></tr></table>
+<p class="hint" style="margin-top:10px"><sup>&sect;</sup> A version of {BRAND} trained to forecast which annotations a
+protein will gain next, rather than to reproduce its current ones. It is better than {BRAND} for proteins below 95%
+identity and worse above it. It is not yet the model behind this website.</p></div>
+<div class="limits"><h3>What this tells you</h3>
+<p>{BRAND} still beats GO-GPT on fresh data (+0.012, 95% interval +0.007 to +0.017), but every method built on GO-GPT's
+training data drops sharply (from about 0.70 to about 0.47), because much of the first benchmark rewarded copying
+near-identical relatives.</p><p><b>SPROF-GO is ahead in every identity group below 95%</b> (0.454 against 0.334 with
+no relative at all). For proteins without close annotated relatives, it is currently the better choice; {BRAND} is
+the better choice at 95% identity and above.</p></div></div></section>
 <section class="block soft" id="limits"><div class="eyebrow">When to trust a prediction</div>
 <h2>When should you trust a prediction?</h2>
 <div class="versus"><div class="sub" style="margin:0"><p style="margin-top:0">Most of the accuracy comes from
