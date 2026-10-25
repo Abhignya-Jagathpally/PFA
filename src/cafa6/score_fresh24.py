@@ -83,7 +83,11 @@ METHODS = [
     ("deepfri_cnn", "DeepFRI sequence CNN", ASPECTS),
     ("deepgose", "DeepGO-SE (MF, BP only)", ("MF", "BP")),
     ("bioreason_rl", "BioReason-Pro RL", ASPECTS),
+    ("forecast_F1_ens", "Forecasting model F1 (3-seed ensemble)", ASPECTS),
 ]
+# look #2 (runs/fresh24_looks.md, 2026-10-24 22:45): reference and comparison set
+LOOK2_REF = "forecast_F1_ens"
+LOOK2_COMPARE = ("ontologue", "ontologue_knn", "gogpt_sample10", "sprof_go")
 LABEL = {k: l for k, l, _ in METHODS}
 ASP_OF = {k: a for k, _, a in METHODS}
 # GO-GPT test rows of the same methods (runs/compare_paper/summary.tsv S3_all; components from runs/eval_suite)
@@ -157,8 +161,8 @@ def build_stats(sc: ks.Scorer, S: sp.csr_matrix) -> dict:
             gwt = np.ones(gm.sum()) if wn == "u" else o.ia[gcols[gm]]
             G = np.bincount(loc[grows[gm]], weights=gwt, minlength=nk)
             pos = wt > 0
-            C = np.bincount(rl[pos] * 100 + kq[pos], weights=wt[pos], minlength=nk * 100).reshape(nk, 100)
-            I = np.bincount(rl[pos] * 100 + kq[pos], weights=(wt * g)[pos], minlength=nk * 100).reshape(nk, 100)
+            C = np.bincount(rl[pos] * 100 + kq[pos], weights=wt[pos], minlength=nk * 100).reshape(nk, 100).astype(np.float64)
+            I = np.bincount(rl[pos] * 100 + kq[pos], weights=(wt * g)[pos], minlength=nk * 100).reshape(nk, 100).astype(np.float64)
             W = np.cumsum(C[:, ::-1], axis=1)[:, ::-1][:, 1:]
             T = np.cumsum(I[:, ::-1], axis=1)[:, ::-1][:, 1:]
             has = W > 0
@@ -265,7 +269,11 @@ def main():
     ap.add_argument("--boot-reps", type=int, default=B_REPS)
     ap.add_argument("--sets", default=",".join(SETS))
     ap.add_argument("--out", default=str(OUT))
+    ap.add_argument("--look2", action="store_true", help="registered look #2: forecasting model vs 4 methods")
     a = ap.parse_args()
+    global REF
+    if a.look2:
+        REF = LOOK2_REF
     out = __import__("pathlib").Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     onto = {"gogpt": ks.Ontology()}
@@ -273,6 +281,10 @@ def main():
     prot = pd.read_csv(FRESH / "proteins.tsv", sep="\t").set_index("accession")
     gts = ground_truth()
     avail = [k for k, _, _ in METHODS if (PREDS / f"{k}.npz").exists()]
+    if a.look2:
+        avail = [k for k in (LOOK2_REF,) + LOOK2_COMPARE if k in avail]
+    else:
+        avail = [k for k in avail if k != LOOK2_REF]
     log(f"methods with predictions: {avail}")
     raw = {}
     srows, brows, orows, prows = [], [], [], []

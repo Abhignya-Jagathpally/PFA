@@ -1,0 +1,49 @@
+set	comparison	method	label	metric	aspect	diff	ci_lo	ci_hi	p_perm	p_holm	family_size
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Fmax_w	MF	0.0209496	0.013426	0.0286277	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Fmax	MF	0.0318475	0.0253935	0.0377371	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Smin_w	MF	-0.490513	-0.629642	-0.337864	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Fmax_w	BP	-0.0122239	-0.0192008	-0.00520809	0.00059994	0.00839916	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Fmax	BP	0.010974	0.00450442	0.0177939	0.00049995	0.0079992	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Smin_w	BP	0.366041	0.172909	0.56874	0.00019998	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Fmax_w	CC	0.0151615	0.00831463	0.0209383	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Fmax	CC	-0.0089709	-0.0135647	-0.00449484	0.00019998	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Smin_w	CC	0.0936002	0.00585164	0.173528	0.0205979	0.247175	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Fmax_w	mean	0.00796238	0.00387036	0.0120185	0.00049995	0.0079992	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Fmax	mean	0.0112835	0.0077697	0.0145329	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue	ontologue	Ontologue (served predictor)	Smin_w	mean	-0.0102905	-0.0995602	0.0741265	0.823718	1	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax_w	MF	-0.00886175	-0.0156822	-0.00115133	0.0244976	0.247175	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax	MF	0.0163995	0.00977428	0.0218936	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Smin_w	MF	0.187666	0.0671689	0.32294	0.00579942	0.0753925	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax_w	BP	0.00806799	0.00109002	0.0146027	0.0219978	0.247175	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax	BP	0.0242335	0.0173457	0.0306966	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Smin_w	BP	0.166082	-0.0346694	0.369601	0.0648935	0.39756	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax_w	CC	0.0897241	0.0808609	0.0980274	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax	CC	0.116533	0.109525	0.123725	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Smin_w	CC	-0.0876547	-0.167114	-0.0104617	0.0414959	0.331967	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax_w	mean	0.0296434	0.0247112	0.0338797	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax	mean	0.0523887	0.0481185	0.0558846	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Smin_w	mean	0.0886978	0.0165351	0.178421	0.030497	0.274473	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax_w	MF	0.0687858	0.0586807	0.0794694	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax	MF	0.0387367	0.0306582	0.0464667	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Smin_w	MF	-0.759951	-0.933374	-0.587078	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax_w	BP	0.0180793	0.00938844	0.0265585	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax	BP	0.00590333	-0.00120603	0.0137465	0.170983	0.683932	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Smin_w	BP	0.731108	0.45837	1.01135	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax_w	CC	-0.0283959	-0.0358865	-0.0200323	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax	CC	-0.0354604	-0.0409756	-0.0297823	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Smin_w	CC	0.360407	0.258984	0.459654	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax_w	mean	0.0194898	0.0144213	0.0249077	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax	mean	0.00305987	-0.0010383	0.00733661	0.20078	0.683932	48
+FR24-P	forecast_F1_ens - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Smin_w	mean	0.110521	-0.00561888	0.22044	0.0567943	0.39756	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Fmax_w	MF	-0.00975467	-0.0195207	0.000435488	0.0572943	0.39756	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Fmax	MF	-0.0257366	-0.0333581	-0.0180453	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Smin_w	MF	-0.0163632	-0.195323	0.155004	0.854215	1	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Fmax_w	BP	-0.0224407	-0.0294322	-0.0150178	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Fmax	BP	-0.0123657	-0.0197978	-0.00534119	0.00039996	0.00679932	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Smin_w	BP	1.34479	1.12802	1.54964	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Fmax_w	CC	-0.0498532	-0.0571431	-0.0426132	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Fmax	CC	-0.054158	-0.059578	-0.0490137	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Smin_w	CC	0.733867	0.651379	0.818428	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Fmax_w	mean	-0.0273495	-0.0321702	-0.0221911	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Fmax	mean	-0.0307534	-0.0347917	-0.026509	9.999e-05	0.00479952	48
+FR24-P	forecast_F1_ens - sprof_go	sprof_go	SPROF-GO	Smin_w	mean	0.687432	0.578702	0.788639	9.999e-05	0.00479952	48

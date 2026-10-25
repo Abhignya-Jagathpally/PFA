@@ -387,3 +387,13 @@ Look #4 was not used. The look-3 pipeline is final.
 |---|---|---|
 | Are partial-coverage hits a major error source at 50-95% identity (premise of residue-level alignment-conditioned retrieval)? | Low query coverage costs recall more than precision (kNN precision -0.08, recall -0.12 at <50% coverage); those proteins hold 19.4% of the band's false-positive IA mass for 24.2% of its weight; removing all their false positives gains at most +0.011 (Ontologue) | minor; DROP idea 2 as a precision fix; if revisited, test region-wise retrieval for recall with an oracle first |
 | Do abstention fallbacks help? | Abstention 1.6% MF, 3.2% BP, 0.2% CC of protein-aspect pairs; fallbacks +0.0008 and +0.0010 test-like (CIs exclude 0) | below the 0.003 bar; DROP as a work item |
+
+### 5.4 Update 2026-10-25: fresh24 looks #1 and #2 (`runs/fresh24/`, `runs/fresh24_look2/`)
+
+| observation | evidence (FR24-P, 11,231 no-knowledge proteins, annotations added after 2024-02) | consequence |
+|---|---|---|
+| SPROF-GO is the best method on fresh data | IA-weighted Fmax mean SPROF-GO 0.515, Ontologue 0.479 (diff -0.035 [-0.040, -0.030], Holm p 0.015); SPROF-GO ahead in every bin below 95% identity | the GO-GPT-test ranking does not hold on a benchmark with less close homology; Ontologue's claim is limited to homology-rich settings |
+| Methods built on GO-GPT's data drop most | Ontologue 0.718 -> 0.479, GO-GPT ten-sample 0.698 -> 0.468, BLAST-KNN 0.695 -> 0.372; external tools stable (SPROF-GO 0.541 -> 0.515, DeepGOPlus 0.428 -> 0.466) | the GO-GPT test overstates retrieval-based methods (54% of it at >=95% identity vs 12% of FR24-P) |
+| Ontologue still above GO-GPT | +0.012 [+0.007, +0.017] over ten-sample, +0.020 over beam (Holm p 0.015) | the comparison with GO-GPT holds on fresh data, with a smaller margin |
+| Forecasting training helps where retrieval is weak | F1_ens 0.487 vs Ontologue 0.479 (+0.008 [+0.004, +0.012], p_Holm 0.008); gains at no hit +0.022, <30 +0.024, 30-50 +0.013, 50-80 +0.017; losses at 95-99.9 -0.024, 100 -0.066 | KEEP idea 1 as the research direction; a model that uses F1 below ~95% identity and Ontologue above is the obvious next candidate, but it must be selected on forecast-valid / TV data, not on fresh24 |
+| Forecasting model still below SPROF-GO | -0.027 [-0.032, -0.022] | the language-model branch (35M) is the bottleneck for distant proteins; SPROF-GO uses ProtT5-XL; a larger encoder is the next lever |

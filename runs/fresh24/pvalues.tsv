@@ -1,0 +1,151 @@
+set	comparison	method	label	metric	aspect	diff	ci_lo	ci_hi	p_perm	p_holm	family_size
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax_w	MF	-0.0298113	-0.0369998	-0.0225381	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax	MF	-0.015448	-0.022282	-0.00958644	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Smin_w	MF	0.678179	0.524403	0.831613	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax_w	BP	0.0202919	0.0137643	0.0261649	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax	BP	0.0132595	0.00656677	0.019252	0.00019998	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Smin_w	BP	-0.199959	-0.380211	-0.00987583	0.0808919	0.566243	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax_w	CC	0.0745626	0.0669473	0.0822866	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax	CC	0.125504	0.118684	0.13246	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Smin_w	CC	-0.181255	-0.247941	-0.107176	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax_w	mean	0.0216811	0.0174835	0.02558	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Fmax	mean	0.0411052	0.0367759	0.0447263	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_knn	ontologue_knn	Ontologue step 1a: kNN prior (train+val refs)	Smin_w	mean	0.0989883	0.0185055	0.192894	0.0520948	0.468853	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Fmax_w	MF	0.108273	0.0991474	0.117417	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Fmax	MF	0.0923325	0.0846687	0.0995853	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Smin_w	MF	-1.41805	-1.58139	-1.26846	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Fmax_w	BP	0.0243991	0.0163995	0.0316315	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Fmax	BP	0.00849937	0.00087425	0.0151818	0.0147985	0.221978	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Smin_w	BP	-0.232868	-0.442631	-0.0484045	0.0383962	0.383962	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Fmax_w	CC	0.00818737	0.00136224	0.015686	0.0223978	0.313569	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Fmax	CC	0.0220292	0.017527	0.026947	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Smin_w	CC	-0.0385661	-0.115542	0.0444869	0.346565	1	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Fmax_w	mean	0.0469532	0.0420426	0.0520674	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Fmax	mean	0.0409537	0.0366829	0.044596	9.999e-05	0.0149985	150
+FR24-P	ontologue - ontologue_higo	ontologue_higo	Ontologue step 1b: HiGO head alone	Smin_w	mean	-0.563161	-0.66023	-0.479511	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Fmax_w	MF	0.0914431	0.0810033	0.103529	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Fmax	MF	0.100393	0.0912785	0.110383	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Smin_w	MF	-1.24189	-1.43218	-1.06223	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Fmax_w	BP	0.0803372	0.0715277	0.0892021	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Fmax	BP	0.0950607	0.0869176	0.103502	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Smin_w	BP	-1.16938	-1.3795	-0.991282	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Fmax_w	CC	0.151471	0.142891	0.161025	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Fmax	CC	0.223317	0.214611	0.231635	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Smin_w	CC	-0.589763	-0.676807	-0.502315	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Fmax_w	mean	0.107751	0.102481	0.114038	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Fmax	mean	0.13959	0.134348	0.145456	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn	blast_knn	BLAST-KNN (training refs)	Smin_w	mean	-1.00035	-1.10616	-0.9039	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Fmax_w	MF	0.0909101	0.0798544	0.102239	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Fmax	MF	0.0985546	0.0888803	0.108521	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Smin_w	MF	-1.17952	-1.36654	-1.00338	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Fmax_w	BP	0.0775363	0.0689256	0.0858897	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Fmax	BP	0.092258	0.08432	0.100146	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Smin_w	BP	-1.0362	-1.25285	-0.824184	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Fmax_w	CC	0.146142	0.137583	0.15596	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Fmax	CC	0.218229	0.209472	0.226558	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Smin_w	CC	-0.583962	-0.667484	-0.499988	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Fmax_w	mean	0.104863	0.0995703	0.110874	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Fmax	mean	0.136347	0.131164	0.141661	9.999e-05	0.0149985	150
+FR24-P	ontologue - blast_knn_trainval	blast_knn_trainval	BLAST-KNN (train+val refs)	Smin_w	mean	-0.933226	-1.03976	-0.826831	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Fmax_w	MF	-0.0478463	-0.056221	-0.0398951	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Fmax	MF	-0.0240761	-0.0307982	-0.0171754	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Smin_w	MF	0.864086	0.699521	1.00281	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Fmax_w	BP	0.0218889	0.015502	0.0287827	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Fmax	BP	0.014206	0.00753748	0.0210859	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Smin_w	BP	0.0405909	-0.187667	0.241091	0.752925	1	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Fmax_w	CC	0.0974617	0.0902157	0.105705	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Fmax	CC	0.15465	0.147609	0.161979	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Smin_w	CC	-0.288821	-0.367156	-0.215278	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Fmax_w	mean	0.0238348	0.019628	0.0283819	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Fmax	mean	0.04826	0.0439996	0.0523993	9.999e-05	0.0149985	150
+FR24-P	ontologue - diamondscore	diamondscore	DIAMONDScore	Smin_w	mean	0.205285	0.111268	0.292929	0.00029997	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Fmax_w	MF	0.378738	0.369352	0.388471	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Fmax	MF	0.294593	0.28617	0.30302	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Smin_w	MF	-4.47965	-4.6616	-4.31357	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Fmax_w	BP	0.120055	0.111867	0.128943	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Fmax	BP	0.0820894	0.0736807	0.0904306	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Smin_w	BP	-0.517881	-0.755251	-0.314527	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Fmax_w	CC	0.248301	0.23871	0.259727	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Fmax	CC	0.128663	0.122858	0.13495	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Smin_w	CC	-1.01214	-1.0985	-0.931535	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Fmax_w	mean	0.249031	0.243422	0.255301	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Fmax	mean	0.168449	0.163652	0.17327	9.999e-05	0.0149985	150
+FR24-P	ontologue - naive	naive	Naive	Smin_w	mean	-2.00322	-2.12044	-1.90282	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax_w	MF	0.0478362	0.038578	0.0577149	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax	MF	0.00688917	-0.00147617	0.0145655	0.09969	0.59814	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Smin_w	MF	-0.269438	-0.438411	-0.119387	0.00109989	0.0208979	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax_w	BP	0.0303032	0.0216584	0.0389306	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax	BP	-0.00507068	-0.0129135	0.00309579	0.205479	0.867413	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Smin_w	BP	0.365067	0.119048	0.592515	0.00339966	0.0543946	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax_w	CC	-0.0435573	-0.0506624	-0.0350167	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax	CC	-0.0264895	-0.0311137	-0.0214257	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Smin_w	CC	0.266806	0.159428	0.363965	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax_w	mean	0.0115274	0.00680698	0.0168415	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Fmax	mean	-0.00822367	-0.012576	-0.00416345	0.00029997	0.0149985	150
+FR24-P	ontologue - gogpt_sample10	gogpt_sample10	GO-GPT ten-sample	Smin_w	mean	0.120812	0.0081275	0.224341	0.0310969	0.373163	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Fmax_w	MF	0.0525337	0.0429484	0.0636923	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Fmax	MF	0.00961069	0.00154533	0.0179955	0.0228977	0.313569	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Smin_w	MF	-0.338993	-0.516048	-0.189112	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Fmax_w	BP	0.0402423	0.0320556	0.049203	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Fmax	BP	0.0343439	0.026699	0.0428181	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Smin_w	BP	-4.52874	-5.0705	-4.01653	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Fmax_w	CC	-0.0320287	-0.0395894	-0.0225906	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Fmax	CC	-0.0117672	-0.016876	-0.00617825	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Smin_w	CC	-0.56027	-0.711226	-0.422245	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Fmax_w	mean	0.0202491	0.0156184	0.025908	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Fmax	mean	0.0107291	0.00647525	0.0150669	9.999e-05	0.0149985	150
+FR24-P	ontologue - gogpt_beam	gogpt_beam	GO-GPT beam	Smin_w	mean	-1.80933	-2.007	-1.62992	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Fmax_w	MF	-0.0307043	-0.0390075	-0.0217094	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Fmax	MF	-0.0575841	-0.0649475	-0.0500961	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Smin_w	MF	0.47415	0.307552	0.628393	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Fmax_w	BP	-0.0102168	-0.0168565	-0.0031358	0.00209979	0.0377962	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Fmax	BP	-0.0233397	-0.0302187	-0.0165115	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Smin_w	BP	0.978751	0.769207	1.16764	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Fmax_w	CC	-0.0650146	-0.0720497	-0.0569997	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Fmax	CC	-0.0451871	-0.0496754	-0.0405812	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Smin_w	CC	0.640267	0.563213	0.722389	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Fmax_w	mean	-0.0353119	-0.0398512	-0.0300757	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Fmax	mean	-0.042037	-0.0459917	-0.038046	9.999e-05	0.0149985	150
+FR24-P	ontologue - sprof_go	sprof_go	SPROF-GO	Smin_w	mean	0.697723	0.595373	0.789799	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Fmax_w	MF	-0.0514627	-0.0591183	-0.0441949	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Fmax	MF	-0.0416837	-0.0481331	-0.0351912	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Smin_w	MF	0.592851	0.422107	0.748357	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Fmax_w	BP	0.0062517	-0.00161149	0.0121497	0.0659934	0.527947	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Fmax	BP	-0.0397155	-0.0466925	-0.0334436	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Smin_w	BP	-0.79049	-1.02169	-0.559641	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Fmax_w	CC	0.0850745	0.0781691	0.0936575	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Fmax	CC	0.0650514	0.0599054	0.069749	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Smin_w	CC	-0.690686	-0.765803	-0.612579	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Fmax_w	mean	0.0132878	0.00903051	0.0177789	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Fmax	mean	-0.0054493	-0.00935292	-0.00189823	0.00289971	0.0492951	150
+FR24-P	ontologue - deepgoplus	deepgoplus	DeepGOPlus 1.0.10	Smin_w	mean	-0.296108	-0.400078	-0.1928	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Fmax_w	MF	-0.02131	-0.0325229	-0.0112459	0.00059994	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Fmax	MF	0.00116028	-0.00803065	0.00986787	0.805519	1	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Smin_w	MF	-1.5889	-1.84279	-1.33449	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Fmax_w	BP	0.0530293	0.0446198	0.0615999	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Fmax	BP	0.0224287	0.0144437	0.030571	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Smin_w	BP	-0.907488	-1.17151	-0.673985	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Fmax_w	CC	0.0475775	0.0391099	0.0568917	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Fmax	CC	0.0424487	0.0369114	0.048008	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Smin_w	CC	-0.459998	-0.57088	-0.350415	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Fmax_w	mean	0.0264323	0.0208886	0.032536	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Fmax	mean	0.0220125	0.0172155	0.0266158	9.999e-05	0.0149985	150
+FR24-P	ontologue - proteinfer_e5	proteinfer_e5	ProteInfer (5-model ensemble)	Smin_w	mean	-0.985463	-1.11335	-0.860885	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Fmax_w	MF	0.246102	0.234636	0.256471	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Fmax	MF	0.236527	0.226026	0.245982	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Smin_w	MF	-4.16015	-4.33634	-3.98378	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Fmax_w	BP	0.113237	0.105663	0.120929	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Fmax	BP	0.105942	0.0979954	0.113119	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Smin_w	BP	-2.04405	-2.28857	-1.81676	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Fmax_w	CC	0.268232	0.259731	0.277419	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Fmax	CC	0.228092	0.221466	0.234778	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Smin_w	CC	-1.32172	-1.41639	-1.22767	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Fmax_w	mean	0.20919	0.203695	0.215032	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Fmax	mean	0.190187	0.184938	0.194906	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepfri_cnn	deepfri_cnn	DeepFRI sequence CNN	Smin_w	mean	-2.50864	-2.62747	-2.39418	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgose	deepgose	DeepGO-SE (MF, BP only)	Fmax_w	MF	0.0221563	0.0121901	0.0304319	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgose	deepgose	DeepGO-SE (MF, BP only)	Fmax	MF	-0.00841185	-0.0163401	-0.00128561	0.0342966	0.377262	150
+FR24-P	ontologue - deepgose	deepgose	DeepGO-SE (MF, BP only)	Smin_w	MF	-0.348832	-0.516943	-0.181281	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgose	deepgose	DeepGO-SE (MF, BP only)	Fmax_w	BP	0.0275687	0.0195091	0.0349528	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgose	deepgose	DeepGO-SE (MF, BP only)	Fmax	BP	0.0146026	0.00662316	0.0213487	9.999e-05	0.0149985	150
+FR24-P	ontologue - deepgose	deepgose	DeepGO-SE (MF, BP only)	Smin_w	BP	-0.153351	-0.370768	0.0469979	0.173483	0.867413	150
