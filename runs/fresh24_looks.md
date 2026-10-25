@@ -29,3 +29,14 @@ train/val/test and TV v2. Every entry below is written before the scores it desc
   - **Look budget for fresh24:** look #1 is this single scoring of all frozen methods at once (descriptive; it
     selects nothing). At most three further looks, each registered here beforehand, for new models (for example the
     forecasting-trained model); model selection never uses fresh24.
+- 2026-10-24 22:45:00 | REGISTRATION of look #2, before any forecasting-model prediction on fresh24 exists and before look #1 is closed.
+  - **Model:** F1_ens, the logit mean of the three forecasting-model seeds runs/forecast/F1_s{0,1,2} (kept by the
+    2026-10-19 19:15:00 rule in runs/test_looks.md: A-valid no-knowledge F1 0.4907 vs kNN 0.4668 vs F0 0.4196, all
+    three seeds positive; the A-valid set is small, MF/BP/CC 32/55/35 rows, so the seed-ensemble interval against kNN,
+    [-0.017, +0.088], includes zero). Inputs on fresh24 exactly as at training: no input terms (no-knowledge rows),
+    kNN prior from the served train+val references (labels of 2022-11), same vocabulary pass-through.
+  - **Comparisons on FR24-P** (same scorer, sets and statistics as look #1): F1_ens minus Ontologue (served), minus
+    Ontologue step 1a (kNN prior), minus GO-GPT ten-sample, minus SPROF-GO; Holm over {IA-weighted Fmax, Fmax, S-min} x
+    {MF, BP, CC, mean} x these 4 comparisons. Secondary: identity bins, organism groups, the secondary sets of look #1.
+  - **Pre-stated expectation:** F1_ens - Ontologue >= 0 on FR24-P IA-weighted Fmax mean, with the gain concentrated
+    below 50% identity. Whatever the outcome, no further model is selected on fresh24.
